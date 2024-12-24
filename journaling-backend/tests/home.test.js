@@ -71,31 +71,6 @@ describe('API Tests', () => {
         expect(response.body.error).toBe('Error adding user.');
     });
 
-    // test('POST /add-user - User ID already exists', async () => {
-    //     // Mock the database's `get` method to simulate that the user already exists
-    //     mockDatabase.addUser.mockImplementation(async (userID, creationDate, name, email) => {
-    //         // Simulating that userID already exists
-    //         if (userID === 'user123') {
-    //             return { success: false, message: 'User ID already exists' };
-    //         }
-
-    //         // Otherwise proceed with adding the user (simulated)
-    //         return { success: true, message: 'User added successfully' };
-    //     });
-
-    //     const response = await request(app)
-    //         .post('/add-user')
-    //         .send({
-    //             userID: 'user123', // Simulated existing user ID
-    //             name: 'John Doe',
-    //             email: 'john@example.com',
-    //         });
-
-    //     expect(response.status).toBe(500); // You can change this to 400 or 409 for conflict
-    //     expect(response.body.error).toBe('User ID already exists');
-    // });
-
-
 
     test('POST /add-user - User ID already exists', async () => {
         // Mock the database's `get` method to simulate that the user already exists
@@ -117,7 +92,7 @@ describe('API Tests', () => {
                 email: 'john@example.com',
             });
     
-        expect(response.status).toBe(500); // You can change this to 400 or 409 for conflict
+        expect(response.status).toBe(500); // can change this to 400 or 409 for conflict
         expect(response.body.error).toBe('User ID already exists');
     });
     
