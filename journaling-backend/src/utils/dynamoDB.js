@@ -14,13 +14,6 @@ const {
     ScanCommand }  = require('@aws-sdk/lib-dynamodb')
 
 
-//     if (!process.env.AWS_ACCESS_KEY_ID || !process.env.AWS_SECRET_ACCESS_KEY || !process.env.AWS_REGION) {
-//     console.error('AWS credentials are not properly configured in environment variables');
-//     console.log('AWS_ACCESS_KEY_ID:', process.env.AWS_ACCESS_KEY_ID ? 'Set' : 'Not Set');
-//     console.log('AWS_SECRET_ACCESS_KEY:', process.env.AWS_SECRET_ACCESS_KEY ? 'Set' : 'Not Set');
-//     console.log('AWS_REGION:', process.env.AWS_REGION ? 'Set' : 'Not Set');
-//     process.exit(1);
-// }
 const { DescribeTableCommand } = require("@aws-sdk/client-dynamodb");
 
 const client = new DynamoDBClient({
@@ -47,34 +40,7 @@ async function describeTable() {
     }
 }
 
-// Call this before your other operations
 describeTable();
-// initial dynamodb client
-
-
-// // async function testCredentials() {
-// //     console.log('Testing AWS credentials...');
-// //     console.log('Region:', process.env.AWS_REGION);
-// //     console.log('Access Key ID:', process.env.AWS_ACCESS_KEY_ID ? '****' + process.env.AWS_ACCESS_KEY_ID.slice(-4) : 'Not Set');
-// //     console.log('Secret Access Key:', process.env.AWS_SECRET_ACCESS_KEY ? '****' + process.env.AWS_SECRET_ACCESS_KEY.slice(-4) : 'Not Set');
-    
-// //     try {
-// //         const command = new ScanCommand({
-// //             TableName: 'Users',
-// //             Limit: 1
-// //         });
-        
-// //         const response = await client.send(command);
-// //         console.log('Credentials are valid and working!');
-// //     } catch (error) {
-// //         console.error('Credential test failed:', error.message);
-// //         if (error.name === 'AccessDeniedException') {
-// //             console.error('Authentication failed. Please check your credentials.');
-// //         }
-// //     }
-// // }
-
-// // testCredentials();
 
 
 const docClient = DynamoDBDocumentClient.from(client);
@@ -92,17 +58,6 @@ async function addUser(userID, name, email) {
         TableName: "Users",
         Item: item
     });
-    // const command = new PutCommand({
-    //     TableName: 'Users',
-    //     Item: {
-    //         UserID: String(userID),
-    //         Name: String(name),
-    //         Email: String(email),
-    //         createdAt: new Date().toISOString()
-    //     }
-
-
-    // });
 
     try {
         const response = await docClient.send(command);
@@ -143,22 +98,7 @@ async function getUser(userID) {
     }
 
 
-    // const command = new GetCommand({
-    //     TableName: 'Users',
-    //     Key: {
-    //         UserID: userID
-    //     }
-    // });
-
-    // try {
-    //     const response = await docClient.send(command);
-    //     console.log("User retrieved successfully");
-    //     return response.Item;
-    // }
-    // catch(error) {
-    //     console.error("Error getting user: ", error);
-    //     throw error;
-    // }
+ 
 }
 
 // async function updateUser(userID, updateData) {
@@ -207,44 +147,6 @@ async function getUser(userID) {
 // }
 
 
-
-
-
-
-// // // test connection
-// // async function testConnection() {
-// //     try {
-// //         const command = new ScanCommand({
-// //             TableName: 'Users'
-// //         });
-
-// //         await docClient.send(command);
-// //         console.log("Connection successful. Credentials are working");
-// //     } catch(error) {
-// //         console.error('Connection test failed:', error.message);
-// //         if(error.name === 'AccessDeniedException') {
-// //             console.error('Authentication failed. Check credentials');
-// //         }
-// //     }
-// // }
-
-// // testConnection();
-
-
-// async function main() {
-//     try {
-//         // Test adding a user
-//         await addUser("desola", "Desola Fujah", "desola@example.com");
-        
-//         // Test getting the user
-//         const user = await getUser("desola");
-//         console.log("Retrieved user:", user);
-//     } catch (error) {
-//         console.error("Error in main:", error);
-//     }
-// }
-
-// main();
 
 
 async function main() {
