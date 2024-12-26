@@ -27,22 +27,6 @@ class UserManager {
         this.tableName = "Dosers";
     }
 
-    // describe the table
-    async describeTable() {
-        const command = new DescribeTableCommand({
-            TableName: "Dosers"
-        });
-        
-        try {
-            const response = await this.client.send(command);
-            console.log("Table Description:", response.Table);
-            return response.Table;
-        } catch (error) {
-            console.error("Error describing table:", error);
-            throw error;
-        }
-    }
-
     // add a new user
     async addUser(userData) {
         const item = {
@@ -61,7 +45,6 @@ class UserManager {
 
         try {
             await this.docClient.send(command);
-            // console.log("User added successfully", item);
             return { success: true, message: 'User added successfully'};
         } catch (error) {
             console.error("Error adding user: ", error);
@@ -97,33 +80,46 @@ class UserManager {
         }
     }
 
-    // update a user
     async updateUser(userID, updateData) {
+        // build the update expression and attribute values dynamically
+        let updateExpression = 'SET';
+        let expressionAttributeNames = {};
+        let expressionAttributeValues = {};
+        
+        // loop each fields
+        Object.entries(updateData).forEach(([key, value], index) => {
+            // first iteration
+            const attributeName = `#attr${index}`;
+            const attributeValue = `:val${index}`;
+            
+            // if it's the first item, add space after SETting
+            // if not, add comma before the new ting
+            updateExpression += `${index === 0 ? ' ' : ', '}${attributeName} = ${attributeValue}`;
+            expressionAttributeNames[attributeName] = key;
+            expressionAttributeValues[attributeValue] = value;
+        });
+    
         const command = new UpdateCommand({
             TableName: this.tableName,
-            Key: {  UserID: String(userID)} ,
-            UpdateExpression: 'set #name = :n, #email = :e',
-            ExpressionAttributeNames: {
-                '#name': Name,
-                "#email": Email
+            Key: {
+                UserID: String(userID)
             },
-            ExpressionAttributeValues: {
-                ':n': updateData.name,
-                ':e': updateData.email
-            },
-            ReturnValues: 'UPDATED_NEW'
-            
+            UpdateExpression: updateExpression,
+            ExpressionAttributeNames: expressionAttributeNames,
+            ExpressionAttributeValues: expressionAttributeValues,
+            ReturnValues: 'ALL_NEW'  // Returns all attributes of the updated item
         });
-
+    
         try {
             const response = await this.docClient.send(command);
-            console.log('User updated successfully: ', userID);
+            console.log('User updated successfully:', userID);
             return response.Attributes;
         } catch(error) {
             console.error("Error updating user: ", error);
             throw error;
         }
     }
+    
 
     // delete a user
     async deleteUser(userID) {
@@ -132,13 +128,27 @@ class UserManager {
             Key:{
                 // TODO: should i switch this from string to like enum or something???
                 UserID: String(userID)
-            }
+            },
+            ReturnValues: "ALL_OLD"
         });
 
         try {
-            await this.docClient.send(command);
-            console.log("User deleted successfully", userID);
-            return { success: true, message: 'User deleted successfully'};
+            const response = await this.docClient.send(command);
+
+            if(response.Attributes) {
+                console.log(`Successfully deleted user ${userID}`);
+                return {
+                    success: true,
+                    message: 'User deleted successfully',
+                    deletedUser: response.Attributes
+                };
+            } else {
+                console.log(`No user found with ID: ${userID}`);
+                return {
+                    success: false, 
+                    message: 'No user found with this userID'
+                };
+            }
         } catch(error) {
             console.error("Error deleting user: ", error);
             throw error;
@@ -154,7 +164,7 @@ module.exports = UserManager;
 async function main() {
     const db = new UserManager();
     try {
-        await db.describeTable();
+        // await db.describeTable();
 
         // create new user
         const user = {
@@ -167,7 +177,7 @@ async function main() {
         console.log('Adding user: ', user);
         await db.addUser(user);
 
-        await new Promise(resolve => setTimeout(resolve, 120000)); // wait a bit to ensure consistency
+        await new Promise(resolve => setTimeout(resolve, 1000)); // wait a bit to ensure consistency
 
         // try to get the same user
         console.log("Attempting to get user with ID: desola");
@@ -178,6 +188,26 @@ async function main() {
         } else {
             console.log("User not found");
         }
+
+        // try to update user information
+        // for rn, wont be able to update userID
+        const updated = await db.updateUser("desola", {
+            Name: "updatedDesola",
+            Email: "updateDes@dd.com"
+        });
+        console.log("updated user", updated);
+
+        const toDelete = await db.deleteUser("desola");
+        console.log("delete response", toDelete)
+
+        const verifyUser = await db.getUser("desola");
+        if(!verifyUser) {
+            console.log("User deleted successfully");
+        } else {
+            console.log('User not deleted')
+        }
+
+
     } catch(error) {
         console.error("Error: ", error);
     }
