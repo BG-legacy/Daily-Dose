@@ -3,7 +3,7 @@ const dotenv = require('dotenv');
 const envPath = path.resolve(__dirname, '../../../.env');
 const result = dotenv.config({ path: envPath });
 
-const { DynamoDBClient} = require('@aws-sdk/client-dynamodb');
+const { DynamoDBClient, DescribeTableCommand} = require('@aws-sdk/client-dynamodb');
 const {
     DynamoDBDocumentClient, 
     PutCommand, 
@@ -11,159 +11,177 @@ const {
     UpdateCommand, 
     DeleteCommand, 
     QueryCommand, 
-    ScanCommand }  = require('@aws-sdk/lib-dynamodb')
+    ScanCommand }  = require('@aws-sdk/lib-dynamodb');
 
 
-const { DescribeTableCommand } = require("@aws-sdk/client-dynamodb");
-
-const client = new DynamoDBClient({
-    region: process.env.AWS_REGION,
-    credentials: {
-        accessKeyId: process.env.AWS_ACCESS_KEY_ID,
-        secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY
+class UserManager {
+    constructor() {
+        this.client = new DynamoDBClient({
+            region: process.env.AWS_REGION,
+            credentials: {
+                accessKeyId: process.env.AWS_ACCESS_KEY_ID,
+                secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY
+            }
+        });
+        this.docClient = DynamoDBDocumentClient.from(this.client);
+        this.tableName = "Dosers";
     }
-});
 
-async function describeTable() {
-    const command = new DescribeTableCommand({
-        TableName: "Users"
-    });
-    
-    try {
-        const response = await client.send(command);
-        console.log("Table Key Schema:", response.Table.KeySchema);
-        console.log("Table Attributes:", response.Table.AttributeDefinitions);
-        return response.Table;
-    } catch (error) {
-        console.error("Error describing table:", error);
-        throw error;
-    }
-}
-
-describeTable();
-
-
-const docClient = DynamoDBDocumentClient.from(client);
-
-// add user 
-async function addUser(userID, name, email) {
-    const item = {
-        UserID: String(userID),  // Ensure UserID is a string
-        Name: String(name),
-        Email: String(email),
-        CreationDate: new Date().toISOString()
-    };
-
-    const command = new PutCommand({
-        TableName: "Users",
-        Item: item
-    });
-
-    try {
-        const response = await docClient.send(command);
-        console.log("User added successfully");
-    } 
-    catch(error) {
-        if (error.name === 'AccessDeniedException') {
-            console.error('Access Denied. Please check your IAM permissions.');
-            console.error('Required permissions: dynamodb:PutItem');
-            console.error('Table: Users');
-        } else if (error.name === 'ResourceNotFoundException') {
-            console.error('Table not found. Please check if the table exists.');
-        } else if (error.name === 'ValidationException') {
-            console.error('Validation error. Please check your input data.');
+    // describe the table
+    async describeTable() {
+        const command = new DescribeTableCommand({
+            TableName: "Dosers"
+        });
+        
+        try {
+            const response = await this.client.send(command);
+            console.log("Table Description:", response.Table);
+            return response.Table;
+        } catch (error) {
+            console.error("Error describing table:", error);
+            throw error;
         }
-        console.error("Error adding user: ", error);
-        throw error;
     }
-}
+
+    // add a new user
+    async addUser(userData) {
+        const item = {
+            UserID: String(userData.UserID),
+            Name: String(userData.Name),
+            Email: String(userData.Email),
+            CreationDate: userData.CreationDate || new Date().toISOString()
+        };
+
+        const command = new PutCommand({
+            TableName: this.tableName,
+            Item: item,
+            ReturnValues: "ALL_OLD"
+        });
 
 
-// get user
-async function getUser(userID) {
-    const command = new GetCommand({
-        TableName: "Users",
-        Key: {
-            UserID: String(userID),
-            CreationDate: new Date().toISOString()
+        try {
+            await this.docClient.send(command);
+            // console.log("User added successfully", item);
+            return { success: true, message: 'User added successfully'};
+        } catch (error) {
+            console.error("Error adding user: ", error);
+            throw error;
         }
-    });
-
-    try {
-        const response = await docClient.send(command);
-        return response.Item;
-    } catch (error) {
-        console.error("Error in getUser:", error);
-        throw error;
     }
 
 
- 
+    // get a user by ID
+    async getUser(userID) {
+        console.log("Getting user with ID:", userID);
+
+        const command = new GetCommand({
+            TableName: this.tableName,
+            Key: {
+                UserID: String(userID)
+                
+            }
+        });
+
+        try {
+            const response = await this.docClient.send(command);
+
+            if(!response.Item) {
+                console.log("User not found:", userID);
+                return null;
+            }   
+
+            return response.Item;
+        } catch(error) {
+            console.error("Error in getUser:", error);
+            throw error;
+        }
+    }
+
+    // update a user
+    async updateUser(userID, updateData) {
+        const command = new UpdateCommand({
+            TableName: this.tableName,
+            Key: {  UserID: String(userID)} ,
+            UpdateExpression: 'set #name = :n, #email = :e',
+            ExpressionAttributeNames: {
+                '#name': Name,
+                "#email": Email
+            },
+            ExpressionAttributeValues: {
+                ':n': updateData.name,
+                ':e': updateData.email
+            },
+            ReturnValues: 'UPDATED_NEW'
+            
+        });
+
+        try {
+            const response = await this.docClient.send(command);
+            console.log('User updated successfully: ', userID);
+            return response.Attributes;
+        } catch(error) {
+            console.error("Error updating user: ", error);
+            throw error;
+        }
+    }
+
+    // delete a user
+    async deleteUser(userID) {
+        const command = new DeleteCommand({
+            TableName: this.tableName,
+            Key:{
+                // TODO: should i switch this from string to like enum or something???
+                UserID: String(userID)
+            }
+        });
+
+        try {
+            await this.docClient.send(command);
+            console.log("User deleted successfully", userID);
+            return { success: true, message: 'User deleted successfully'};
+        } catch(error) {
+            console.error("Error deleting user: ", error);
+            throw error;
+        }
+    }
 }
 
-// async function updateUser(userID, updateData) {
-//     const command = new UpdateCommand({
-//         TableName: 'Users',
-//         Key: {
-//             UserID: userID
-//         },
-//         UpdateExpression: 'set #name = :n, #email = :e',
-//         ExpressionAttributeNames: {
-//             '#name': 'Name',
-//             '#email': 'Email'
-//         },
-//         ExpressionAttributeValues: {
-//             ':n': updateData.name,
-//             ':e': updateData.email
-//         },
-//         ReturnValues: 'UPDATED_NEW'
-//     });
-
-//     try {
-//         const response = await docClient.send(client);
-//         return response.Attributes;
-//     } catch(error) {
-//         console.error("Error updating user: ", error);
-//         throw error;
-//     }
-// }
-
-
-// async function deleteUser(userID) {
-//     const command = new DeleteCommand({
-//         TableName: 'Users',
-//         Key: {
-//             UserID: userID
-//         }
-//     });
-
-//     try {
-//         await docClient.send(command);
-//         console.log("User deleted successfully");
-//     } catch(error) {
-//         console.error("Error deleting user: ", error);
-//         throw error;
-//     }
-// }
+module.exports = UserManager;
 
 
 
 
 async function main() {
+    const db = new UserManager();
     try {
+        await db.describeTable();
+
         // create new user
-        await addUser({
+        const user = {
             UserID: "desola",
             Name: "Desola",
-            Email: "dfujah@dd.com"
-        });
+            Email: "dfujah@dd.com",
+            CreationDate: new Date().toISOString()
+        };
 
-        // get user
-        const user = await getUser("desola");
-        console.log("Retrieved user: ", user);
+        console.log('Adding user: ', user);
+        await db.addUser(user);
+
+        await new Promise(resolve => setTimeout(resolve, 120000)); // wait a bit to ensure consistency
+
+        // try to get the same user
+        console.log("Attempting to get user with ID: desola");
+        const person = await db.getUser("desola");
+
+        if(person) {
+            console.log("Retrieved user: ", person);
+        } else {
+            console.log("User not found");
+        }
     } catch(error) {
         console.error("Error: ", error);
     }
 }
 
 main();
+
