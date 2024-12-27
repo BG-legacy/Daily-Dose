@@ -164,7 +164,7 @@ module.exports = UserManager;
 async function main() {
     const db = new UserManager();
     try {
-        // await db.describeTable();
+        
 
         // create new user
         const user = {
@@ -189,8 +189,6 @@ async function main() {
             console.log("User not found");
         }
 
-        // try to update user information
-        // for rn, wont be able to update userID
         const updated = await db.updateUser("desola", {
             Name: "updatedDesola",
             Email: "updateDes@dd.com"
