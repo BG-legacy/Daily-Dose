@@ -1,88 +1,254 @@
-require('dotenv').config(); // Load environment variables from a .env file
+import path from 'path';
+import { fileURLToPath } from 'url';
+import dotenv from 'dotenv';
+import OpenAI from 'openai';
 
-const OpenAI = require('openai'); // Import the OpenAI library
+const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
-// Initialize the OpenAI client with the API key from environment variables
+dotenv.config({ 
+  path: path.join(__dirname, '../../../journaling-backend/.env')
+});
+
 const openai = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY,
 });
 
-// Function to analyze a journal entry and provide insights
+/**
+ * Analyzes a journal entry to provide personalized insights
+ * @param {string} journalText - The journal entry text to analyze
+ * @returns {Promise<string>} Analysis including:
+ * - Inspirational quote related to the situation
+ * - Mental health tip
+ * - Actionable productivity suggestion
+ */
 const analyzeJournalEntry = async (journalText) => {
   try {
-    // Create a chat completion request to OpenAI
     const response = await openai.chat.completions.create({
       model: "gpt-4o", // Specify the model to use
       messages: [
         {
           role: "system",
-          content: "You are a supportive AI assistant that analyzes journal entries and provides personalized insights."
+          content: `You are an empathetic AI assistant specializing in journal analysis. 
+            Consider the writer's emotional state, personal context, and specific situations when providing advice.
+            Your responses should be supportive, non-judgmental, and tailored to the individual's needs.`
         },
         {
           role: "user",
-          content: `Analyze this journal entry and provide three elements:
-            1. An inspirational quote relevant to the content and tone
-            2. A mental health tip based on the sentiment
-            3. A productivity hack that could help the situation
+          content: `Analyze this journal entry and provide three personalized elements:
+            1. An inspirational quote that directly relates to the specific situation or emotion expressed
+            2. A practical mental health tip that addresses the specific challenges mentioned
+            3. A concrete, actionable productivity suggestion based on the context provided
+            
+            Please ensure all recommendations are specific to the situation, not generic advice.
             
             Journal entry: "${journalText}"`
         }
       ],
-      temperature: 0.7, // Set the randomness of the response
-      max_tokens: 500 // Limit the response length
+      temperature: 0.7,
+      max_tokens: 500
     });
 
-    // Return the content of the first choice from the response
     return response.choices[0].message.content;
   } catch (error) {
-    console.error('Error analyzing journal entry:', error); // Log any errors
-    throw new Error('Failed to analyze journal entry'); // Throw an error if the analysis fails
+    console.error('Error analyzing journal entry:', error);
+    throw new Error('Failed to analyze journal entry');
   }
 };
 
-// Function to analyze the sentiment of a journal entry
+/**
+ * Performs detailed sentiment analysis on journal entries
+ * @param {string} journalText - The journal entry text to analyze
+ * @returns {Promise<Object>} JSON object containing:
+ * - Main emotion with intensity and context
+ * - Secondary emotions
+ * - Sentiment score (-1 to 1)
+ * - Confidence score (0 to 1)
+ * - Emotional trends and patterns
+ */
 const analyzeSentiment = async (journalText) => {
   try {
-    // Create a chat completion request to OpenAI
     const response = await openai.chat.completions.create({
-      model: "gpt-4", // Specify the model to use
+      model: "gpt-4o",
       messages: [
         {
           role: "system",
-          content: "You are an AI that analyzes the emotional tone and sentiment of text. Provide a brief analysis."
+          content: `You are an AI specialized in advanced sentiment analysis and emotional intelligence.
+            Approach the analysis with:
+            1. Contextual Understanding: Consider cultural nuances, idioms, and personal expression styles
+            2. Temporal Analysis: Track emotional changes throughout the text
+            3. Intensity Recognition: Gauge the strength of expressed emotions
+            4. Multi-dimensional Analysis: Consider both explicit and implicit emotional cues
+            5. Behavioral Patterns: Identify recurring emotional themes or triggers`
         },
         {
           role: "user",
-          content: `Analyze the emotional tone and sentiment of this journal entry. Return a JSON object with 'mainEmotion' and 'sentimentScore' (-1 to 1).
-          
-          Journal entry: "${journalText}"`
+          content: `Perform a comprehensive sentiment analysis of this journal entry.
+            Return a JSON object with:
+            {
+              "mainEmotion": {
+                "name": "primary emotion detected",
+                "intensity": "scale 1-10",
+                "context": "brief explanation of why this emotion was identified"
+              },
+              "secondaryEmotions": [
+                {
+                  "name": "emotion name",
+                  "intensity": "scale 1-10",
+                  "context": "brief explanation"
+                }
+              ],
+              "sentimentScore": "scale from -1 to 1",
+              "confidenceScore": "scale from 0 to 1",
+              "emotionalTrends": {
+                "progression": "description of emotional flow",
+                "patterns": ["identified patterns"],
+                "triggers": ["identified emotional triggers"]
+              },
+              "recommendedFocus": "area for emotional growth or attention"
+            }
+            
+            Journal entry: "${journalText}"`
         }
       ],
-      temperature: 0.3, // Set the randomness of the response
-      max_tokens: 150, // Limit the response length
-      response_format: { type: "json_object" } // Specify the response format
+      temperature: 0.3,
+      max_tokens: 500, // Increased to accommodate more detailed analysis
+      response_format: { type: "json_object" }
     });
 
-    // Parse and return the JSON content of the first choice from the response
-    return JSON.parse(response.choices[0].message.content);
+    const analysis = JSON.parse(response.choices[0].message.content);
+    
+    // Add metadata for training purposes
+    return {
+      ...analysis,
+      _metadata: {
+        timestamp: new Date().toISOString(),
+        modelVersion: "gpt-4o",
+        analysisVersion: "2.0"
+      }
+    };
   } catch (error) {
-    console.error('Error analyzing sentiment:', error); // Log any errors
-    throw new Error('Failed to analyze sentiment'); // Throw an error if the sentiment analysis fails
+    console.error('Error analyzing sentiment:', error);
+    throw new Error('Failed to analyze sentiment');
   }
 };
 
-// Export the functions for use in other modules
-module.exports = {
-  analyzeJournalEntry,
-  analyzeSentiment
+/**
+ * Validates the structure and values of sentiment analysis results
+ * @param {Object} analysis - The sentiment analysis result to validate
+ * @returns {boolean} True if analysis meets all requirements
+ */
+const validateAnalysis = (analysis) => {
+  const requiredFields = [
+    'mainEmotion',
+    'secondaryEmotions',
+    'sentimentScore',
+    'confidenceScore',
+    'emotionalTrends'
+  ];
+
+  const isValid = requiredFields.every(field => field in analysis) &&
+    analysis.sentimentScore >= -1 && 
+    analysis.sentimentScore <= 1 &&
+    analysis.confidenceScore >= 0 && 
+    analysis.confidenceScore <= 1;
+
+  return isValid;
 };
 
-// Test the function with a sample journal entry
-(async () => {
+/**
+ * Collects and formats training data for model improvement
+ * @param {string} journalText - Original journal entry
+ * @param {Object} analysis - Analysis results
+ * @param {Object} humanValidation - Optional human validation data
+ * @returns {Promise<Object>} Formatted training example
+ */
+const collectTrainingData = async (journalText, analysis, humanValidation = null) => {
   try {
-    const result = await analyzeJournalEntry("Today was a challenging day, but I learned a lot.");
-    console.log("Journal Analysis Result:", result); // Log the result of the analysis
+    const trainingExample = {
+      messages: [
+        {
+          role: "system",
+          content: "You are an AI specialized in nuanced emotional analysis."
+        },
+        {
+          role: "user",
+          content: journalText
+        },
+        {
+          role: "assistant",
+          content: JSON.stringify(analysis)
+        }
+      ],
+      metadata: {
+        timestamp: new Date().toISOString(),
+        validationScore: humanValidation?.score,
+        validatorNotes: humanValidation?.notes,
+        modelVersion: "gpt-4o",
+        datasetVersion: "1.0"
+      }
+    };
+
+    // Here you would save to your training data storage
+    // await saveTrainingExample(trainingExample);
+    return trainingExample;
   } catch (error) {
-    console.error("Test Error:", error); // Log any errors during the test
+    console.error('Error collecting training data:', error);
+    throw new Error('Failed to collect training data');
   }
-})();
+};
+
+/**
+ * Enhanced version of analyzeSentiment that includes validation
+ * and optional training data collection
+ * @param {string} journalText - The journal entry to analyze
+ * @param {Object} options - Configuration options
+ * @returns {Promise<Object>} Validated sentiment analysis
+ */
+const analyzeSentimentWithValidation = async (journalText, options = {}) => {
+  const analysis = await analyzeSentiment(journalText);
+  
+  if (!validateAnalysis(analysis)) {
+    console.warn('Invalid analysis result detected');
+    // You might want to retry or handle invalid results
+  }
+
+  if (options.collectTraining) {
+    await collectTrainingData(journalText, analysis, options.humanValidation);
+  }
+
+  return analysis;
+};
+
+/**
+ * Test function to verify both analysis functions
+ * Uses a sample journal entry to test:
+ * 1. Journal analysis for insights
+ * 2. Sentiment analysis
+ */
+const testAnalysis = async () => {
+  try {
+    const testEntry = "Today was challenging. I had a big presentation at work and felt nervous, but I managed to get through it. My colleagues gave positive feedback, which made me feel proud, though I'm still processing the stress.";
+    
+    console.log("\n1. Testing Journal Analysis...");
+    const analysis = await analyzeJournalEntry(testEntry);
+    console.log("Input:", testEntry);
+    console.log("\nAnalysis:", analysis);
+
+    console.log("\n2. Testing Sentiment Analysis...");
+    const sentiment = await analyzeSentiment(testEntry);
+    console.log("\nSentiment Results:", JSON.stringify(sentiment, null, 2));
+
+  } catch (error) {
+    console.error("Test Error:", error);
+  }
+};
+
+// Run the test
+testAnalysis();
+
+// Export the main functions for use in other modules
+export {
+  analyzeJournalEntry,
+  analyzeSentiment,
+  analyzeSentimentWithValidation
+};
