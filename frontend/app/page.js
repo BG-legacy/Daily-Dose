@@ -14,7 +14,7 @@ import aboutImage from '../public/assets/media/canon.jpg';
 export default function Home() {
   return (
     <div className='tracking-tight'>
-      <header className='justify-between flex fixed container mx-auto left-0 right-0 items-center top-16 text-yellow-950 px-12 md:p-0 z-10'>
+      <header className='justify-between flex fixed container mx-auto left-0 right-0 items-center top-16 text-yellow-950 px-12 md:p-0 z-20'>
         <Link
           href={'/'}
           className='flex gap-2 items-center leading-snug font-extrabold'
