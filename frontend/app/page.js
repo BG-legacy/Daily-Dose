@@ -1,4 +1,6 @@
+'use client';
 import Image from 'next/image';
+import { useState, useEffect } from 'react';
 
 import happy from '../public/assets/brand/Happy.png';
 import Link from 'next/link';
@@ -8,10 +10,13 @@ import fire from '../public/assets/brand/Fire.png';
 import moods from '../public/assets/brand/Moods.png';
 import ai from '../public/assets/brand/AI.png';
 
-import heroImage from '../public/assets/media/snow.jpg';
 import aboutImage from '../public/assets/media/canon.jpg';
+import ImageRotator from '../components/ImageRotator';
 
 export default function Home() {
+  const [currentText, setCurrentText] = useState("Gloomy Days"); 
+  const [currentEmoticon, setCurrentEmoticon] = useState(sad);
+  
   return (
     <div className='tracking-tight'>
       <header className='justify-between flex fixed container mx-auto left-0 right-0 items-center top-16 text-yellow-950 px-12 md:p-0 z-20'>
@@ -36,15 +41,16 @@ export default function Home() {
       <main>
         <section className='grid w-full px-6 mt-6'>
           <div className='absolute left-0 right-0 top-0 bottom-0 overflow-x-hidden'>
+            {/* Emoticons */}
             <Image
               src={happy}
               alt='Daily Dose Happy Emoticon'
-              className='absolute -left-12 md:-left-20 top-48 md:top-60 w-36 h-36 md:w-52 md:h-52 rotate-[30deg]'
+              className='absolute -left-12 md:-left-20 top-48 md:top-60 w-36 h-36 md:w-52 md:h-52 rotate-[30deg] z-20'
             />
             <Image
               src={sad}
               alt='Daily Dose Sad Emoticon'
-              className='absolute -right-12 md:-right-48 top-72 w-32 h-32 md:w-96 md:h-96 -rotate-12'
+              className='absolute -right-12 md:-right-48 top-72 w-32 h-32 md:w-96 md:h-96 -rotate-12 z-20'
             />
           </div>
           <div className='col-end-1 row-end-1 z-10 w-full flex flex-col justify-end items-center gap-3 text-yellow-950 py-12'>
@@ -53,10 +59,10 @@ export default function Home() {
                 A <b>Daily Dose</b> of <b>Wellness</b> for
               </span>
               <span className='flex items-center gap-2 font-bold text-3xl'>
-                Gloomy Days{' '}
+                {currentText}
                 <Image
-                  alt='Daily Dose Sad Emoticon'
-                  src={sad}
+                  alt='Dynamic Mood Emoticon'
+                  src={currentEmoticon}
                   width={48}
                   height={48}
                 />
@@ -69,11 +75,7 @@ export default function Home() {
               Get Started
             </Link>
           </div>
-          <Image
-            src={heroImage}
-            alt=''
-            className='col-end-1 row-end-1 object-cover w-full rounded-2xl h-[600px]'
-          />
+          <ImageRotator setCurrentText={setCurrentText} setCurrentEmoticon={setCurrentEmoticon} /> {/*image rotator/flipper component */}
         </section>
         <section className='py-12 px-6 container mx-auto md:grid-cols-3 grid gap-6'>
           <div className='flex flex-col gap-3 px-6'>
