@@ -13,7 +13,7 @@ const {
     QueryCommand, 
     ScanCommand }  = require('@aws-sdk/lib-dynamodb');
 
-
+// dosers table
 class UserManager {
     constructor() {
         this.client = new DynamoDBClient({
@@ -29,6 +29,7 @@ class UserManager {
 
     // add a new user
     async addUser(userData) {
+        // user id would be the uID returned from firebase
         const item = {
             UserID: String(userData.UserID),
             Name: String(userData.Name),
@@ -45,10 +46,12 @@ class UserManager {
 
         try {
             await this.docClient.send(command);
-            return { success: true, message: 'User added successfully'};
+            console.log("User added successfully:", item.UserID); // undefined
         } catch (error) {
             console.error("Error adding user: ", error);
             throw error;
+            res.status(500).json({ message: error.message, code: 'ERROR_CODE' });
+
         }
     }
 
@@ -154,61 +157,112 @@ class UserManager {
             throw error;
         }
     }
+
+    async getUserByEmail(email) {
+        const command = new QueryCommand({
+            TableName: this.tableName,
+            IndexName: 'Email-index',
+            KeyConditionExpression: 'Email = :email',
+            ExpressionAttributeValues: {
+                ':email': email
+            }
+        });
+
+        try {
+            const response = await this.docClient.send(command);
+            if(response.Items && response.Items.length > 0) {
+                return response.Items[0];
+            } else {
+                console.log(`No user found with email: ${email}`);
+                return null;
+            }
+        } catch(error) {
+            console.error("Error getting user by email: ", error);
+            throw error;
+        }
+    }
 }
 
 module.exports = UserManager;
+
+// journals table (create in separate file)
+class JournalManager {
+    constructor() {
+        this.client = new DynamoDBClient({
+            region: process.env.AWS_REGION,
+            credentials: {
+                accessKeyId: process.env.AWS_ACCESS_KEY_ID,
+                secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY
+            }
+        });
+        this.docClient = DynamoDBDocumentClient.from(this.client);
+        this.tableName = "Journals";
+    }
+
+
+    // add journal entry to database
+
+    // get journal history for a user
+
+    // delete a journal entry
+
+    // should we allow updates? since the api is analyzing it
+    // just delete and start again
+
+
+};
+
+// module.exports = JournalManager;
 
 
 
 
 async function main() {
-    const db = new UserManager();
-    try {
-        
+    // const db = new UserManager();
+    // try {
+    //     // create new user
+    //     const user = {
+    //         UserID: "desola",
+    //         Name: "Desola",
+    //         Email: "dfujah@dd.com",
+    //         CreationDate: new Date().toISOString()
+    //     };
 
-        // create new user
-        const user = {
-            UserID: "desola",
-            Name: "Desola",
-            Email: "dfujah@dd.com",
-            CreationDate: new Date().toISOString()
-        };
+    //     console.log('Adding user: ', user);
+    //     await db.addUser(user);
 
-        console.log('Adding user: ', user);
-        await db.addUser(user);
+    //     await new Promise(resolve => setTimeout(resolve, 1000)); // wait a bit to ensure consistency
 
-        await new Promise(resolve => setTimeout(resolve, 1000)); // wait a bit to ensure consistency
+    //     // try to get the same user
+    //     console.log("Attempting to get user with ID: desola");
+    //     const person = await db.getUser("desola");
 
-        // try to get the same user
-        console.log("Attempting to get user with ID: desola");
-        const person = await db.getUser("desola");
+    //     if(person) {
+    //         console.log("Retrieved user: ", person);
+    //     } else {
+    //         console.log("User not found");
+    //     }
 
-        if(person) {
-            console.log("Retrieved user: ", person);
-        } else {
-            console.log("User not found");
-        }
+    //     const updated = await db.updateUser("desola", {
+    //         Name: "updatedDesola",
+    //         Email: "updateDes@dd.com"
+    //     });
+    //     console.log("updated user", updated);
 
-        const updated = await db.updateUser("desola", {
-            Name: "updatedDesola",
-            Email: "updateDes@dd.com"
-        });
-        console.log("updated user", updated);
+    //     const toDelete = await db.deleteUser("desola");
+    //     console.log("delete response", toDelete)
 
-        const toDelete = await db.deleteUser("desola");
-        console.log("delete response", toDelete)
-
-        const verifyUser = await db.getUser("desola");
-        if(!verifyUser) {
-            console.log("User deleted successfully");
-        } else {
-            console.log('User not deleted')
-        }
+    //     const verifyUser = await db.getUser("desola");
+    //     if(!verifyUser) {
+    //         console.log("User deleted successfully");
+    //     } else {
+    //         console.log('User not deleted')
+    //     }
 
 
-    } catch(error) {
-        console.error("Error: ", error);
-    }
+    // } catch(error) {
+    //     console.error("Error: ", error);
+    // }
 }
 
 main();

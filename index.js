@@ -5,6 +5,9 @@ const morgan = require('morgan');
 const app = express();
 const PORT = process.env.PORT || 3000;
 
+// const crypto = require('crypto');
+// const secretKey = crypto.randomBytes(64).toString('hex');
+
 
 app.use(cors());
 app.use(express.json());

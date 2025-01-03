@@ -1,20 +1,24 @@
 const express = require('express')
 const bodyParser = require('body-parser') //make sure this is installed properly
-const Database = require('../utils/dynamoDB')
 const userController = require('../controller/homeController') 
+const {newUser, loginUser} = require('../utils/auth')
 
-const router = express.Router()
-const app = express()
 
-// middleware 
-router.use(bodyParser.json())
 
+const app = express();
+app.use(bodyParser.json());
 
 // home page routes
-router.get('/', userController.displayDaily);
-router.post('/', userController.newUser);
-router.get('/login', userController.loginUser);
+// router.get('/', userController.displayDaily);
+app.post('/api/newUser', newUser);
+app.post('/api/loginUser', loginUser);
+app.get('/', (req,res) => {
+    res.send('Hello World!')
+})
 
 
-
-module.exports = router;
+const PORT = 3002;
+app.listen(PORT, () => {
+  console.log(`Server is running on http://localhost:${PORT}`);
+});
+module.exports = app;
