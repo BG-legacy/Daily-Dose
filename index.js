@@ -22,12 +22,14 @@ app.use(morgan('dev'));
 
 // import routes
 const userRoutes = require('./journaling-backend/src/api/home');
+const journalRoutes = require('./journaling-backend/src/api/journal');
 
 
 // database connection
 const database = require('./journaling-backend/src/utils/dynamoDB');
 const db = new database();
 app.use('/api', userRoutes);
+app.use('/api/journal', journalRoutes);
 
 
 // health check

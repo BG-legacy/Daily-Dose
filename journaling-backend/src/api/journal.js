@@ -1,16 +1,15 @@
-const express = require('express')
-const dotenv = require('dotenv')
-const app = express()
+const express = require('express');
+const router = express.Router();
+const journalController = require('../controller/journalController');
 
-// journaling page
-app.get('/thoughts', (res, req) => {
-    // use cookies to get the current session user id 
-    // add user id, thought input, creation date
-    // to journals table
-})
+// Middleware to verify user is logged in (you'll need to implement this)
+const authMiddleware = require('../middleware/auth');
 
+// Journal routes
+router.post('/thoughts', authMiddleware, journalController.addThought);
+router.get('/history', authMiddleware, journalController.getHistory);
+router.get('/thoughts/:thoughtId', authMiddleware, journalController.getThought);
+router.delete('/thoughts/:thoughtId', authMiddleware, journalController.deleteThought);
 
-// from the above function, retrieve the input and this below function 
-// would call the openai api and get the quote, tips, and hacks generated to the user 
-// and added to the database
+module.exports = router;
 
