@@ -154,6 +154,45 @@ class UserManager {
             throw error;
         }
     }
+
+    async addJournalEntry(journalData) {
+        const command = new PutCommand({
+            TableName: "JournalEntries",
+            Item: {
+                UserID: journalData.UserID,
+                Timestamp: journalData.Timestamp,
+                Content: journalData.Content,
+                AIInsights: journalData.AIInsights
+            }
+        });
+
+        try {
+            await this.docClient.send(command);
+            return { success: true, message: 'Journal entry added successfully' };
+        } catch (error) {
+            console.error("Error adding journal entry:", error);
+            throw error;
+        }
+    }
+
+    async getUserJournalEntries(userID) {
+        const command = new QueryCommand({
+            TableName: "JournalEntries",
+            KeyConditionExpression: "UserID = :uid",
+            ExpressionAttributeValues: {
+                ":uid": userID
+            },
+            ScanIndexForward: false // This will return items in descending order by sort key
+        });
+
+        try {
+            const response = await this.docClient.send(command);
+            return response.Items;
+        } catch (error) {
+            console.error("Error fetching journal entries:", error);
+            throw error;
+        }
+    }
 }
 
 module.exports = UserManager;
@@ -162,52 +201,27 @@ module.exports = UserManager;
 
 
 async function main() {
-    const db = new UserManager();
     try {
+        const db = new UserManager();
         
-
-        // create new user
-        const user = {
+        // Chain all operations with await
+        const user = await db.addUser({
             UserID: "desola",
             Name: "Desola",
             Email: "dfujah@dd.com",
             CreationDate: new Date().toISOString()
-        };
-
-        console.log('Adding user: ', user);
-        await db.addUser(user);
-
-        await new Promise(resolve => setTimeout(resolve, 1000)); // wait a bit to ensure consistency
-
-        // try to get the same user
-        console.log("Attempting to get user with ID: desola");
-        const person = await db.getUser("desola");
-
-        if(person) {
-            console.log("Retrieved user: ", person);
-        } else {
-            console.log("User not found");
-        }
-
+        });
+        const retrieved = await db.getUser("desola");
         const updated = await db.updateUser("desola", {
             Name: "updatedDesola",
             Email: "updateDes@dd.com"
         });
-        console.log("updated user", updated);
-
-        const toDelete = await db.deleteUser("desola");
-        console.log("delete response", toDelete)
-
-        const verifyUser = await db.getUser("desola");
-        if(!verifyUser) {
-            console.log("User deleted successfully");
-        } else {
-            console.log('User not deleted')
-        }
-
-
-    } catch(error) {
-        console.error("Error: ", error);
+        const deleted = await db.deleteUser("desola");
+        
+        return { user, retrieved, updated, deleted };
+    } catch (error) {
+        console.error('Error:', error);
+        throw error;
     }
 }
 

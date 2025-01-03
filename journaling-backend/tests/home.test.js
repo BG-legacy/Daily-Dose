@@ -37,6 +37,11 @@ app.post('/add-user', async(req, res) => {
 
 // testing
 describe('API Tests', () => {
+    afterAll(async () => {
+        // Close any open connections/handlers
+        await new Promise(resolve => setTimeout(resolve, 500)); // Give time for operations to complete
+    });
+
     test('POST /add-user - Success', async() => {
 
         //mock successful response

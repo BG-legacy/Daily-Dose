@@ -23,19 +23,23 @@ const userControl = {
             // check if the user already exists
             const existingUser = await db.getUser(userID);
             if(existingUser) {
-                return res.status(409).json({error: 'User already exists'});
+                return res.status(409).json({error: 'User ID already exists'});
             }
 
-            const creation = new Date().toISOString();
-
             // add user to database
-            await db.addUser({userID, name, email, creation});
+            await db.addUser({
+                UserID: userID,  // Match the case used in Database class
+                Name: name,      // Match the case used in Database class
+                Email: email,    // Match the case used in Database class
+                CreationDate: new Date().toISOString()
+            });
 
-            res.status(200).json({message: 'User signed up successfully '});
+            return res.status(200).json({message: 'User added successfully!'});
 
         } catch(error) {
             console.error('Error creating user:', error);
-        };
+            return res.status(500).json({error: 'Error adding user.'});
+        }
     },
 
 

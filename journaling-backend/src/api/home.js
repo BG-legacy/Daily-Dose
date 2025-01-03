@@ -12,7 +12,7 @@ router.use(bodyParser.json())
 
 // home page routes
 router.get('/', userController.displayDaily);
-router.post('/', userController.newUser);
+router.post('/add-user', userController.newUser);
 router.get('/login', userController.loginUser);
 
 
