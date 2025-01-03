@@ -1,17 +1,19 @@
 {
   "compilerOptions": {
-    "target": "ES2017",
+    "target": "ES2020", // changed from 2017
     "lib": [
       "dom",
       "dom.iterable",
-      "esnext"
+      "esnext",
+      "ES2020"
     ],
+    "types": ["node"],
     "allowJs": true,
     "skipLibCheck": true,
-    "strict": false,
+    "strict": true, //changed
     "noEmit": true,
     "incremental": true,
-    "module": "esnext",
+    "module": "CommonJS", // changed from esnext
     "esModuleInterop": true,
     "moduleResolution": "node",
     "resolveJsonModule": true,
