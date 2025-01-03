@@ -14,15 +14,15 @@ import aboutImage from '../public/assets/media/canon.jpg';
 import ImageRotator from '../components/ImageRotator';
 
 export default function Home() {
-  const [currentText, setCurrentText] = useState("Gloomy Days"); 
+  const [currentText, setCurrentText] = useState("Gloomy Days");
   const [currentEmoticon, setCurrentEmoticon] = useState(sad);
-  
+
   return (
     <div className='tracking-tight'>
-      <header className='justify-between flex fixed container mx-auto left-0 right-0 items-center top-16 text-yellow-950 px-12 md:p-0 z-20'>
+      <header className='justify-between flex fixed container mx-auto left-0 right-0 items-center top-16 text-yellow-950 px-12 md:p-0 z-30'>
         <Link
           href={'/'}
-          className='flex gap-2 items-center leading-snug font-extrabold'
+          className='flex gap-2 items-center leading-none font-extrabold'
         >
           <Image src={happy} alt='Daily Dose Logo' width='42' height='42' />
           <span>
@@ -35,7 +35,7 @@ export default function Home() {
           <Link href={'/'}>Home</Link>
           <Link href={'/'}>Features</Link>
           <Link href={'/'}>About</Link>
-          <Link href={'/'}>Contact</Link>
+          <Link href={'/'} className='bg-white text-yellow-950 px-6 py-4 font-bold rounded-full'>Sign Up</Link>
         </div>
       </header>
       <main>
@@ -53,18 +53,19 @@ export default function Home() {
               className='absolute -right-12 md:-right-48 top-72 w-32 h-32 md:w-96 md:h-96 -rotate-12 z-20'
             />
           </div>
-          <div className='col-end-1 row-end-1 z-10 w-full flex flex-col justify-end items-center gap-3 text-yellow-950 py-12'>
+          <div className='col-end-1 row-end-1 z-10 w-full flex flex-col justify-end items-center gap-3 text-yellow-950 py-12 bg-gradient-to-t from-white/40 via-transparent to-white/40 rounded-2xl'>
             <h1 className='flex flex-col items-center gap-1'>
               <span>
                 A <b>Daily Dose</b> of <b>Wellness</b> for
               </span>
-              <span className='flex items-center gap-2 font-bold text-3xl'>
+              <span className='inline-flex items-center gap-2 font-bold text-3xl hero-text' id='hero-text'>
                 {currentText}
                 <Image
                   alt='Dynamic Mood Emoticon'
                   src={currentEmoticon}
-                  width={48}
-                  height={48}
+                  width={120}
+                  height={120}
+                  className='w-12 h-12'
                 />
               </span>
             </h1>
