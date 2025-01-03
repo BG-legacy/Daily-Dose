@@ -15,14 +15,17 @@ export default function ImageRotator({ setCurrentText, setCurrentEmoticon }) {
     const images = [heroImage, sunnyImage];
     let index = 0;
 
+    const textElement = document.getElementById('hero-text')
+    textElement.style.animationPlayState = 'running';
+
     const interval = setInterval(() => {
-      setFade(true); 
+      setFade(true);
 
       setTimeout(() => {
         index = (index + 1) % images.length;
         setCurrentImage(images[index]);
 
-        
+
         if (images[index] === heroImage) {
           setCurrentText("Gloomy Days");
           setCurrentEmoticon(sad);
@@ -34,16 +37,15 @@ export default function ImageRotator({ setCurrentText, setCurrentEmoticon }) {
       }, 1000); //the fade duration (1sec)
 
     }, 7000); //the duration for each image (7sec)
-    return () => clearInterval(interval); 
+    return () => clearInterval(interval);
   }, [setCurrentText, setCurrentEmoticon]);
 
   return (
     <Image
       src={currentImage}
       alt='Mood Image'
-      className={`col-end-1 row-end-1 object-cover w-full rounded-2xl h-[600px] transition-opacity duration-1000 ease-in-out ${
-        fade ? 'opacity-0' : 'opacity-100'
-      }`}
+      className={`col-end-1 row-end-1 object-cover w-full rounded-2xl h-[600px] transition-opacity duration-1000 ease-in-out ${fade ? 'opacity-0' : 'opacity-100'
+        }`}
     />
   );
 }
