@@ -1,17 +1,15 @@
 const path = require('path');
 const dotenv = require('dotenv');
-const envPath = path.resolve(__dirname, '../../../.env');
-const result = dotenv.config({ path: envPath });
 
-const { DynamoDBClient, DescribeTableCommand} = require('@aws-sdk/client-dynamodb');
+const { DynamoDBClient, DescribeTableCommand } = require('@aws-sdk/client-dynamodb');
 const {
-    DynamoDBDocumentClient, 
-    PutCommand, 
-    GetCommand, 
-    UpdateCommand, 
-    DeleteCommand, 
-    QueryCommand, 
-    ScanCommand }  = require('@aws-sdk/lib-dynamodb');
+    DynamoDBDocumentClient,
+    PutCommand,
+    GetCommand,
+    UpdateCommand,
+    DeleteCommand,
+    QueryCommand,
+    ScanCommand } = require('@aws-sdk/lib-dynamodb');
 
 // dosers table
 class UserManager {
@@ -64,20 +62,20 @@ class UserManager {
             TableName: this.tableName,
             Key: {
                 UserID: String(userID)
-                
+
             }
         });
 
         try {
             const response = await this.docClient.send(command);
 
-            if(!response.Item) {
+            if (!response.Item) {
                 console.log("User not found:", userID);
                 return null;
-            }   
+            }
 
             return response.Item;
-        } catch(error) {
+        } catch (error) {
             console.error("Error in getUser:", error);
             throw error;
         }
@@ -88,20 +86,20 @@ class UserManager {
         let updateExpression = 'SET';
         let expressionAttributeNames = {};
         let expressionAttributeValues = {};
-        
+
         // loop each fields
         Object.entries(updateData).forEach(([key, value], index) => {
             // first iteration
             const attributeName = `#attr${index}`;
             const attributeValue = `:val${index}`;
-            
+
             // if it's the first item, add space after SETting
             // if not, add comma before the new ting
             updateExpression += `${index === 0 ? ' ' : ', '}${attributeName} = ${attributeValue}`;
             expressionAttributeNames[attributeName] = key;
             expressionAttributeValues[attributeValue] = value;
         });
-    
+
         const command = new UpdateCommand({
             TableName: this.tableName,
             Key: {
@@ -112,23 +110,23 @@ class UserManager {
             ExpressionAttributeValues: expressionAttributeValues,
             ReturnValues: 'ALL_NEW'  // Returns all attributes of the updated item
         });
-    
+
         try {
             const response = await this.docClient.send(command);
             console.log('User updated successfully:', userID);
             return response.Attributes;
-        } catch(error) {
+        } catch (error) {
             console.error("Error updating user: ", error);
             throw error;
         }
     }
-    
+
 
     // delete a user
     async deleteUser(userID) {
         const command = new DeleteCommand({
             TableName: this.tableName,
-            Key:{
+            Key: {
                 // TODO: should i switch this from string to like enum or something???
                 UserID: String(userID)
             },
@@ -138,7 +136,7 @@ class UserManager {
         try {
             const response = await this.docClient.send(command);
 
-            if(response.Attributes) {
+            if (response.Attributes) {
                 console.log(`Successfully deleted user ${userID}`);
                 return {
                     success: true,
@@ -148,16 +146,17 @@ class UserManager {
             } else {
                 console.log(`No user found with ID: ${userID}`);
                 return {
-                    success: false, 
+                    success: false,
                     message: 'No user found with this userID'
                 };
             }
-        } catch(error) {
+        } catch (error) {
             console.error("Error deleting user: ", error);
             throw error;
         }
     }
 
+        //TODO: TEST
     async getUserByEmail(email) {
         const command = new QueryCommand({
             TableName: this.tableName,
@@ -170,13 +169,13 @@ class UserManager {
 
         try {
             const response = await this.docClient.send(command);
-            if(response.Items && response.Items.length > 0) {
+            if (response.Items && response.Items.length > 0) {
                 return response.Items[0];
             } else {
                 console.log(`No user found with email: ${email}`);
                 return null;
             }
-        } catch(error) {
+        } catch (error) {
             console.error("Error getting user by email: ", error);
             throw error;
         }

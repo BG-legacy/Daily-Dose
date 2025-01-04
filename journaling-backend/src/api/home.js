@@ -1,6 +1,6 @@
 const express = require('express')
 const bodyParser = require('body-parser') //make sure this is installed properly
-const userController = require('../controller/homeController') 
+
 const {newUser, loginUser} = require('../utils/auth')
 
 
@@ -22,3 +22,7 @@ app.listen(PORT, () => {
   console.log(`Server is running on http://localhost:${PORT}`);
 });
 module.exports = app;
+
+
+
+module.exports = router;
