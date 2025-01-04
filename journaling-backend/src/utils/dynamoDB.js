@@ -154,45 +154,6 @@ class UserManager {
             throw error;
         }
     }
-
-    async addJournalEntry(journalData) {
-        const command = new PutCommand({
-            TableName: "JournalEntries",
-            Item: {
-                UserID: journalData.UserID,
-                Timestamp: journalData.Timestamp,
-                Content: journalData.Content,
-                AIInsights: journalData.AIInsights
-            }
-        });
-
-        try {
-            await this.docClient.send(command);
-            return { success: true, message: 'Journal entry added successfully' };
-        } catch (error) {
-            console.error("Error adding journal entry:", error);
-            throw error;
-        }
-    }
-
-    async getUserJournalEntries(userID) {
-        const command = new QueryCommand({
-            TableName: "JournalEntries",
-            KeyConditionExpression: "UserID = :uid",
-            ExpressionAttributeValues: {
-                ":uid": userID
-            },
-            ScanIndexForward: false // This will return items in descending order by sort key
-        });
-
-        try {
-            const response = await this.docClient.send(command);
-            return response.Items;
-        } catch (error) {
-            console.error("Error fetching journal entries:", error);
-            throw error;
-        }
-    }
 }
 
 module.exports = UserManager;
