@@ -21,9 +21,12 @@
     "cors": "^2.8.5",
     "crypto": "^1.0.1",
     "dotenv": "^16.4.7",
+<<<<<<< HEAD
     "express": "^4.21.2",
     "firebase-admin": "^13.0.2",
     "jsonwebtoken": "^9.0.2",
+=======
+>>>>>>> 50dbdf2292e72bbd2baf474749feaa50fd4a57f3
     "morgan": "^1.10.0",
     "next": "^15.1.2",
     "next-auth": "^4.24.11",
@@ -32,6 +35,7 @@
     "react-dom": "^19.0.0"
   },
   "devDependencies": {
+    "express": "^4.21.2",
     "jest": "^29.7.0",
     "nodemon": "^3.1.9",
     "supertest": "^7.0.0",
@@ -41,5 +45,6 @@
     "AWS_ACCESS_KEY_ID": "qi7E3WFi5ySjJ4kGUJRAJJXHi4uKxTJn8SULfIOI",
     "AWS_SECRET_ACCESS_KEY": "eXV+Rc8JM2LOJMMKzs29yAPqg6ef68171DpS+GVp",
     "AWS_REGION": "us-east-2"
-  }
+  },
+  "type": "module"
 }
