@@ -42,7 +42,7 @@
 }
 
 .hero-text {
-  animation: heroText 7s 1s backwards ease-in-out infinite paused;
+  animation: heroText 4s 1s backwards ease-in-out infinite paused;
   overflow: hidden;
 }
 

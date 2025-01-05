@@ -6,6 +6,8 @@ import happy from '../public/assets/brand/Happy.png';
 import Link from 'next/link';
 
 import sad from '../public/assets/brand/Sad.png';
+import upset from '../public/assets/brand/Upset.png';
+import uncertain from '../public/assets/brand/Uncertain.png';
 import fire from '../public/assets/brand/Fire.png';
 import moods from '../public/assets/brand/Moods.png';
 import ai from '../public/assets/brand/AI.png';
