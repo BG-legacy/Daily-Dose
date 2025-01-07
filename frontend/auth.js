@@ -43,7 +43,7 @@ const signUp = async ({userID, name, email, password}) => {
         const creation = new Date().toISOString();
         const item = {userID: userID, name:name, email: email, password:password}
 
-        const response = await fetch('http://localhost:3007/newUser', {
+        const response = await fetch('http://localhost:3008/newUser', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
@@ -79,7 +79,7 @@ const signIn = async ({email, password}) => {
       const token = await getIdToken(userCredential.user);
       
 
-      const response = await fetch('http://localhost:3007/loginUser', {
+      const response = await fetch('http://localhost:3008/loginUser', {
         method: 'POST',
         headers: {
             'Content-Type': 'application/json',
