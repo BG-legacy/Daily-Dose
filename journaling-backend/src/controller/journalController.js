@@ -1,12 +1,12 @@
-const Database = require('../utils/dynamoDB');
+const userDB = require('../utils/dynamoDB');
+const journalsDB = require('../utils/journalsTable')
 const OpenAIService = require('../utils/openAI');
-const db = new Database();
 
 const journalController = {
     async addThought(req, res) {
         try {
             const { thought } = req.body;
-            const userID = req.user.UserID; // Assuming auth middleware adds user to req
+
 
             if (!thought) {
                 return res.status(400).json({ error: 'Thought content is required' });
@@ -14,13 +14,16 @@ const journalController = {
 
             // Get AI-generated insights
             const aiInsights = await OpenAIService.generateInsights(thought);
-            // divide this into 3
+            // divide this into 3 parts
+            
 
 
-            //call get user by email function
+            //get user by email
+            const userID = await userDB.getUserByEmail(req.user.Email);
+            
 
 
-            // send ai insights back to user
+            //TODO: send ai insights back to user 
 
 
             // Save thought and insights to database
@@ -31,8 +34,18 @@ const journalController = {
                 AIInsights: aiInsights
             };
 
-            // You'll need to implement this method in your Database class
-            await db.addJournalEntry(journalEntry);
+
+            // const item ={
+            //     JournalID: uuidv4(),
+            //     UserID: journalData.UserID,
+            //     CreationDate: journalData.Timestamp,
+            //     Thoughts: journalData.Content,
+            //     Quote: journalData.Quote,
+            //     MentalHealthTip: journalData.MentalHealthTip,
+            //     Hack: journalData.Hack
+            // }
+
+            await journalsDB.addJournalEntry(journalEntry);
 
             return res.status(201).json({
                 message: 'Journal entry saved successfully',
@@ -47,7 +60,7 @@ const journalController = {
     async getHistory(req, res) {
         try {
             const userID = req.user.UserID;
-            // You'll need to implement this method in your Database class
+            
             const entries = await db.getUserJournalEntries(userID);
             return res.status(200).json(entries);
         } catch (error) {
@@ -56,6 +69,7 @@ const journalController = {
         }
     },
 
+    // TODO: using journalID
     async getThought(req, res) {
         try {
             const { thoughtId } = req.params;
@@ -96,15 +110,3 @@ const journalController = {
 };
 
 module.exports = journalController;
-
-// const authenticateToken = (req, res, next) => {
-//     const authHeader = req.headers['authorization'];
-//     const token = authHeader && authHeader.split(' ')[1];
-//     if (!token) return res.sendStatus(401); // No token provided
-  
-//     jwt.verify(token, 'your_secret_key', (err, decoded) => {
-//       if (err) return res.sendStatus(403); // Invalid token
-//       req.userID = decoded.userID; // Add userID to request object
-//       next();
-//     });
-//   };
