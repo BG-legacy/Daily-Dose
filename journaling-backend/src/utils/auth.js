@@ -1,26 +1,18 @@
-require('dotenv').config();
+// homeController
 const express = require('express');
 const app = express();
-const admin = require('firebase-admin');
-const jwt = require('jsonwebtoken');
 const cors = require('cors');
+const db = require('../utils/dynamoDB');
+// const db = new UserManager();
+
+
 app.use(cors());
-const UserManager = require('../utils/dynamoDB');
-const db = new UserManager();
+
 app.use(express.json());
+const admin = require('firebase-admin');
 
 
 
-const serviceAccount = require(process.env.GOOGLE_APPLICATION_CREDENTIALS)
-
-admin.initializeApp({
-    credential: admin.credential.cert(serviceAccount),
-});
-const jwtSK = process.env.JWT_SECRET_KEY;
-
-if (!jwtSK) {
-    throw new Error("JWT secret key not set!");
-}
 
 // Sign-up function -> should be collecting token and adding user info to the database
 const newUser = async (req, res) => {
@@ -54,31 +46,35 @@ const newUser = async (req, res) => {
   
   // Login function
 const loginUser = async (req, res) => {
+  console.log('login called')
     // TODO: handle authentication and tokens
 
 
     // handled on the frontend
-    const { email, password } = req.body;
+    // only thing that should be returned is the token
+    const { token } = req.body;
     
-    if(!email || !password) {
-        return res.status(400).json({ error: 'Missing required fields'});
+    if(!token) {
+        return res.status(400).json({ error: 'Missing token '});
+        console.log('Missing token');
     }
 
     try {
+      // verify token with firebase admin
+      const decodedToken = await admin.auth().verifyIdToken(token);
+      const {uid, email} = decodedToken;
 
       const userID = await db.getUserByEmail(email);
       if(!userID) {
-        return res.status(404).json({ error: 'User not found' });
+        return res.status(404).json({ error: 'User not found'});
       }
 
-
-    // TODO: generate a token
-      const token = jwt.sign({ userID }, jwtSK, { expiresIn: '1h' });
 
       res.status(200).send({ message: 'User logged in successfully' });
       console.log('User logged successfully');
     } catch (error) {
       res.status(400).send({ error: error.message });
+      console.log('Error logging in user:', error.message);
     }
 };
   

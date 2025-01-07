@@ -1,6 +1,9 @@
-const path = require('path');
+// aka homeController
 const dotenv = require('dotenv');
-
+dotenv.config();
+const path = require('path');
+const envPath = path.resolve(__dirname, '../../../.env');
+const result = dotenv.config({ path: envPath });
 const { DynamoDBClient, DescribeTableCommand } = require('@aws-sdk/client-dynamodb');
 const {
     DynamoDBDocumentClient,
@@ -12,22 +15,23 @@ const {
     ScanCommand } = require('@aws-sdk/lib-dynamodb');
 
 // dosers table
-class UserManager {
-    constructor() {
-        this.client = new DynamoDBClient({
-            region: process.env.AWS_REGION,
-            credentials: {
-                accessKeyId: process.env.AWS_ACCESS_KEY_ID,
-                secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY
-            }
-        });
-        this.docClient = DynamoDBDocumentClient.from(this.client);
-        this.tableName = "Dosers";
-    }
+function UserManager() {
+    
+    this.client = new DynamoDBClient({
+        region: process.env.AWS_REGION,
+        credentials: {
+            accessKeyId: process.env.AWS_ACCESS_KEY_ID,
+            secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY
+        }
+    });
+    this.docClient = DynamoDBDocumentClient.from(this.client);
+    this.tableName = "Dosers";
+
+}
+    
 
     // add a new user
-    async addUser(userData) {
-        // user id would be the uID returned from firebase
+    UserManager.prototype.addUser = async function (userData) {
         const item = {
             UserID: String(userData.UserID),
             Name: String(userData.Name),
@@ -55,7 +59,7 @@ class UserManager {
 
 
     // get a user by ID
-    async getUser(userID) {
+    UserManager.prototype.getUser = async function (userID) {
         console.log("Getting user with ID:", userID);
 
         const command = new GetCommand({
@@ -80,8 +84,8 @@ class UserManager {
             throw error;
         }
     }
-
-    async updateUser(userID, updateData) {
+            
+    UserManager.prototype.updateUser = async function (userID, updateData) {
         // build the update expression and attribute values dynamically
         let updateExpression = 'SET';
         let expressionAttributeNames = {};
@@ -123,11 +127,10 @@ class UserManager {
 
 
     // delete a user
-    async deleteUser(userID) {
+    UserManager.prototype.deleteUser = async function (userID) {
         const command = new DeleteCommand({
             TableName: this.tableName,
             Key: {
-                // TODO: should i switch this from string to like enum or something???
                 UserID: String(userID)
             },
             ReturnValues: "ALL_OLD"
@@ -157,7 +160,7 @@ class UserManager {
     }
 
         //TODO: TEST
-    async getUserByEmail(email) {
+    UserManager.prototype.getUserByEmail = async function(email) {
         const command = new QueryCommand({
             TableName: this.tableName,
             IndexName: 'Email-index',
@@ -170,7 +173,8 @@ class UserManager {
         try {
             const response = await this.docClient.send(command);
             if (response.Items && response.Items.length > 0) {
-                return response.Items[0];
+                
+                return response.Items[0].UserID;
             } else {
                 console.log(`No user found with email: ${email}`);
                 return null;
@@ -180,89 +184,40 @@ class UserManager {
             throw error;
         }
     }
-}
-
-module.exports = UserManager;
-
-// journals table (create in separate file)
-class JournalManager {
-    constructor() {
-        this.client = new DynamoDBClient({
-            region: process.env.AWS_REGION,
-            credentials: {
-                accessKeyId: process.env.AWS_ACCESS_KEY_ID,
-                secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY
-            }
-        });
-        this.docClient = DynamoDBDocumentClient.from(this.client);
-        this.tableName = "Journals";
-    }
 
 
-    // add journal entry to database
-
-    // get journal history for a user
-
-    // delete a journal entry
-
-    // should we allow updates? since the api is analyzing it
-    // just delete and start again
-
-
-};
-
-// module.exports = JournalManager;
 
 
 
 
 async function main() {
-    // const db = new UserManager();
-    // try {
-    //     // create new user
-    //     const user = {
-    //         UserID: "desola",
-    //         Name: "Desola",
-    //         Email: "dfujah@dd.com",
-    //         CreationDate: new Date().toISOString()
-    //     };
+    try {
+        const db = new UserManager();
+        
+        // Chain all operations with await
+        const user = await db.addUser({
+            UserID: "desola",
+            Name: "Desola",
+            Email: "dfujah@dd.com",
+            CreationDate: new Date().toISOString()
+        });
+        const retrieved = await db.getUser("desola");
+        const updated = await db.updateUser("desola", {
+            Name: "updatedDesola",
+            Email: "updateDes@dd.com"
+        });
+        const deleted = await db.deleteUser("desola");
 
-    //     console.log('Adding user: ', user);
-    //     await db.addUser(user);
-
-    //     await new Promise(resolve => setTimeout(resolve, 1000)); // wait a bit to ensure consistency
-
-    //     // try to get the same user
-    //     console.log("Attempting to get user with ID: desola");
-    //     const person = await db.getUser("desola");
-
-    //     if(person) {
-    //         console.log("Retrieved user: ", person);
-    //     } else {
-    //         console.log("User not found");
-    //     }
-
-    //     const updated = await db.updateUser("desola", {
-    //         Name: "updatedDesola",
-    //         Email: "updateDes@dd.com"
-    //     });
-    //     console.log("updated user", updated);
-
-    //     const toDelete = await db.deleteUser("desola");
-    //     console.log("delete response", toDelete)
-
-    //     const verifyUser = await db.getUser("desola");
-    //     if(!verifyUser) {
-    //         console.log("User deleted successfully");
-    //     } else {
-    //         console.log('User not deleted')
-    //     }
-
-
-    // } catch(error) {
-    //     console.error("Error: ", error);
-    // }
+        const returnedUser = await db.getUserByEmail("matt@test.com")
+        console.log(returnedUser)
+        
+        return { user, retrieved, updated, deleted, returnedUser };
+    } catch (error) {
+        console.error('Error:', error);
+        throw error;
+    }
 }
 
 main();
 
+module.exports = UserManager;
