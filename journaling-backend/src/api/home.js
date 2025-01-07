@@ -10,15 +10,19 @@ app.use(bodyParser.json());
 
 // home page routes
 // router.get('/', userController.displayDaily);
-app.post('/newUser', newUser);
-app.post('/loginUser', loginUser);
+app.post('/api/newUser', newUser);
+app.post('/api/loginUser', loginUser);
 app.get('/', (req,res) => {
     res.send('Hello World!')
 })
 
 
-const PORT = 3008;
+const PORT = 3002;
 app.listen(PORT, () => {
   console.log(`Server is running on http://localhost:${PORT}`);
 });
-module.exports = app;                             
+module.exports = app;
+
+
+
+module.exports = router;

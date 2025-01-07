@@ -16,17 +16,10 @@
     "@aws-sdk/client-dynamodb": "^3.716.0",
     "@aws-sdk/lib-dynamodb": "^3.716.0",
     "aws-sdk": "^2.1692.0",
-    "axios": "^1.7.9",
-    "bcrypt": "^5.1.1",
     "cors": "^2.8.5",
-    "crypto": "^1.0.1",
     "dotenv": "^16.4.7",
-    "express": "^4.21.2",
-    "firebase-admin": "^13.0.2",
-    "jsonwebtoken": "^9.0.2",
     "morgan": "^1.10.0",
     "next": "^15.1.2",
-    "next-auth": "^4.24.11",
     "openai": "^4.77.0",
     "react": "^19.0.0",
     "react-dom": "^19.0.0"
@@ -43,5 +36,5 @@
     "AWS_SECRET_ACCESS_KEY": "eXV+Rc8JM2LOJMMKzs29yAPqg6ef68171DpS+GVp",
     "AWS_REGION": "us-east-2"
   },
-  "type": "commonjs"
+  "type": "module"
 }
