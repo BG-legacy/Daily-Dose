@@ -14,7 +14,7 @@ const {
     QueryCommand,
     ScanCommand } = require('@aws-sdk/lib-dynamodb');
 
-// console.log("Resolved .env path:", envPath);
+
 
 // journals table
 class JournalManager {
