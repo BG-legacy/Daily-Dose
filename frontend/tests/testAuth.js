@@ -1,6 +1,6 @@
-const { signUp, signIn } = require('../auth');
+import { signUp, signIn } from '../auth.js';
 
-// // Test sign up with example credentials
+// Test sign up with example credentials
 // signUp({
 //     "userID": "ben109000",
 //     "name" : "ben10 dave9000",
