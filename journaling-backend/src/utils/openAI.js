@@ -2,6 +2,7 @@ import path from 'path';
 import { fileURLToPath } from 'url';
 import dotenv from 'dotenv';
 import OpenAI from 'openai';
+import { analyzeMoodInput, analyzeMoodPatterns } from './moodAnalysis.js';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
