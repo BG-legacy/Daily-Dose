@@ -1,14 +1,15 @@
 import { signUp, signIn } from '../auth.js';
 
 // Test sign up with example credentials
-// signUp({
-//     "userID": "ben109000",
-//     "name" : "ben10 dave9000",
-//     "email": "ben10@test9000.com",
-//     "password": "7844766556"
-// });
+signUp({
+    "userID": "icky9",
+    "name" : "rky9 cot",
+    "email": "ickycot@test89.com",
+    "password": "7844766556"
+});
 
-signIn({
-    email: 'ben10@test9000.com',
-    password: '7844766556'
-})
+// signIn({
+//     email: 'rickycot@test89.com',
+//     password: '7844766556'
+// })
+

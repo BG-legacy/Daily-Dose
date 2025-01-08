@@ -1,7 +1,7 @@
 const express = require('express')
-const bodyParser = require('body-parser') //make sure this is installed properly
+const bodyParser = require('body-parser')
 
-const {newUser, loginUser} = require('../utils/auth')
+const { newUser, loginUser } = require('../utils/auth.js')
 
 
 
@@ -10,14 +10,14 @@ app.use(bodyParser.json());
 
 // home page routes
 // router.get('/', userController.displayDaily);
-app.post('/api/newUser', newUser);
-app.post('/api/loginUser', loginUser);
-app.get('/', (req,res) => {
-    res.send('Hello World!')
+app.post('/newUser', newUser);
+app.post('/loginUser', loginUser);
+app.get('/', (req, res) => {
+  res.send('Hello World!')
 })
 
 
-const PORT = 3010;
+const PORT = 3011;
 app.listen(PORT, () => {
   console.log(`Server is running on http://localhost:${PORT}`);
 });
