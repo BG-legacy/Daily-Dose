@@ -1,8 +1,32 @@
-# dependencies
+# Dependencies
 node_modules/
+package-lock.json
 
-# env files
-.env*
+# Environment variables
+.env
+.env.local
+.env.*.local
 
-# misc
+# Logs
+logs
+*.log
+npm-debug.log*
+
+# Runtime data
+pids
+*.pid
+*.seed
+*.pid.lock
+
+# Testing
+coverage/
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# OS
 .DS_Store
+Thumbs.db 
