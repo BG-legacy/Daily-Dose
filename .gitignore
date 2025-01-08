@@ -1,2 +1,8 @@
+# dependencies
 node_modules/
-.env
+
+# env files
+.env*
+
+# misc
+.DS_Store
