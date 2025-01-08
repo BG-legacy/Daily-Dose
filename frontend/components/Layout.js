@@ -13,7 +13,7 @@ export default function Layout({ route, fullWidth, children }) {
 
   return (
     <main className={`${fullWidth ? 'w-full' : 'max-w-sm'} mx-auto`}>
-      <header className="fixed top-12 left-0 right-0 flex justify-center items-center max-w-sm mx-auto">
+      <header className="fixed z-50 top-12 left-0 right-0 flex justify-center items-center max-w-sm mx-auto">
         <Image src={logo} className="w-12 h-12" alt="Daily Dose Happy Emoticon" />
       </header>
       {children}
