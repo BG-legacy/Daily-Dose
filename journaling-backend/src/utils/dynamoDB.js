@@ -189,35 +189,35 @@ function UserManager() {
 
 
 
-
-async function main() {
-    try {
-        const db = new UserManager();
+// LEAVING HERE FOR TESTING PURPOSES
+// async function main() {
+//     try {
+//         const db = new UserManager();
         
-        // Chain all operations with await
-        const user = await db.addUser({
-            UserID: "desola",
-            Name: "Desola",
-            Email: "dfujah@dd.com",
-            CreationDate: new Date().toISOString()
-        });
-        const retrieved = await db.getUser("desola");
-        const updated = await db.updateUser("desola", {
-            Name: "updatedDesola",
-            Email: "updateDes@dd.com"
-        });
-        const deleted = await db.deleteUser("desola");
+//         // Chain all operations with await
+//         const user = await db.addUser({
+//             UserID: "desola",
+//             Name: "Desola",
+//             Email: "dfujah@dd.com",
+//             CreationDate: new Date().toISOString()
+//         });
+//         const retrieved = await db.getUser("desola");
+//         const updated = await db.updateUser("desola", {
+//             Name: "updatedDesola",
+//             Email: "updateDes@dd.com"
+//         });
+//         const deleted = await db.deleteUser("desola");
 
-        const returnedUser = await db.getUserByEmail("matt@test.com")
-        console.log(returnedUser)
+//         const returnedUser = await db.getUserByEmail("matt@test.com")
+//         console.log(returnedUser)
         
-        return { user, retrieved, updated, deleted, returnedUser };
-    } catch (error) {
-        console.error('Error:', error);
-        throw error;
-    }
-}
+//         return { user, retrieved, updated, deleted, returnedUser };
+//     } catch (error) {
+//         console.error('Error:', error);
+//         throw error;
+//     }
+// }
 
-main();
+// main();
 
 module.exports = UserManager;
