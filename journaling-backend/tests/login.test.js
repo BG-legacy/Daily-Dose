@@ -9,30 +9,55 @@ const mockResponse = {
   };
   
 
-  jest.mock('firebase-admin', () => {
+  jest.mock('firebase-admin', () => ({
+    auth: () => ({
+      verifyIdToken: jest.fn()
+    }),
+  }));
+  
+  jest.mock('../src/utils/dynamoDB', () => {
+    return jest.fn().mockImplementation(() => ({
+      getUserByEmail: jest.fn(),
+      getUser: jest.fn()
+    }));
+  });
+  
+  // Mock the entire firebaseConfig import
+  jest.mock('../src/utils/firebaseConfig.mjs', () => ({
+    default: {
+      auth: () => ({
+        verifyIdToken: jest.fn()
+      })
+    }
+  }));
+  
+  // Mock the loadFirebaseConfig function
+  jest.mock('../src/utils/auth', () => {
+    const originalModule = jest.requireActual('../src/utils/auth');
     return {
-      auth: jest.fn().mockReturnValue({
-        verifyIdToken: jest.fn(),
-      }),
+      ...originalModule,
+      loadFirebaseConfig: jest.fn()
     };
   });
   
-  jest.mock('../src/utils/dynamoDB', () => ({
-    getUserByEmail: jest.fn(),
-  }));
-  
   describe('loginUser', () => {
     let mockRequest;
+    let dbInstance;
   
     beforeEach(() => {
+      jest.clearAllMocks();
+      
+      // Create DB instance
+      dbInstance = new db();
+      
       mockRequest = {
         body: {
-          token: 'fakeToken', // You can adjust this based on your test case
+          token: 'fakeToken',
         },
       };
-  
-      // Clear all mocks before each test
-      jest.clearAllMocks();
+
+      // Set firebaseAdmin directly
+      global.firebaseAdmin = require('firebase-admin');
     });
   
     it('should return 400 if token is missing', async () => {
@@ -52,7 +77,7 @@ const mockResponse = {
       });
   
       // Mock user lookup in database
-      db.getUserByEmail.mockResolvedValue({ id: '12345', email: 'user@example.com' });
+      dbInstance.getUserByEmail.mockResolvedValue({ id: '12345', email: 'user@example.com' });
   
       await loginUser(mockRequest, mockResponse);
   
@@ -68,7 +93,7 @@ const mockResponse = {
       });
   
       // Mock user lookup in database (user not found)
-      db.getUserByEmail.mockResolvedValue(null);
+      dbInstance.getUserByEmail.mockResolvedValue(null);
   
       await loginUser(mockRequest, mockResponse);
   
