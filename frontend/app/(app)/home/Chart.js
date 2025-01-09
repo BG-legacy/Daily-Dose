@@ -24,7 +24,7 @@ ChartJS.register(
   Legend
 );
 
-export default function Chart({ weeklySummary }) {
+export default function Chart({ weeklyMoodSummary }) {
   const options = {
     responsive: true,
     borderColor: "#FDD34E",
@@ -49,7 +49,7 @@ export default function Chart({ weeklySummary }) {
     datasets: [
       {
         label: 'Dataset 1',
-        data: weeklySummary,
+        data: weeklyMoodSummary,
       },
     ],
   };
@@ -58,7 +58,7 @@ export default function Chart({ weeklySummary }) {
   return (
     <motion.section {...motionProps(1)} className="m-6 p-8 bg-neutral-100/20 rounded-2xl flex flex-col gap-4">
       <h2 className="font-bold text-xl">Stellar Week, {name}!</h2>
-      <p>Your mood is trending better.</p>
+      <p>Your mood has been great this week.</p>
       <div><Line options={options} data={data} /></div>
       <Link href={'/mood'} className="font-semibold">See Mood Entries &rarr;</Link>
     </motion.section>

@@ -96,13 +96,13 @@ function Slider({ setMood }) {
         transition={SPRING_OPTIONS}
         className="cursor-grab active:cursor-grabbing flex gap-32 ml-[640px] h-64"
       >
-        <div onClick={() => { setSliderIndex(0); setMood('sad') }} className={`cursor-pointer w-52 h-52 transition-all relative ${sliderIndex === 0 ? '' : 'translate-y-12'}`}>
+        <div onClick={() => { setSliderIndex(0); setMood('sad') }} className={`cursor-pointer pointer-events-none md:pointer-events-auto w-52 h-52 transition-all relative ${sliderIndex === 0 ? '' : 'translate-y-12'}`}>
           <Image src={sad} alt='Daily Dose Happy Emoticon' className='min-w-52 min-h-52 pointer-events-none' />
         </div>
-        <div onClick={() => { setSliderIndex(1); setMood('happy') }} className={`cursor-pointer w-52 h-52 transition-all ${sliderIndex === 1 ? '' : 'translate-y-12'}`}>
+        <div onClick={() => { setSliderIndex(1); setMood('happy') }} className={`cursor-pointer pointer-events-none md:pointer-events-auto w-52 h-52 transition-all ${sliderIndex === 1 ? '' : 'translate-y-12'}`}>
           <Image src={happy} alt='Daily Dose Happy Emoticon' className='min-w-52 min-h-52 pointer-events-none' />
         </div>
-        <div onClick={() => { setSliderIndex(2); setMood('upset') }} className={`cursor-pointer w-52 h-52 transition-all ${sliderIndex === 2 ? '' : 'translate-y-12'}`}>
+        <div onClick={() => { setSliderIndex(2); setMood('upset') }} className={`cursor-pointer pointer-events-none md:pointer-events-auto w-52 h-52 transition-all ${sliderIndex === 2 ? '' : 'translate-y-12'}`}>
           <Image src={upset} alt='Daily Dose Upset Emoticon' className='min-w-52 min-h-52 pointer-events-none' />
         </div>
       </motion.div>

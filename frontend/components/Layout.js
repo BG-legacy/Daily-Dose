@@ -26,7 +26,7 @@ export default function Layout({ route, fullWidth, children, onClick, className 
           <Link href='/home' className="z-10">Home</Link>
           <Link href='/journal' className="z-10">Journal</Link>
           <Link href='/mood' className="z-10">Mood</Link>
-          <div className={`absolute top-1/2 ${selectedStyles} bottom-1/2 -translate-y-1/2 h-12 rounded-full bg-white/95 backdrop-blur-xl transition-all`} />
+          <div className={`absolute top-1/2 ${selectedStyles} bottom-1/2 -translate-y-1/2 h-12 rounded-full bg-white/95 transition-all`} />
         </div>
       </motion.footer>
     </main >

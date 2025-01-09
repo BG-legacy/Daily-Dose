@@ -17,7 +17,7 @@ export default function QuoteCard({ quote }) {
       <motion.div {...motionProps(0)} className='col-end-1 row-end-1'>
         <Image src={canon} className='h-96 rounded-2xl' alt='Daily Quote Image' />
       </motion.div>
-      <motion.p className='text-center cursor-pointer' {...motionProps(2)} onClick={() => navigator.share(shareData)}>Share Daily Quote</motion.p>
+      <motion.p className='text-center cursor-pointer col-end-1' {...motionProps(2)} onClick={() => navigator.share(shareData)}>Share Daily Quote</motion.p>
     </section>
   )
 }
