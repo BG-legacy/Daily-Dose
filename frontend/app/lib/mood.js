@@ -13,3 +13,10 @@ export async function setMood(mood, userId) {
 
   return
 }
+
+const sampleSummary = { Monday: 1, Tuesday: 2, Wednesday: 3, Thursday: 2, Friday: 2, Saturday: 2, Sunday: 3 }
+
+
+export async function getWeeklySummary() {
+  return sampleSummary
+}

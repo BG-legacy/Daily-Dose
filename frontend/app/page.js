@@ -3,7 +3,7 @@ import Image from 'next/image';
 import { useState, useRef } from 'react';
 import { motion } from 'motion/react'
 
-import { motionProps } from './utils/motion.js'
+import { scrollInProps as motionProps } from './utils/motion.js'
 
 import happy from '../public/assets/brand/Happy.png';
 import Link from 'next/link';

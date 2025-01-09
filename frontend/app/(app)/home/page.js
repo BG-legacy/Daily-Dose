@@ -1,21 +1,26 @@
-import Link from 'next/link'
-import Image from 'next/image'
 import Layout from '../../../components/Layout'
 
-import canon from '../../../public/assets/media/canon.jpg'
+import getQuote from '../../../app/lib/quote'
+import { getWeeklySummary } from '../../../app/lib/mood'
+import QuoteCard from './QuoteCard'
+import JournalCTA from './JournalCTA'
+import Chart from './Chart'
 
-export default function Page() {
-  const quote = 'Be the change you want to see.'
+export default async function Page() {
+  const quote = await getQuote({
+    userID: 'jan!', creationDate: (new Date()).getUTCDay()
+  })
+
+  const weeklySummary = await getWeeklySummary()
+
+
+  // todo: get today's journal entry, set true if completed
+  const dailyJournalCompleted = false
   return (
-    <Layout route='home'>
-      <section className='p-6 grid gap-3'>
-        <h1 className='text-white font-extrabold col-end-1 row-end-1 z-10 flex p-12 items-end text-3xl'>&quot;{quote}&quot;</h1>
-        <Image src={canon} className='h-96 rounded-2xl col-end-1 row-end-1' alt='Daily Quote Image' />
-        <p className='text-center cursor-pointer'>Share Daily Quote</p>
-      </section>
-      <section>
-        <Link href={'/journal'}>journal!</Link>
-      </section>
+    <Layout route='home' className='pb-24'>
+      <QuoteCard quote={quote} />
+      {dailyJournalCompleted ? null : <JournalCTA />}
+      <Chart weeklySummary={weeklySummary} />
     </Layout>
   )
 }
