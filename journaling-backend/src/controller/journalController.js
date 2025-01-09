@@ -3,6 +3,8 @@ const journalsDB = require('../utils/journalsTable');
 const OpenAIService = require('../utils/openAI');
 
 const openAIService = new OpenAIService(); // Create instance
+const userManager = new userDB();  // Create instance
+const journalManager = new journalsDB();  // Create instance
 
 const journalController = {
     async addThought(req, res) {
@@ -17,7 +19,7 @@ const journalController = {
             const aiInsights = await openAIService.generateInsights(thought);
             
             //get user by email
-            const userID = await userDB.getUserByEmail(req.user.Email);
+            const userID = await userManager.getUserByEmail(req.user.Email);
             
             // Save thought and insights to database
             const journalEntry = {
@@ -29,7 +31,7 @@ const journalController = {
                 Timestamp: new Date().toISOString()
             };
 
-            await journalsDB.addJournalEntry(journalEntry);
+            await journalManager.addJournalEntry(journalEntry);
 
             return res.status(201).json({
                 message: 'Journal entry saved successfully',
@@ -44,8 +46,7 @@ const journalController = {
     async getHistory(req, res) {
         try {
             const userID = req.user.UserID;
-            
-            const entries = await db.getUserJournalEntries(userID);
+            const entries = await journalManager.getUserJournalEntries(userID);
             return res.status(200).json(entries);
         } catch (error) {
             console.error('Error fetching journal history:', error);
@@ -53,14 +54,10 @@ const journalController = {
         }
     },
 
-    // TODO: using journalID
     async getThought(req, res) {
         try {
             const { thoughtId } = req.params;
-            const userID = req.user.UserID;
-            
-            // You'll need to implement this method in your Database class
-            const entry = await db.getJournalEntry(userID, thoughtId);
+            const entry = await journalManager.getJournalEntry(thoughtId);
             
             if (!entry) {
                 return res.status(404).json({ error: 'Journal entry not found' });
@@ -76,10 +73,7 @@ const journalController = {
     async deleteThought(req, res) {
         try {
             const { thoughtId } = req.params;
-            const userID = req.user.UserID;
-            
-            // You'll need to implement this method in your Database class
-            const result = await db.deleteJournalEntry(userID, thoughtId);
+            const result = await journalManager.deleteJournalEntry(thoughtId);
             
             if (!result.success) {
                 return res.status(404).json({ error: 'Journal entry not found' });
