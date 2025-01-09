@@ -1,49 +1,33 @@
 const userDB = require('../utils/dynamoDB');
-const journalsDB = require('../utils/journalsTable')
+const journalsDB = require('../utils/journalsTable');
 const OpenAIService = require('../utils/openAI');
+
+const openAIService = new OpenAIService(); // Create instance
 
 const journalController = {
     async addThought(req, res) {
         try {
             const { thought } = req.body;
 
-
             if (!thought) {
                 return res.status(400).json({ error: 'Thought content is required' });
             }
 
             // Get AI-generated insights
-            const aiInsights = await OpenAIService.generateInsights(thought);
-            // divide this into 3 parts
+            const aiInsights = await openAIService.generateInsights(thought);
             
-
-
             //get user by email
             const userID = await userDB.getUserByEmail(req.user.Email);
             
-
-
-            //TODO: send ai insights back to user 
-
-
             // Save thought and insights to database
             const journalEntry = {
                 UserID: userID,
-                Timestamp: new Date().toISOString(),
                 Content: thought,
-                AIInsights: aiInsights
+                Quote: aiInsights.quote,
+                MentalHealthTip: aiInsights.mentalHealthTip,
+                Hack: aiInsights.productivityHack,
+                Timestamp: new Date().toISOString()
             };
-
-
-            // const item ={
-            //     JournalID: uuidv4(),
-            //     UserID: journalData.UserID,
-            //     CreationDate: journalData.Timestamp,
-            //     Thoughts: journalData.Content,
-            //     Quote: journalData.Quote,
-            //     MentalHealthTip: journalData.MentalHealthTip,
-            //     Hack: journalData.Hack
-            // }
 
             await journalsDB.addJournalEntry(journalEntry);
 
