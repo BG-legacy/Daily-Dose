@@ -8,7 +8,7 @@ import fire from '../../../public/assets/brand/Fire.png'
 
 export default function Streak({ weeklyJournalSummary }) {
   return (
-    <motion.section {...motionProps(1)} className="m-6 p-8 bg-neutral-100/20 rounded-2xl flex flex-col gap-2">
+    <motion.section {...motionProps(1)} className="m-6 p-8 bg-neutral-100/50 rounded-2xl flex flex-col gap-2">
       <p>Journaling Streak</p>
       <h2 className='text-2xl font-bold'>3 Day Streak 🔥</h2>
       <div className='flex gap-2.5'>

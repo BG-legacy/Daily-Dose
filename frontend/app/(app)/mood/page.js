@@ -3,7 +3,7 @@ import { useState, useEffect } from "react";
 import { AnimatePresence, motion, useMotionValue } from 'motion/react'
 import Layout from "../../../components/Layout";
 import Image from "next/image";
-import MaterialSymbolsSwipeRounded from '../../../components/Icons'
+import { MaterialSymbolsSwipeRounded } from '../../../components/Icons'
 
 import halo from '../../../public/assets/media/halo.png'
 
@@ -27,12 +27,12 @@ export default function Page() {
 
   return (
     <Layout route='mood' fullWidth onClick={() => setShowGestureHint(false)}>
-      <section className="w-full h-lvh grid relative pointer-events-none" >
+      <section className="w-full h-svh grid relative pointer-events-none" >
         <div className="w-full h-full flex flex-col justify-center items-center col-end-1 row-end-1 z-20">
           <div className="flex flex-col gap-8 justify-center items-center pointer-events-auto">
 
-            <motion.p {...motionProps(0)} className="font-bold items-center justify-center text-pretty text-center">
-              How was your mood today?
+            <motion.p {...motionProps(0)} className="font-bold items-center justify-center text-pretty text-center text-lg">
+              How was your <b>mood</b> today?
             </motion.p>
 
             <Slider mood={mood} setMood={setMood} />
@@ -79,7 +79,7 @@ function Slider({ setMood }) {
     if (sliderIndex === 2) setMood('stressed');
   }
   return (
-    <div className="max-w-[100vw] flex justify-center items-center relative h-96 overflow-x-hidden overflow-y-visible gradient-mask">
+    <div className="max-w-[100vw] flex justify-center items-center relative h-72 overflow-x-hidden overflow-y-visible gradient-mask">
       <motion.div
         drag="x"
         dragConstraints={{

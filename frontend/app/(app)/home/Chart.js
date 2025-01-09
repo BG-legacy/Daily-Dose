@@ -56,7 +56,7 @@ export default function Chart({ weeklyMoodSummary }) {
 
   let name = 'User'
   return (
-    <motion.section {...motionProps(1)} className="m-6 p-8 bg-neutral-100/20 rounded-2xl flex flex-col gap-4">
+    <motion.section {...motionProps(1)} className="m-6 p-8 bg-neutral-100/50 rounded-2xl flex flex-col gap-4">
       <h2 className="font-bold text-xl">Stellar Week, {name}!</h2>
       <p>Your mood has been great this week.</p>
       <div><Line options={options} data={data} /></div>
