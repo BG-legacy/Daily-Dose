@@ -25,7 +25,7 @@ class MoodManager {
         });
 
         this.docClient = DynamoDBDocumentClient.from(this.client);
-        this.tableName = 'Journals';
+        this.tableName = 'Moods';
     }
 
     async addMood(userID, moodData) {
@@ -52,69 +52,45 @@ class MoodManager {
     
     // answers the question: how often has the user been sad over the past 7 or 30 days?
     async getMood(userID, timestamp, moodData) {
-        if (timestamp == 30) {
-            const thirtyDaysAgo = new Date();
-            thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
-
-            const command = new QueryCommand({
-                TableName: this.tableName,
-                KeyConditionExpression: "UserID = :uid AND CreationDate >= :date",
-                ExpressionAttributeValues: {
-                    ":uid": userID,
-                    ":date": thirtyDaysAgo.toISOString().split('T')[0]
-                },
-                ScanIndexForward: false
-            });
-
-            try {
-                const response = await this.docClient.send(command);
-                return response.Items;
-            } catch (error) {
-                console.error("Error fetching mood entries:", error);
-                throw error;
-            }
-        } else if (timestamp == 7) {
-            const sevenDaysAgo = new Date();
-            sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
-
-            const command = new QueryCommand({
-                TableName: this.tableName,
-                KeyConditionExpression: "UserID = :uid AND CreationDate >= :date",
-                ExpressionAttributeValues: {
-                    ":uid": userID,
-                    ":date": sevenDaysAgo.toISOString().split('T')[0]
-                },
-                ScanIndexForward: false
-            });
-
-            try {
-                const response = await this.docClient.send(command);
-                return response.Items;
-            } catch (error) {
-                console.error("Error fetching mood entries:", error);
-                throw error;
-            }
-        } else {
-            const command = new QueryCommand({
-                TableName: this.tableName,
-                KeyConditionExpression: "UserID = :uid",
-                ExpressionAttributeValues: {
-                    ":uid": userID
-                },
-                ScanIndexForward: false
-            });
-
-            try {
-                const response = await this.docClient.send(command);
-                return response.Items;
-            } catch (error) {
-                console.error("Error fetching mood entries:", error);
-                throw error;
-            }
+        let dateThreshold;
+    
+        if (timestamp === 30) {
+            dateThreshold = new Date();
+            dateThreshold.setDate(dateThreshold.getDate() - 30);
+        } else if (timestamp === 7) {
+            dateThreshold = new Date();
+            dateThreshold.setDate(dateThreshold.getDate() - 7);
         }
-     
-
+    
+        const params = {
+            TableName: this.tableName,
+            KeyConditionExpression: "UserID = :userID AND CreationDate >= :date",
+            FilterExpression: "Mood = :mood",
+            ExpressionAttributeValues: {
+                ":userID": userID,
+                ":date": dateThreshold ? dateThreshold.toISOString().split('T')[0] : undefined,
+                ":mood": moodData
+            },
+            ScanIndexForward: false
+        };
+    
+        // if not time provided, get all entries with the specific mood
+        if (!timestamp) {
+            delete params.KeyConditionExpression;
+            params.KeyConditionExpression = "UserID = :userID";
+            delete params.ExpressionAttributeValues[":date"];
+        }
+    
+        try {
+            const command = new QueryCommand(params);
+            const response = await this.docClient.send(command);
+            return response.Items;
+        } catch (error) {
+            console.error("Error fetching mood entries:", error);
+            throw error;
+        }
     }
+    
 
 
     // this would be used the to get all the moods for a user over a certain time
