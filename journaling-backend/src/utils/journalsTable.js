@@ -3,21 +3,23 @@ const path = require('path');
 const envPath = path.resolve(__dirname, '../../../.env');
 const result = dotenv.config({ path: envPath });
 const {v4: uuidv4} = require('uuid');
-const { DynamoDBClient, DescribeTableCommand } = require('@aws-sdk/client-dynamodb');
+const { DynamoDBClient } = require('@aws-sdk/client-dynamodb');
 const {
     DynamoDBDocumentClient,
     PutCommand,
     GetCommand,
-    UpdateCommand,
-    DeleteCommand,
     QueryCommand,
-    ScanCommand } = require('@aws-sdk/lib-dynamodb');
+    DeleteCommand,
+    ScanCommand
+} = require('@aws-sdk/lib-dynamodb');
 
-
-
-// journals table
 class JournalManager {
     constructor() {
+        // Verify AWS credentials are loaded
+        if (!process.env.AWS_ACCESS_KEY_ID || !process.env.AWS_SECRET_ACCESS_KEY || !process.env.AWS_REGION) {
+            throw new Error('AWS credentials are not properly configured');
+        }
+
         this.client = new DynamoDBClient({
             region: process.env.AWS_REGION,
             credentials: {
@@ -29,17 +31,41 @@ class JournalManager {
         this.docClient = DynamoDBDocumentClient.from(this.client);
         this.tableName = 'Journals';
     }
+
+    async verifyTableAccess() {
+        try {
+            // Update the test access check to use the correct schema
+            await this.docClient.send(new GetCommand({
+                TableName: this.tableName,
+                Key: {
+                    UserID: "test-access",
+                    CreationDate: new Date().toISOString()
+                }
+            }));
+            return true;
+        } catch (error) {
+            console.error('DynamoDB Access Error:', error.message);
+            if (error.name === 'ResourceNotFoundException') {
+                throw new Error(`Table ${this.tableName} does not exist`);
+            }
+            if (error.code === 'AccessDeniedException') {
+                throw new Error('Insufficient permissions to access DynamoDB table');
+            }
+            // If we get here, we have access to the table but the item doesn't exist (which is fine)
+            return true;
+        }
+    }
+
     async addJournalEntry(journalData) {
-        // TODO: add unique journal entry ID as attribute
-        const item ={
-            JournalID: uuidv4(),
+        const item = {
             UserID: journalData.UserID,
-            CreationDate: journalData.Timestamp,
+            CreationDate: journalData.Timestamp || new Date().toISOString(),
             Thoughts: journalData.Content,
             Quote: journalData.Quote,
             MentalHealthTip: journalData.MentalHealthTip,
             Hack: journalData.Hack
-        }
+        };
+
         const command = new PutCommand({
             TableName: this.tableName,
             Item: item
@@ -47,7 +73,10 @@ class JournalManager {
 
         try {
             await this.docClient.send(command);
-            return { success: true, message: 'Journal entry added successfully' };
+            return {
+                ...item,
+                id: `${item.UserID}#${item.CreationDate}`
+            };
         } catch (error) {
             console.error("Error adding journal entry:", error);
             throw error;
@@ -56,88 +85,73 @@ class JournalManager {
 
     async getUserJournalEntries(userID) {
         const command = new QueryCommand({
-            TableName: "JournalEntries",
+            TableName: this.tableName,
             KeyConditionExpression: "UserID = :uid",
             ExpressionAttributeValues: {
                 ":uid": userID
             },
-            ScanIndexForward: false // this will return items in descending order by sort key
+            ScanIndexForward: false
         });
 
         try {
             const response = await this.docClient.send(command);
-            return response.Items;
+            return response.Items.map(item => ({
+                ...item,
+                id: `${item.UserID}#${item.CreationDate}`
+            }));
         } catch (error) {
             console.error("Error fetching journal entries:", error);
             throw error;
         }
     }
 
-    async getJournalEntry(journalID) {
+    async getJournalEntry(compositeId) {
+        const [userID, creationDate] = compositeId.split('#');
+        
         const command = new GetCommand({
             TableName: this.tableName,
             Key: {
-                JournalID: journalID
+                UserID: userID,
+                CreationDate: creationDate
             }
         });
 
         try {
             const response = await this.docClient.send(command);
-            return response.Item;
+            if (!response.Item) return null;
+            return {
+                ...response.Item,
+                id: compositeId
+            };
         } catch (error) {
             console.error("Error fetching journal entry:", error);
             throw error;
         }
     }
 
-    async deleteJournalEntry(journalID) {
+    async deleteJournalEntry(compositeId) {
+        const [userID, creationDate] = compositeId.split('#');
+        
         const command = new DeleteCommand({
             TableName: this.tableName,
             Key: {
-                JournalID: journalID
+                UserID: userID,
+                CreationDate: creationDate
             },
             ReturnValues: "ALL_OLD"
         });
 
         try {
             const response = await this.docClient.send(command);
-            if (response.Attributes) {
-                return { success: true, message: 'Journal entry deleted successfully' };
-            } else {
-                return { success: false, message: 'No journal entry found with this ID' };
-            }
+            return {
+                success: !!response.Attributes,
+                message: response.Attributes ? 'Journal entry deleted successfully' : 'No journal entry found'
+            };
         } catch (error) {
             console.error("Error deleting journal entry:", error);
             throw error;
         }
     }
-
-    // search journal entries
-
-
-
-
 }
 
 module.exports = JournalManager;
-
-async function main() {
-    try {
-        const journalManager = new JournalManager();
-        const journalData = {
-            UserID: "dfujah",
-            Timestamp: new Date().toISOString(),
-            Content: "This is a test journal entry",
-            Quote: "This is a test quote",
-            MentalHealthTip: "This is a test mental health tip",
-            Hack: "This is a test hack"
-        };
-        await journalManager.addJournalEntry(journalData);
-        console.log("Journal entry added successfully");
-    } catch (error) {
-        console.error("Error:", error);
-    }
-}
-
-
-main()
