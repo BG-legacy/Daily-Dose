@@ -6,6 +6,7 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 const envPath = path.resolve(__dirname, './.env');
 dotenv.config({ path: envPath });
+import { useState } from 'react';
 
 // TODO: use useState hooks for login and logout
 
@@ -18,26 +19,27 @@ import { getAuth, createUserWithEmailAndPassword,
 
 
   
-  const firebaseConfig = {
-      apiKey: process.env.FIREBASE_API_KEY,
-      authDomain: process.env.FIREBASE_AUTH_DOMAIN,
-      projectId: process.env.FIREBASE_PROJECT_ID,
-      storageBucket: process.env.FIREBASE_STORAGE_BUCKET,
-      messagingSenderId: process.env.FIREBASE_MESSAGING_SENDER_ID,
-      appId: process.env.FIREBASE_APP_ID,
-      measurementId: process.env.FIREBASE_MEASUREMENT_ID
-  };
+const firebaseConfig = {
+    apiKey: process.env.FIREBASE_API_KEY,
+    authDomain: process.env.FIREBASE_AUTH_DOMAIN,
+    projectId: process.env.FIREBASE_PROJECT_ID,
+    storageBucket: process.env.FIREBASE_STORAGE_BUCKET,
+    messagingSenderId: process.env.FIREBASE_MESSAGING_SENDER_ID,
+    appId: process.env.FIREBASE_APP_ID,
+    measurementId: process.env.FIREBASE_MEASUREMENT_ID
+};
 
   
   
-  // initialize firebase
-  const app = initializeApp(firebaseConfig);
+// initialize firebase
+const app = initializeApp(firebaseConfig);
+const auth = getAuth(app);
   
- 
-  const auth = getAuth(app);
-  
+const useAuth = () => {
+  const [userID, setUserID] = useState(null);
+  // have a loading state to track when an auth operation is in progress
 
-const signUp = async ({userID, name, email, password}) => {
+  const signUp = async ({userID, name, email, password}) => {
     try {
 
         const userCredential = await createUserWithEmailAndPassword(auth, email, password);
@@ -53,10 +55,11 @@ const signUp = async ({userID, name, email, password}) => {
             body: JSON.stringify(item),
         });
 
-        const responseText = await response.text();
+        
 
         if(!response.ok){
-            throw new Error(`Failed to create user in database: ${responseText}`);
+          const responseText = await response.text();
+          throw new Error(`Failed to create user in database: ${responseText}`);
 
         }
     
@@ -66,49 +69,59 @@ const signUp = async ({userID, name, email, password}) => {
         console.error('Error signing up:', error.message);
         throw error;
     }
-};
+  };
 
+  //TODO: once signed in, navigate to account page
+  const signIn = async ({email, password}) => {
+      try {
 
-const signIn = async ({email, password}) => {
-    try {
+        console.log('Signing in with email:', email);
+        const userCredential = await signInWithEmailAndPassword(auth, email, password);
+        const token = await getIdToken(userCredential.user);
+        
 
-      console.log('Signing in with email:', email);
-      const userCredential = await signInWithEmailAndPassword(auth, email, password);
-      const token = await getIdToken(userCredential.user);
-      
+        const response = await fetch('http://localhost:3011/loginUser', {
+          method: 'POST',
+          headers: {
+              'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({ token }),
+        });
+        
 
-      const response = await fetch('http://localhost:3011/loginUser', {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({token }),
-      });
-      
+        const data = await response.json();
 
-      const data = await response.json();
-      // console.log(response.status)
-      if (!response.ok) {
-        throw new Error(data.error || 'Failed to log in');
+        if (!response.ok) {
+          throw new Error(data.error || 'Failed to log in');
+        }
+
+        // TODO: send userID back to frontend
+        const { userID } = data;
+        console.log('retrieved user:', userID);
+
+        setUserID(userID);
+
+        console.log('User signed in');
+        return token;
+      } catch (error) {
+        console.error('Error signing in:', error.message);
       }
+  };
 
-      // console.log(data);
-      console.log('User signed in');
-      return token;
-    } catch (error) {
-      console.error('Error signing in:', error.message);
-    }
+
+  const logout = async () => {
+      try {
+        await signOut(auth);
+        console.log('User signed out');
+        setUserID(null);
+      } catch (error) {
+        console.error('Error signing out:', error.message);
+        throw error;
+      }
+  };
+
+// export { signUp, signIn, logout };
+  return { signUp, signIn, logout, userID };
+
 };
-
-
-const logout = async () => {
-    try {
-      await signOut(auth);
-      console.log('User signed out');
-    } catch (error) {
-      console.error('Error signing out:', error.message);
-      throw error;
-    }
-};
-
-export { signUp, signIn, logout };
+export default useAuth;
