@@ -8,7 +8,7 @@ const envPath = path.resolve(__dirname, './.env');
 dotenv.config({ path: envPath });
 import { useState } from 'react';
 
-// TODO: use useState hooks for login and logout
+// TODO: use useState hooks for login and logout :)
 
 
 import { initializeApp } from "firebase/app";
