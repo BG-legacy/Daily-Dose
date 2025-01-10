@@ -88,3 +88,31 @@
     );
   }
 }
+
+#label {
+  animation: infinite placerholderAnimation 4000ms forwards linear;
+  animation-play-state: paused;
+  color: #6f3b1300;
+  opacity: 1;
+  transition: opacity 0.2s;
+}
+
+#entry:active + div #label,
+#entry:focus + div #label {
+  opacity: 0 !important;
+}
+
+@keyframes placerholderAnimation {
+  0% {
+    color: rgb(66 32 6 / 0);
+  }
+  20% {
+    color: rgb(66 32 6 / 0.2);
+  }
+  80% {
+    color: rgb(66 32 6 / 0.2);
+  }
+  100% {
+    color: rgb(66 32 6 / 0);
+  }
+}

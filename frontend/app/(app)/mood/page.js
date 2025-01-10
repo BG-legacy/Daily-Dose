@@ -1,6 +1,6 @@
 'use client'
-import { useState, useEffect } from "react";
-import { AnimatePresence, motion, useMotionValue } from 'motion/react'
+import { useState } from "react";
+import { motion, useMotionValue } from 'motion/react'
 import Layout from "../../../components/Layout";
 import Image from "next/image";
 import { MaterialSymbolsSwipeRounded } from '../../../components/Icons'
@@ -11,19 +11,11 @@ import happy from '../../../public/assets/brand/Happy.png'
 import sad from '../../../public/assets/brand/Sad.png'
 import upset from '../../../public/assets/brand/Upset.png'
 import { motionProps } from "../../utils/motion";
+import GestureHint from "../../../components/GestureHint";
 
 export default function Page() {
   const [mood, setMood] = useState('happy')
   const [showGestureHint, setShowGestureHint] = useState(true)
-
-  useEffect(() => {
-    const timeout = setTimeout(() => {
-      setShowGestureHint(true);
-    }, 3000);
-
-    return () => clearTimeout(timeout);
-  }, [showGestureHint]);
-
 
   return (
     <Layout route='mood' fullWidth onClick={() => setShowGestureHint(false)}>
@@ -44,11 +36,9 @@ export default function Page() {
           <Image src={halo} alt="" className={`object-cover h-full w-full scale-125 z-0 transition-all ${mood === 'sad' ? 'hue-rotate-[160deg]' : ''} ${mood === 'upset' ? 'hue-rotate-[-30]' : ''}`} />
         </div>
         <div className="absolute top-0 left-0 right-0 bottom-0 radial-gradient z-10 pointer-events-none">
-          <AnimatePresence>
-            {showGestureHint &&
-              <motion.div key='gesture' transition={{ ease: 'circInOut', duration: .8 }} initial={{ opacity: 0, translateY: 25 }} animate={{ opacity: 1, translateY: 0 }} exit={{ opacity: 0, translateY: 25 }} className="relative top-[60%] left-0 right-0 flex items-center justify-center w-full"><MaterialSymbolsSwipeRounded className='w-8 h-8 text-yellow-950/20 animate-pulse' /></motion.div>
-            }
-          </AnimatePresence>
+          <GestureHint showGestureHint={showGestureHint} setShowGestureHint={setShowGestureHint} top={60}>
+            <MaterialSymbolsSwipeRounded className='w-8 h-8 text-yellow-950/20 animate-pulse' />
+          </GestureHint>
         </div>
       </section>
     </Layout>
