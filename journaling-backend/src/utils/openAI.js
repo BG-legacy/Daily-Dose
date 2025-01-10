@@ -21,31 +21,55 @@ class OpenAIService {
 
     async generateInsights(journalContent) {
         const prompt = `
-        Analyze this journal entry and provide three distinct insights:
-        "${journalContent}"
-
-        Please provide your response in the following JSON format:
-        {
-            "quote": "An inspirational quote that resonates with the journal's theme",
-            "mentalHealthTip": "A practical mental health tip based on the content",
-            "productivityHack": "A relevant productivity suggestion based on the context"
-        }
+        Analyze this journal entry and provide insights. 
+        Your response must be a valid JSON object with exactly these fields: quote, mentalHealthTip, and productivityHack.
         
-        Ensure the response is empathetic, constructive, and directly relevant to the journal content.`;
+        Journal Entry: "${journalContent}"
+
+        Remember:
+        1. Response must be valid JSON
+        2. Must include exactly these fields: quote, mentalHealthTip, productivityHack
+        3. No additional commentary or text outside the JSON object
+        
+        Example format:
+        {
+            "quote": "Relevant quote about the situation",
+            "mentalHealthTip": "A helpful mental health suggestion",
+            "productivityHack": "A practical productivity tip"
+        }`;
 
         try {
             const response = await this.openai.chat.completions.create({
                 model: "gpt-4",
                 messages: [
-                    { role: "system", content: "You are a compassionate mental health and productivity advisor." },
+                    {
+                        role: "system",
+                        content: "You are a helpful assistant that provides insights in valid JSON format. You must respond with properly formatted JSON containing exactly these fields: quote, mentalHealthTip, and productivityHack. No other text or commentary allowed."
+                    },
                     { role: "user", content: prompt }
                 ],
                 temperature: 0.7,
                 max_tokens: 500
             });
 
-            const insights = JSON.parse(response.choices[0].message.content);
-            return insights;
+            try {
+                const content = response.choices[0].message.content.trim();
+                const insights = JSON.parse(content);
+                
+                // Validate the response has all required fields
+                const requiredFields = ['quote', 'mentalHealthTip', 'productivityHack'];
+                const missingFields = requiredFields.filter(field => !insights[field]);
+                
+                if (missingFields.length > 0) {
+                    throw new Error(`Missing required fields: ${missingFields.join(', ')}`);
+                }
+                
+                return insights;
+            } catch (parseError) {
+                console.error('JSON Parse Error:', parseError);
+                console.error('Raw Response:', response.choices[0].message.content);
+                throw new Error('Failed to parse AI insights');
+            }
         } catch (error) {
             console.error('OpenAI API Error:', error);
             throw new Error('Failed to generate AI insights');
@@ -53,5 +77,4 @@ class OpenAIService {
     }
 }
 
-// Export the class instead of an instance
 module.exports = OpenAIService;
