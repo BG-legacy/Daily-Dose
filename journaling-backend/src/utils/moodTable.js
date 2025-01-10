@@ -28,10 +28,10 @@ class MoodManager {
         this.tableName = 'Moods';
     }
 
-    async addMood(userID, moodData) {
+    async addMood(userID, moodData, customDate = null) {
         const item = {
             UserID: userID,
-            CreationDate: new Date().toISOString().split('T')[0], 
+            CreationDate: customDate || new Date().toISOString().split('T')[0], 
             Mood: moodData
         };
 
@@ -47,44 +47,38 @@ class MoodManager {
             console.error("Error adding mood entry:", error);
             throw error;
         }
-        
     }
     
     // answers the question: how often has the user been sad over the past 7 or 30 days?
     async getMood(userID, timestamp, moodData) {
-        let dateThreshold;
-    
-        if (timestamp === 30) {
-            dateThreshold = new Date();
-            dateThreshold.setDate(dateThreshold.getDate() - 30);
-        } else if (timestamp === 7) {
-            dateThreshold = new Date();
-            dateThreshold.setDate(dateThreshold.getDate() - 7);
+        const endDate = new Date();
+        const startDate = new Date();
+        
+        // Convert timestamp to number if it's a string
+        const timeNum = parseInt(timestamp);
+        
+        if (timeNum === 30) {
+            startDate.setDate(startDate.getDate() - 30);
+        } else if (timeNum === 7) {
+            startDate.setDate(startDate.getDate() - 7);
         }
-    
+
         const params = {
             TableName: this.tableName,
-            KeyConditionExpression: "UserID = :userID AND CreationDate >= :date",
+            KeyConditionExpression: "UserID = :userID AND CreationDate BETWEEN :startDate AND :endDate",
             FilterExpression: "Mood = :mood",
             ExpressionAttributeValues: {
                 ":userID": userID,
-                ":date": dateThreshold ? dateThreshold.toISOString().split('T')[0] : undefined,
+                ":startDate": startDate.toISOString().split('T')[0],
+                ":endDate": endDate.toISOString().split('T')[0],
                 ":mood": moodData
-            },
-            ScanIndexForward: false
+            }
         };
-    
-        // if not time provided, get all entries with the specific mood
-        if (!timestamp) {
-            delete params.KeyConditionExpression;
-            params.KeyConditionExpression = "UserID = :userID";
-            delete params.ExpressionAttributeValues[":date"];
-        }
-    
+
         try {
             const command = new QueryCommand(params);
             const response = await this.docClient.send(command);
-            return response.Items;
+            return response.Items || [];
         } catch (error) {
             console.error("Error fetching mood entries:", error);
             throw error;
@@ -111,8 +105,8 @@ class MoodManager {
             KeyConditionExpression: "UserID = :userID AND CreationDate BETWEEN :startDate AND :endDate",
             ExpressionAttributeValues: {
                 ":userID": userID,
-                "startDate": startDate.toISOString().split('T')[0],
-                "endDate": endDate.toISOString().split('T')[0]
+                ":startDate": startDate.toISOString().split('T')[0],
+                ":endDate": endDate.toISOString().split('T')[0]
             },
             ScanIndexForward: true // dates in ascending order
         });
