@@ -67,3 +67,6 @@ const moodController = {
 
     }
 };
+
+
+module.exports = moodController;
