@@ -75,11 +75,7 @@ const newUser = async (req, res) => {
 // Login function
 const loginUser = async (req, res) => {
   console.log('login called')
-  // TODO: handle authentication and tokens
 
-
-  // handled on the frontend
-  // only thing that should be returned is the token
   const { token } = req.body;
 
   if (!token) {
@@ -97,8 +93,20 @@ const loginUser = async (req, res) => {
       return res.status(404).json({ error: 'User not found' });
     }
 
+    //TODO: check to make sure that if the streak count is zero (first time logging in), just add 1 to their streak
+    const currentDate = new Date().toISOString().split('T')[0]; // format YYYY-MM-DD
 
-    res.status(200).send({ message: 'User logged in successfully' });
+    // calculate streak count
+    let streakCount = userID.StreakCount || 0
+    
+
+
+
+
+    await db.updateUser(userID, { LastLogin: currentDate });
+
+
+    res.status(200).send({ message: 'User logged in successfully', userID });
     console.log('User logged successfully');
   } catch (error) {
     res.status(400).send({ error: error.message });

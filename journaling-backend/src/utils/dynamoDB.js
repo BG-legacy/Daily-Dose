@@ -91,7 +91,7 @@ function UserManager() {
         let expressionAttributeNames = {};
         let expressionAttributeValues = {};
 
-        // loop each fields
+        // loop each field
         Object.entries(updateData).forEach(([key, value], index) => {
             // first iteration
             const attributeName = `#attr${index}`;
