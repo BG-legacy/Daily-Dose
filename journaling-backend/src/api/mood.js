@@ -7,3 +7,5 @@ const moodController = require('../controller/moodController');
 router.post('/inputMood', moodController.inputMood);
 router.get('/view-mood-chart', moodController.viewMoodChart);
 router.get('/view-mood', moodController.viewMood);
+
+module.exports = router;
