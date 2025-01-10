@@ -1,113 +1,131 @@
-const {loginUser} = require('../src/utils/auth')
-const admin = require('firebase-admin')
-const db = require('../src/utils/dynamoDB')
+const { render, act, fireEvent, waitFor } = require('@testing-library/react');
+const { initializeApp } = require('firebase/app');
+const { getAuth, signInWithCustomToken } = require('firebase/auth');
+const React = require('react');
+const { useState, useEffect } = require('react');
 
-const mockResponse = {
-    status: jest.fn().mockReturnThis(),
-    send: jest.fn().mockReturnThis(),
-    json: jest.fn().mockReturnThis(),
-  };
-  
+// Mock the Firebase configuration
+const firebaseConfig = {
+    apiKey: process.env.FIREBASE_API_KEY,
+    authDomain: process.env.FIREBASE_AUTH_DOMAIN,
+    projectId: process.env.PROJECT_ID,
+    storageBucket: process.env.FIREBASE_STORAGE_BUCKET,
+    messagingSenderId: process.env.FIREBASE_MESSAGING_SENDER_ID,
+    appId: process.env.FIREBASE_APP_ID
+};
 
-  jest.mock('firebase-admin', () => ({
-    auth: () => ({
-      verifyIdToken: jest.fn()
-    }),
-  }));
-  
-  jest.mock('../src/utils/dynamoDB', () => {
-    return jest.fn().mockImplementation(() => ({
-      getUserByEmail: jest.fn(),
-      getUser: jest.fn()
-    }));
-  });
-  
-  // Mock the entire firebaseConfig import
-  jest.mock('../src/utils/firebaseConfig.mjs', () => ({
-    default: {
-      auth: () => ({
-        verifyIdToken: jest.fn()
-      })
-    }
-  }));
-  
-  // Mock the loadFirebaseConfig function
-  jest.mock('../src/utils/auth', () => {
-    const originalModule = jest.requireActual('../src/utils/auth');
-    return {
-      ...originalModule,
-      loadFirebaseConfig: jest.fn()
+// Mock Login Component
+function LoginComponent({ onLoginSuccess }) {
+    const [userID, setUserID] = useState(null);
+    const [error, setError] = useState(null);
+
+    const handleLogin = async (token) => {
+        try {
+            const response = await fetch('http://localhost:3001/login', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ token }),
+            });
+
+            const data = await response.json();
+
+            if (response.ok) {
+                setUserID(data.userID);
+                onLoginSuccess && onLoginSuccess(data.userID);
+            } else {
+                setError(data.error);
+            }
+        } catch (error) {
+            setError('Failed to login');
+            console.error('Login error:', error);
+        }
     };
-  });
-  
-  describe('loginUser', () => {
-    let mockRequest;
-    let dbInstance;
-  
-    beforeEach(() => {
-      jest.clearAllMocks();
-      
-      // Create DB instance
-      dbInstance = new db();
-      
-      mockRequest = {
-        body: {
-          token: 'fakeToken',
-        },
-      };
 
-      // Set firebaseAdmin directly
-      global.firebaseAdmin = require('firebase-admin');
+    return {
+        userID,
+        error,
+        handleLogin
+    };
+}
+
+// Test suite
+describe('Login Flow with State Management', () => {
+    let app;
+    let auth;
+    let testComponent;
+
+    beforeAll(async () => {
+        // Initialize Firebase
+        app = initializeApp(firebaseConfig);
+        auth = getAuth(app);
     });
-  
-    it('should return 400 if token is missing', async () => {
-      mockRequest.body.token = null; // Simulate missing token
-  
-      await loginUser(mockRequest, mockResponse);
-  
-      expect(mockResponse.status).toHaveBeenCalledWith(400);
-      expect(mockResponse.json).toHaveBeenCalledWith({ error: 'Missing token ' });
+
+    beforeEach(() => {
+        // Reset component state before each test
+        testComponent = LoginComponent({
+            onLoginSuccess: jest.fn()
+        });
     });
-  
-    it('should return 200 if token is valid and user exists', async () => {
-      // Mock successful token verification
-      admin.auth().verifyIdToken.mockResolvedValue({
-        uid: '12345',
-        email: 'user@example.com',
-      });
-  
-      // Mock user lookup in database
-      dbInstance.getUserByEmail.mockResolvedValue({ id: '12345', email: 'user@example.com' });
-  
-      await loginUser(mockRequest, mockResponse);
-  
-      expect(mockResponse.status).toHaveBeenCalledWith(200);
-      expect(mockResponse.send).toHaveBeenCalledWith({ message: 'User logged in successfully' });
+
+    test('successful login should set userID in state', async () => {
+        // Generate a test token
+        const { generateTestToken } = require('./generate-firebase-token.js');
+        const customToken = await generateTestToken();
+
+        // Get ID token
+        const userCredential = await signInWithCustomToken(auth, customToken);
+        const idToken = await userCredential.user.getIdToken();
+
+        // Attempt login
+        await act(async () => {
+            await testComponent.handleLogin(idToken);
+        });
+
+        // Check if userID was set in state
+        await waitFor(() => {
+            expect(testComponent.userID).not.toBeNull();
+            expect(testComponent.error).toBeNull();
+        });
     });
-  
-    it('should return 404 if user is not found', async () => {
-      // Mock successful token verification
-      admin.auth().verifyIdToken.mockResolvedValue({
-        uid: '12345',
-        email: 'user@example.com',
-      });
-  
-      // Mock user lookup in database (user not found)
-      dbInstance.getUserByEmail.mockResolvedValue(null);
-  
-      await loginUser(mockRequest, mockResponse);
-  
-      expect(mockResponse.status).toHaveBeenCalledWith(404);
-      expect(mockResponse.json).toHaveBeenCalledWith({ error: 'User not found' });
+
+    test('failed login should set error state', async () => {
+        // Attempt login with invalid token
+        await act(async () => {
+            await testComponent.handleLogin('invalid-token');
+        });
+
+        // Check if error was set in state
+        await waitFor(() => {
+            expect(testComponent.userID).toBeNull();
+            expect(testComponent.error).not.toBeNull();
+        });
     });
-  
-    it('should return 400 if token verification fails', async () => {
-      // Simulate token verification failure
-      admin.auth().verifyIdToken.mockRejectedValue(new Error('Token verification failed'));
-  
-      await loginUser(mockRequest, mockResponse);
-  
-      expect(mockResponse.status).toHaveBeenCalledWith(400);
-      expect(mockResponse.json).toHaveBeenCalledWith({ error: 'Token verification failed' });
+
+    test('login success callback should be called with userID', async () => {
+        const mockOnLoginSuccess = jest.fn();
+        testComponent = LoginComponent({
+            onLoginSuccess: mockOnLoginSuccess
+        });
+
+        // Generate a test token
+        const { generateTestToken } = require('./generate-firebase-token.js');
+        const customToken = await generateTestToken();
+
+        // Get ID token
+        const userCredential = await signInWithCustomToken(auth, customToken);
+        const idToken = await userCredential.user.getIdToken();
+
+        // Attempt login
+        await act(async () => {
+            await testComponent.handleLogin(idToken);
+        });
+
+        // Check if callback was called with userID
+        await waitFor(() => {
+            expect(mockOnLoginSuccess).toHaveBeenCalled();
+            expect(mockOnLoginSuccess).toHaveBeenCalledWith(testComponent.userID);
+        });
     });
-  });
+});

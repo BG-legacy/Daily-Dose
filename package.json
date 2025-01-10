@@ -4,7 +4,7 @@
   "description": "## Overview **Daily Dose** is a web app designed to inspire and support users in their daily lives by curating inspirational quotes, mental health tips, and productivity hacks. It enables users to: - Journal their thoughts. - Track their mood over time. - Receive AI-driven recommendations tailored to their journal entries and mood. - Save, share, and revisit past content.",
   "main": "index.js",
   "scripts": {
-    "test": "jest",
+    "test": "node --experimental-vm-modules node_modules/jest/bin/jest.js",
     "dev": "next dev",
     "build": "next build",
     "start": "next start"
@@ -28,6 +28,7 @@
     "morgan": "^1.10.0",
     "next": "^15.1.2",
     "next-auth": "^4.24.11",
+    "node-fetch": "^3.3.2",
     "openai": "^4.77.4",
     "react": "^19.0.0",
     "react-dom": "^19.0.0",
