@@ -1,11 +1,9 @@
-// route to get mood history that'll be represented as some type of graph or chart
+// routes for everything moods
 const express = require('express');
-const bodyParser = require('body-parser')
+const router = express.Router();
+const moodController = require('../controller/moodController');
 
-const app = express();
-app.use(bodyParser.json());
-
-
-
-app.post('/inputMood')
-app.get('/view-mood-chart')
+// mood routes
+router.post('/inputMood', moodController.inputMood);
+router.get('/view-mood-chart', moodController.viewMoodChart);
+router.get('/view-mood', moodController.viewMood);
