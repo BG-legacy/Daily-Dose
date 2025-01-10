@@ -11,12 +11,12 @@ const db = new UserManager();
 let firebaseAdmin;
 async function loadFirebaseConfig() {
   try {
-    const admin = await import('./firebaseConfig.mjs'); // Adjust path as needed
-    firebaseAdmin = admin.default; // Access default export
-    console.log('Firebase initialized successfully');
+    const admin = await import('./firebaseConfig.mjs');
+    firebaseAdmin = admin.default;
+    return firebaseAdmin; // Return the initialized admin
   } catch (error) {
     console.error('Error loading Firebase config:', error);
-    firebaseAdmin = null;
+    throw error;
   }
 }
 
@@ -80,12 +80,23 @@ const loginUser = async (req, res) => {
 
   if (!token) {
     return res.status(400).json({ error: 'Missing token ' });
-    console.log('Missing token');
   }
 
   try {
-    // verify token with firebase admin
-    const decodedToken = await firebaseAdmin.auth().verifyIdToken(token);
+    // Ensure Firebase is initialized
+    if (!firebaseAdmin) {
+      firebaseAdmin = await loadFirebaseConfig();
+    }
+
+    let decodedToken;
+    try {
+      // verify token with firebase admin
+      decodedToken = await firebaseAdmin.auth().verifyIdToken(token);
+    } catch (error) {
+      console.error('Token verification error:', error);
+      return res.status(401).json({ error: 'Invalid token' });
+    }
+
     const { uid, email } = decodedToken;
 
     const userID = await db.getUserByEmail(email);
@@ -93,18 +104,8 @@ const loginUser = async (req, res) => {
       return res.status(404).json({ error: 'User not found' });
     }
 
-    //TODO: check to make sure that if the streak count is zero (first time logging in), just add 1 to their streak
-    const currentDate = new Date().toISOString().split('T')[0]; // format YYYY-MM-DD
-
-    // calculate streak count
-    let streakCount = userID.StreakCount || 0
-    
-
-
-
-
+    const currentDate = new Date().toISOString().split('T')[0];
     await db.updateUser(userID, { LastLogin: currentDate });
-
 
     res.status(200).send({ message: 'User logged in successfully', userID });
     console.log('User logged successfully');
