@@ -41,17 +41,17 @@ export default function Home() {
           </Link>
         </motion.p>
         <div className='flex items-center gap-8 font-bold'>
-          <motion.p {...motionProps(1)} className='hidden md:block'>
+          <motion.p {...motionProps(1)} className='hidden md:block hover:text-white transition-colors duration-300 ease-in-out'>
             <Link href={'/'}>Home</Link>
           </motion.p>
-          <motion.p {...motionProps(2)} className='hidden md:block'>
-            <Link href={'/'}>Features</Link>
+          <motion.p {...motionProps(2)} className='hidden md:block hover:text-white transition-colors duration-300 ease-in-out'>
+            <Link href={'#features'}>Features</Link>
           </motion.p>
-          <motion.p {...motionProps(3)} className='hidden md:block'>
-            <Link href={'/'}>About</Link>
+          <motion.p {...motionProps(3)} className='hidden md:block hover:text-white transition-colors duration-300 ease-in-out'>
+            <Link href={'#about'}>About</Link>
           </motion.p>
           <motion.p {...motionProps(4)}>
-            <Link href={'/'} className='bg-white text-yellow-950 px-6 py-4 font-bold rounded-full'>Sign Up</Link>
+            <Link href={'/register'} className= 'bg-white text-yellow-950 px-6 py-4 font-bold rounded-full hover:bg-yellow-950 hover:text-white transition-colors duration-300 ease-in-out'>Sign Up</Link>
           </motion.p>
         </div>
       </header>
@@ -95,14 +95,15 @@ export default function Home() {
             </h1>
             <Link
               href={'/register'}
-              className='bg-yellow-950 text-white px-6 py-4 font-bold rounded-full'
+              className='bg-yellow-950 text-white px-6 py-4 font-bold rounded-full hover:bg-[#6D533F] transition-colors duration-300 ease-in-out'
             >
+
               Get Started
             </Link>
           </div>
           <ImageRotator setCurrentText={setCurrentText} setCurrentEmoticon={setCurrentEmoticon} /> {/*image rotator/flipper component */}
         </section>
-        <section className='py-12 px-6 container mx-auto md:grid-cols-3 grid gap-6'>
+        <section id = "features" className='py-12 px-6 container mx-auto md:grid-cols-3 grid gap-6'>
           <motion.div className='flex flex-col gap-3 px-6' {...motionProps(0)}>
             <Image
               className='w-24 h-24 object-contain'
@@ -136,7 +137,7 @@ export default function Home() {
               Get personalized insights and recommendations tailored to you.
             </p>
           </motion.div>
-          <motion.p className='bg-yellow-950 text-white px-6 py-4 font-bold rounded-full w-max md:col-span-3 justify-self-center' {...motionProps(4)}>
+          <motion.p className='bg-yellow-950 text-white px-6 py-4 font-bold rounded-full w-max md:col-span-3 justify-self-center hover:bg-[#6D533F] transition-colors duration-300 ease-in-out' {...motionProps(4)}>
             <Link
               href={'/register'}
             >
@@ -144,7 +145,7 @@ export default function Home() {
             </Link>
           </motion.p>
         </section>
-        <section className='grid md:grid-cols-3 gap-5 container mx-auto py-12 p-6 items-center'>
+        <section id = "about" className='grid md:grid-cols-3 gap-5 container mx-auto py-12 p-6 items-center'>
           <div className='flex flex-col gap-3'>
             <h1 className='text-3xl font-bold'>First Dose</h1>
             <p>
@@ -183,7 +184,7 @@ export default function Home() {
             </p>
             <Link
               href={'mailto:dailydose.bdjk@gmail.com'}
-              className='bg-yellow-950 text-white px-6 py-4 font-bold rounded-full w-max'
+              className='bg-yellow-950 text-white px-6 py-4 font-bold rounded-full w-max hover:bg-[#6D533F] transition-colors duration-300 ease-in-out'
             >
               Contact
             </Link>
