@@ -26,7 +26,7 @@ export default function ToastProvider({ children }) {
           <motion.div
             {...motionProps(0)}
             exit={{ opacity: 0 }}
-            className={`fixed top-30 left-0 right-0 rounded-lg bg-red-700 text-white w-max mx-auto px-8 py-2 font-bold z-20 cursor-grab select-none`}
+            className={`fixed top-32 left-0 right-0 rounded-lg bg-red-700 text-white w-max mx-auto px-8 py-2 font-bold z-20 cursor-grab select-none`}
             onPointerDown={() => setToast(null)}
             drag='y'
             dragConstraints={{ top: 10, bottom: 10 }}

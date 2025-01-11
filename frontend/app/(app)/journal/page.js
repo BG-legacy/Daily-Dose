@@ -9,6 +9,7 @@ import { useToast } from '../../contexts/toastContext/toastContext';
 export default function Page() {
   const [journalEntries, setJournalEntries] = useState(null);
   const { triggerToast } = useToast();
+  const [showGestureHint, setShowGestureHint] = useState(true);
   useEffect(() => {
     getAllJournalEntries()
       .catch((error) => triggerToast('An error occurred.'))
@@ -16,8 +17,11 @@ export default function Page() {
   }, []);
 
   return (
-    <Layout route='journal'>
-      <JournalInput />
+    <Layout route='journal' onClick={() => setShowGestureHint(false)}>
+      <JournalInput
+        showGestureHint={showGestureHint}
+        setShowGestureHint={setShowGestureHint}
+      />
       <section className='grid grid-cols-2 gap-5 p-6 pb-32'>
         <h2 className='col-span-2 font-semibold text-lg'>Past Entries</h2>
 

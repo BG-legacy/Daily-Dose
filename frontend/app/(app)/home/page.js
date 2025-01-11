@@ -30,7 +30,6 @@ export default function Page() {
     getWeeklyJournalSummary()
       .catch((error) => triggerToast('An error occurred.'))
       .then((res) => setWeeklyJournalSummary(res));
-    console.log(weeklyMoodSummary);
   }, []);
 
   // todo: get today's journal entry, set true if completed

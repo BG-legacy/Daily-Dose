@@ -15,7 +15,7 @@ export async function createEntry({ content }) {
     body: JSON.stringify(content),
   });
 
-  const response = res.json();
+  const response = await res.json();
 
   return response;
 }
