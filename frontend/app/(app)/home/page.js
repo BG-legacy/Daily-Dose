@@ -35,14 +35,11 @@ export default function Page() {
   // todo: get today's journal entry, set true if completed
   // const dailyJournalCompleted = false;
   return (
-    <Layout route='home' className='pb-24 pt-32'>
-      {/* <QuoteCard quote={quote} /> */}
-
-      {/* <Streak weeklyJournalSummary={weeklyJournalSummary} /> */}
+    <Layout route='home' className='pb-24'>
+      <QuoteCard quote={{ quote: 'Be the change you want to see.' }} />
+      <Streak weeklyJournalSummary={weeklyJournalSummary} />
       {/* {dailyJournalCompleted ? null : <JournalCTA />} */}
-      {weeklyJournalSummary != null && (
-        <Chart weeklyMoodSummary={weeklyMoodSummary} />
-      )}
+      <Chart weeklyMoodSummary={weeklyMoodSummary} />
     </Layout>
   );
 }

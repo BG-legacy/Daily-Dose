@@ -6,7 +6,7 @@ const db =
 const sampleSummary = [true, false, true, false, true, true, true];
 
 export async function getWeeklyJournalSummary() {
-  return sampleSummary;
+  return null;
 }
 
 export async function createEntry({ content }) {

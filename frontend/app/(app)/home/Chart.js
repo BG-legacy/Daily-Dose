@@ -25,6 +25,16 @@ ChartJS.register(
   Legend
 );
 
+const sampleSummary = {
+  Monday: 1,
+  Tuesday: 2,
+  Wednesday: 3,
+  Thursday: 2,
+  Friday: 2,
+  Saturday: 2,
+  Sunday: 3,
+};
+
 export default function Chart({ weeklyMoodSummary }) {
   const { user } = useAuth();
   const options = {
@@ -51,7 +61,7 @@ export default function Chart({ weeklyMoodSummary }) {
     datasets: [
       {
         label: 'Dataset 1',
-        data: weeklyMoodSummary,
+        data: weeklyMoodSummary != null ? weeklyMoodSummary : sampleSummary,
       },
     ],
   };
@@ -62,10 +72,14 @@ export default function Chart({ weeklyMoodSummary }) {
       className='m-6 p-8 bg-neutral-100/50 rounded-2xl flex flex-col gap-4'
     >
       <h2 className='font-bold text-xl'>
-        Stellar Week, {user?.displayName ? user?.displayName : user?.email}!
+        Hi, {user?.displayName ? user?.displayName : user?.email}!
       </h2>
-      <p>Your mood has been great this week.</p>
-      <div>
+      <p>
+        {weeklyMoodSummary != null
+          ? 'Your mood has been great this week.'
+          : 'Start tracking your mood to see your overiew.'}
+      </p>
+      <div className={weeklyMoodSummary != null ? '' : 'grayscale'}>
         <Line options={options} data={data} />
       </div>
     </motion.section>
