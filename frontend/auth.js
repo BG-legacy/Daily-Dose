@@ -20,13 +20,13 @@ import { getAuth, createUserWithEmailAndPassword,
 
   
 const firebaseConfig = {
-    apiKey: process.env.FIREBASE_API_KEY,
-    authDomain: process.env.FIREBASE_AUTH_DOMAIN,
-    projectId: process.env.FIREBASE_PROJECT_ID,
-    storageBucket: process.env.FIREBASE_STORAGE_BUCKET,
-    messagingSenderId: process.env.FIREBASE_MESSAGING_SENDER_ID,
-    appId: process.env.FIREBASE_APP_ID,
-    measurementId: process.env.FIREBASE_MEASUREMENT_ID
+    apiKey: process.env.LOCAL_FIREBASE_API_KEY,
+    authDomain: process.env.LOCAL_FIREBASE_AUTH_DOMAIN,
+    projectId: process.env.LOCAL_FIREBASE_PROJECT_ID,
+    storageBucket: process.env.LOCAL_FIREBASE_STORAGE_BUCKET,
+    messagingSenderId: process.env.LOCAL_FIREBASE_MESSAGING_SENDER_ID,
+    appId: process.env.LOCAL_FIREBASE_APP_ID,
+    measurementId: process.env.LOCAL_FIREBASE_MEASUREMENT_ID
 };
 
   
@@ -80,7 +80,7 @@ const useAuth = () => {
         const token = await getIdToken(userCredential.user);
         
 
-        const response = await fetch('http://localhost:3011/loginUser', {
+        const response = await fetch('http://localhost:3001/home', {
           method: 'POST',
           headers: {
               'Content-Type': 'application/json',

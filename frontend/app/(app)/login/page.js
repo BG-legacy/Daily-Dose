@@ -1,17 +1,27 @@
 'use client';
 
-import { Box, Typography, Button, Container } from '@mui/material';
+import { Box, Typography, Button, Container, TextField } from '@mui/material';
 import { useRouter } from 'next/navigation';
 import { signInWithGoogle } from '../../lib/firebase';
 import Image from 'next/image';
 import { motion } from 'motion/react';
 import happyface from '/public/assets/brand/Happy.png';
 import Link from 'next/link';
+import { useState } from 'react';
+import { getAuth, signInWithEmailAndPassword } from 'firebase/auth';
+
+const auth = getAuth();
 
 export default function SignInPage() {
   const router = useRouter();
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState(null);
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
 
+  // Handle Google Sign-In
   const handleGoogleSignIn = async () => {
+    setLoading(true);
     try {
       const user = await signInWithGoogle();
       if (user) {
@@ -28,14 +38,39 @@ export default function SignInPage() {
         const data = await response.json();
 
         if (response.ok) {
-          console.log('User registered:', data);
-          router.push('/tracker');
+          console.log('User logged in:', data);
+          router.push('/home');
         } else {
-          console.error('Error registering user:', data.error);
+          setError('Error registering user');
         }
       }
     } catch (error) {
+      setError('Error signing in with Google');
       console.error('Error signing in with Google: ', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Handle Email & Password Login
+  const handleEmailPasswordLogin = async () => {
+    setLoading(true);
+    try {
+      const userCredential = await signInWithEmailAndPassword(auth, email, password);
+      const user = userCredential.user;
+      console.log('User logged in:', user);
+      router.push('/home');
+    } catch (error) {
+      if (error.code === 'auth/user-not-found') {
+        setError('No user found with this email.');
+      } else if (error.code === 'auth/wrong-password') {
+        setError('Incorrect password.');
+      } else {
+        setError('Error signing in with email and password');
+      }
+      console.error('Error signing in with email and password:', error);
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -117,22 +152,37 @@ export default function SignInPage() {
           animation: 'slideUp 1s ease-out',
         }}
       >
-        <Image
-          src="/google-logo.png"
-          alt="Google Logo"
-          width={200}
-          height={100}
-          style={{ marginBottom: '20px' }}
-        />
         <Typography variant="h4" sx={{ mb: 2, fontWeight: 'bold', color: '#333' }}>
           Login to DailyDose
         </Typography>
         <Typography variant="body1" sx={{ mb: 4, color: '#555' }}>
           Track moods, journal, and thrive with DailyDose.
         </Typography>
+
+        {/* Email Input */}
+        <TextField
+          label="Email"
+          variant="outlined"
+          fullWidth
+          sx={{ mb: 2 }}
+          value={email}
+          onChange={(e) => setEmail(e.target.value)}
+        />
+
+        {/* Password Input */}
+        <TextField
+          label="Password"
+          type="password"
+          variant="outlined"
+          fullWidth
+          sx={{ mb: 2 }}
+          value={password}
+          onChange={(e) => setPassword(e.target.value)}
+        />
+
         <Button
           variant="contained"
-          onClick={handleGoogleSignIn}
+          onClick={handleEmailPasswordLogin}
           sx={{
             backgroundColor: '#422006',
             color: 'white',
@@ -144,11 +194,41 @@ export default function SignInPage() {
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
-            animation: 'pulse 1.5s infinite',
+            animation: loading ? 'pulse 1.5s infinite' : 'none',
+          }}
+        >
+          {loading ? 'Logging in...' : 'Log in with Email'}
+        </Button>
+
+        {/* Google Sign-In Button */}
+        <Button
+          variant="outlined"
+          onClick={handleGoogleSignIn}
+          sx={{
+            backgroundColor: '#ffffff',
+            color: '#422006',
+            '&:hover': { backgroundColor: '#6D533F', color: 'white' },
+            width: '100%',
+            borderRadius: '20px',
+            textTransform: 'none',
+            fontWeight: 'bold',
+            marginTop: '10px',
           }}
         >
           Sign in with Google
+          <Image
+            src="/google-logo.png"
+            alt="Google Logo"
+            width="30"
+            height="30"
+            style={{ marginLeft: '10px' }}
+          />
         </Button>
+        {error && (
+          <Typography variant="body2" sx={{ mt: 2, color: 'red' }}>
+            {error}
+          </Typography>
+        )}
         
         <Typography variant="body2" sx={{ mt: 3, color: '#555' }}>
           Don't have an account yet?{' '}

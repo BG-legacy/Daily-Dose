@@ -1,6 +1,6 @@
 'use client';
 
-import { Box, Typography, Button, Container } from '@mui/material';
+import { Box, Typography, Button, Container, TextField } from '@mui/material';
 import { useRouter } from 'next/navigation';
 import { signInWithGoogle } from '../../lib/firebase';
 import Image from 'next/image';
@@ -8,11 +8,17 @@ import { motion } from 'motion/react';
 import happyface from '/public/assets/brand/Happy.png';
 import Link from 'next/link';
 import { useState } from 'react';
+import { getAuth, createUserWithEmailAndPassword } from 'firebase/auth';
+
+const auth = getAuth();
 
 export default function SignUpPage() {
   const router = useRouter();
   const [loading, setLoading] = useState(false); 
   const [error, setError] = useState(null);  
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [username, setUsername] = useState('');
 
   //hands the google sign in
   const handleGoogleSignIn = async () => {
@@ -40,8 +46,57 @@ export default function SignUpPage() {
         }
       }
     } catch (error) {
-      setError('Error signing in with Google');
-      console.error('Error signing in with Google: ', error);
+      setError('Error signing up with Google');
+      console.error('Error signing up with Google: ', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // this handles manual sign-up with email, password, and username
+  const handleSignUp = async () => {
+    if (password.length < 6) {
+      setError('Password must be at least 6 characters long.');
+      return;
+    }
+
+    setLoading(true);
+    try {
+      const userCredential = await createUserWithEmailAndPassword(auth, email, password);
+      const user = userCredential.user;
+
+      // Save username and other details to the database
+      const response = await fetch('/api/register', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          uid: user.uid,
+          email: user.email,
+          displayName: username, // Save the username
+        }),
+      });
+
+      // Check if response is OK and try to parse JSON
+      const data = await response.json();
+
+      if (!response.ok) {
+        setError(data.message || 'Error registering user');
+      } else {
+        console.log('User registered:', data);
+        router.push('/home');
+      }
+    } catch (error) {
+      // Catch Firebase specific error (like weak password or email already in use)
+      if (error.code === 'auth/weak-password') {
+        setError('Password should be at least 6 characters.');
+      } else if (error.code === 'auth/email-already-in-use') {
+        setError('Email is already in use. Please log in instead.');
+      } else if (error instanceof SyntaxError) {
+        setError('Unexpected error occurred while registering. Please try again.');
+      } else {
+        setError('Error signing up');
+      }
+      console.error('Error signing up:', error);
     } finally {
       setLoading(false);
     }
@@ -125,22 +180,48 @@ export default function SignUpPage() {
           animation: 'slideUp 1s ease-out',
         }}
       >
-        <Image
-          src="/google-logo.png"
-          alt="Google Logo"
-          width={200}
-          height={100}
-          style={{ marginBottom: '20px' }}
-        />
+
         <Typography variant="h4" sx={{ mb: 2, fontWeight: 'bold', color: '#333' }}>
           Create an account
         </Typography>
         <Typography variant="body1" sx={{ mb: 4, color: '#555' }}>
           Track moods, journal, and thrive with DailyDose.
         </Typography>
+
+        {/* Email Input */}
+        <TextField
+          label="Email"
+          variant="outlined"
+          fullWidth
+          sx={{ mb: 2 }}
+          value={email}
+          onChange={(e) => setEmail(e.target.value)}
+        />
+
+        {/* Username Input */}
+        <TextField
+          label="Username"
+          variant="outlined"
+          fullWidth
+          sx={{ mb: 2 }}
+          value={username}
+          onChange={(e) => setUsername(e.target.value)}
+        />
+
+        {/* Password Input */}
+        <TextField
+          label="Password"
+          type="password"
+          variant="outlined"
+          fullWidth
+          sx={{ mb: 2 }}
+          value={password}
+          onChange={(e) => setPassword(e.target.value)}
+        />
+
         <Button
           variant="contained"
-          onClick={handleGoogleSignIn}
+          onClick={handleSignUp}
           sx={{
             backgroundColor: '#422006',
             color: 'white',
@@ -155,11 +236,30 @@ export default function SignUpPage() {
             animation: loading ? 'pulse 1.5s infinite' : 'none',
           }}
         >
-          {loading ? 'Signing up...' : 'Sign Up with Google'}
+          {loading ? 'Signing up...' : 'Sign Up with Email'}
+        </Button>
+
+        {/* Google Sign-In Button */}
+        <Button
+          variant="outlined"
+          onClick={handleGoogleSignIn}
+          sx={{
+            backgroundColor: '#ffffff',
+            color: '#422006',
+            '&:hover': { backgroundColor: '#6D533F', color: 'white' },
+            width: '100%',
+            borderRadius: '20px',
+            textTransform: 'none',
+            fontWeight: 'bold',
+            marginTop: '10px',
+          }}
+        >
+          Sign Up with Google
+          <img src="/google-logo.png" alt="Google Logo" width="40" height="40" style={{ marginLeft: '0px' }} />
         </Button>
 
         {error && (
-          <Typography variant="body2" sx={{ mt: 2, color: 'red' }}>
+          <Typography variant="body2" sx={{ mt: 2, color: '#FF4F4F' }}>
             {error}
           </Typography>
         )}
