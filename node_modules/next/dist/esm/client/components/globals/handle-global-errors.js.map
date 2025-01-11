@@ -1,0 +1,1 @@
+{"version":3,"sources":["../../../../src/client/components/globals/handle-global-errors.ts"],"sourcesContent":["import { handleGlobalErrors } from '../react-dev-overlay/internal/helpers/use-error-handler'\n\nhandleGlobalErrors()\n"],"names":["handleGlobalErrors"],"mappings":"AAAA,SAASA,kBAAkB,QAAQ,0DAAyD;AAE5FA"}
