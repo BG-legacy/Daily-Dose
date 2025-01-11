@@ -1,9 +1,9 @@
 'use client';
 import Image from 'next/image';
 import { useState, useRef } from 'react';
-import { motion } from 'motion/react'
+import { motion } from 'motion/react';
 
-import { scrollInProps as motionProps } from './utils/motion.js'
+import { scrollInProps as motionProps } from './utils/motion.js';
 
 import happy from '../public/assets/brand/Happy.png';
 import Link from 'next/link';
@@ -18,11 +18,15 @@ import ai from '../public/assets/brand/AI.png';
 import aboutImage from '../public/assets/media/canon.jpg';
 import ImageRotator from '../components/ImageRotator';
 
+import { useAuth } from './contexts/authContext/authIndex.js';
+
 export default function Home() {
-  const [currentText, setCurrentText] = useState("Gloomy Days");
+  const [currentText, setCurrentText] = useState('Gloomy Days');
   const [currentEmoticon, setCurrentEmoticon] = useState(sad);
 
-  const constraintsRef = useRef(null)
+  const { user } = useAuth();
+
+  const constraintsRef = useRef(null);
 
   return (
     <div className='tracking-tight'>
@@ -41,23 +45,52 @@ export default function Home() {
           </Link>
         </motion.p>
         <div className='flex items-center gap-8 font-bold'>
-          <motion.p {...motionProps(1)} className='hidden md:block hover:text-white transition-colors duration-300 ease-in-out'>
+          <motion.p
+            {...motionProps(1)}
+            className='hidden md:block hover:text-white transition-colors duration-300 ease-in-out'
+          >
             <Link href={'/'}>Home</Link>
           </motion.p>
-          <motion.p {...motionProps(2)} className='hidden md:block hover:text-white transition-colors duration-300 ease-in-out'>
+          <motion.p
+            {...motionProps(2)}
+            className='hidden md:block hover:text-white transition-colors duration-300 ease-in-out'
+          >
             <Link href={'#features'}>Features</Link>
           </motion.p>
-          <motion.p {...motionProps(3)} className='hidden md:block hover:text-white transition-colors duration-300 ease-in-out'>
+          <motion.p
+            {...motionProps(3)}
+            className='hidden md:block hover:text-white transition-colors duration-300 ease-in-out'
+          >
             <Link href={'#about'}>About</Link>
           </motion.p>
-          <motion.p {...motionProps(4)}>
-            <Link href={'/register'} className= 'bg-white text-yellow-950 px-6 py-4 font-bold rounded-full hover:bg-yellow-950 hover:text-white transition-colors duration-300 ease-in-out'>Sign Up</Link>
-          </motion.p>
+          {user != null ? (
+            <motion.p {...motionProps(4)}>
+              <Link
+                href={'/home'}
+                className='bg-white text-yellow-950 px-6 py-4 font-bold rounded-full hover:bg-yellow-950 hover:text-white transition-colors duration-300 ease-in-out'
+              >
+                Dashboard
+              </Link>
+            </motion.p>
+          ) : (
+            <motion.p {...motionProps(4)}>
+              <Link
+                href={'/register'}
+                className='bg-white text-yellow-950 px-6 py-4 font-bold rounded-full hover:bg-yellow-950 hover:text-white transition-colors duration-300 ease-in-out'
+              >
+                Sign Up
+              </Link>
+            </motion.p>
+          )}
         </div>
       </header>
       <main ref={constraintsRef} className='relative overflow-x-hidden'>
         {/* Emoticons */}
-        <motion.div drag draggable dragElastic dragConstraints={constraintsRef}
+        <motion.div
+          drag
+          draggable
+          dragElastic
+          dragConstraints={constraintsRef}
           className='absolute -left-12 md:-left-20 top-48 md:top-60 w-36 h-36 md:w-52 md:h-52 z-20 cursor-grab active:cursor-grabbing'
         >
           <Image
@@ -68,7 +101,10 @@ export default function Home() {
         </motion.div>
         <motion.div
           className='absolute -right-12 md:-right-48 top-72 w-32 h-32 md:w-96 md:h-96 z-20 cursor-grab active:cursor-grabbing'
-          drag draggable dragElastic dragConstraints={constraintsRef}
+          drag
+          draggable
+          dragElastic
+          dragConstraints={constraintsRef}
         >
           <Image
             src={sad}
@@ -82,7 +118,10 @@ export default function Home() {
               <span>
                 A <b>Daily Dose</b> of <b>Wellness</b> for
               </span>
-              <span className='inline-flex items-center gap-2 font-bold text-3xl hero-text' id='hero-text'>
+              <span
+                className='inline-flex items-center gap-2 font-bold text-3xl hero-text'
+                id='hero-text'
+              >
                 {currentText}
                 <Image
                   alt='Dynamic Mood Emoticon'
@@ -93,17 +132,32 @@ export default function Home() {
                 />
               </span>
             </h1>
-            <Link
-              href={'/register'}
-              className='bg-yellow-950 text-white px-6 py-4 font-bold rounded-full hover:bg-[#6D533F] transition-colors duration-300 ease-in-out'
-            >
-
-              Get Started
-            </Link>
+            {user != null ? (
+              <Link
+                href={'/home'}
+                className='bg-yellow-950 text-white px-6 py-4 font-bold rounded-full hover:bg-[#6D533F] transition-colors duration-300 ease-in-out'
+              >
+                Go to Dashboard
+              </Link>
+            ) : (
+              <Link
+                href={'/register'}
+                className='bg-yellow-950 text-white px-6 py-4 font-bold rounded-full hover:bg-[#6D533F] transition-colors duration-300 ease-in-out'
+              >
+                Get Started
+              </Link>
+            )}
           </div>
-          <ImageRotator setCurrentText={setCurrentText} setCurrentEmoticon={setCurrentEmoticon} /> {/*image rotator/flipper component */}
+          <ImageRotator
+            setCurrentText={setCurrentText}
+            setCurrentEmoticon={setCurrentEmoticon}
+          />{' '}
+          {/*image rotator/flipper component */}
         </section>
-        <section id = "features" className='py-12 px-6 container mx-auto md:grid-cols-3 grid gap-6'>
+        <section
+          id='features'
+          className='py-12 px-6 container mx-auto md:grid-cols-3 grid gap-6'
+        >
           <motion.div className='flex flex-col gap-3 px-6' {...motionProps(0)}>
             <Image
               className='w-24 h-24 object-contain'
@@ -117,7 +171,10 @@ export default function Home() {
               Receive daily curated quotes, tips, and hacks to uplift your day.
             </p>
           </motion.div>
-          <motion.div className='flex flex-col gap-3 border-x-neutral-950/10 border-y md:border-y-0 md:border-x py-6 md:py-0 px-6' {...motionProps(1)}>
+          <motion.div
+            className='flex flex-col gap-3 border-x-neutral-950/10 border-y md:border-y-0 md:border-x py-6 md:py-0 px-6'
+            {...motionProps(1)}
+          >
             <Image
               className='w-24 h-24 object-contain'
               src={moods}
@@ -137,15 +194,26 @@ export default function Home() {
               Get personalized insights and recommendations tailored to you.
             </p>
           </motion.div>
-          <motion.p className='bg-yellow-950 text-white px-6 py-4 font-bold rounded-full w-max md:col-span-3 justify-self-center hover:bg-[#6D533F] transition-colors duration-300 ease-in-out' {...motionProps(4)}>
-            <Link
-              href={'/register'}
+          {user != null ? (
+            <motion.p
+              className='bg-yellow-950 text-white px-6 py-4 font-bold rounded-full w-max md:col-span-3 justify-self-center hover:bg-[#6D533F] transition-colors duration-300 ease-in-out'
+              {...motionProps(4)}
             >
-              Start Tracking
-            </Link>
-          </motion.p>
+              <Link href={'/home'}>Start Tracking</Link>
+            </motion.p>
+          ) : (
+            <motion.p
+              className='bg-yellow-950 text-white px-6 py-4 font-bold rounded-full w-max md:col-span-3 justify-self-center hover:bg-[#6D533F] transition-colors duration-300 ease-in-out'
+              {...motionProps(4)}
+            >
+              <Link href={'/register'}>Start Tracking</Link>
+            </motion.p>
+          )}
         </section>
-        <section id = "about" className='grid md:grid-cols-3 gap-5 container mx-auto py-12 p-6 items-center'>
+        <section
+          id='about'
+          className='grid md:grid-cols-3 gap-5 container mx-auto py-12 p-6 items-center'
+        >
           <div className='flex flex-col gap-3'>
             <h1 className='text-3xl font-bold'>First Dose</h1>
             <p>

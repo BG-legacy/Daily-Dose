@@ -11,9 +11,11 @@ import Chart from './Chart';
 import Streak from './Streak';
 
 import { useAuth } from '../../contexts/authContext/authIndex';
+import { useToast } from '../../contexts/toastContext/toastContext';
 
 export default function Page() {
   const { user } = useAuth();
+  const { triggerToast } = useToast();
   const [weeklyMoodSummary, setWeeklyMoodSummary] = useState(null);
   const [weeklyJournalSummary, setWeeklyJournalSummary] = useState(null);
   // const quote = await getQuote({
@@ -22,8 +24,13 @@ export default function Page() {
   // });
 
   useEffect(() => {
-    getWeeklyMoodSummary().then((res) => setWeeklyMoodSummary(res));
-    getWeeklyJournalSummary().then((res) => setWeeklyJournalSummary(res));
+    getWeeklyMoodSummary()
+      .catch((error) => triggerToast('An error occurred.'))
+      .then((res) => setWeeklyMoodSummary(res));
+    getWeeklyJournalSummary()
+      .catch((error) => triggerToast('An error occurred.'))
+      .then((res) => setWeeklyJournalSummary(res));
+    console.log(weeklyMoodSummary);
   }, []);
 
   // todo: get today's journal entry, set true if completed
@@ -34,7 +41,9 @@ export default function Page() {
 
       {/* <Streak weeklyJournalSummary={weeklyJournalSummary} /> */}
       {/* {dailyJournalCompleted ? null : <JournalCTA />} */}
-      {weeklyJournalSummary && <Chart weeklyMoodSummary={weeklyMoodSummary} />}
+      {weeklyJournalSummary != null && (
+        <Chart weeklyMoodSummary={weeklyMoodSummary} />
+      )}
     </Layout>
   );
 }

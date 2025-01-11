@@ -1,19 +1,35 @@
+'use client';
 import Link from 'next/link';
 import Layout from '../../../components/Layout';
 import { getAllJournalEntries } from '../../lib/journal';
 import JournalInput from './JournalInput';
+import { useState, useEffect } from 'react';
+import { useToast } from '../../contexts/toastContext/toastContext';
 
-export default async function Page() {
-  const journalEntries = await getAllJournalEntries();
+export default function Page() {
+  const [journalEntries, setJournalEntries] = useState(null);
+  const { triggerToast } = useToast();
+  useEffect(() => {
+    getAllJournalEntries()
+      .catch((error) => triggerToast('An error occurred.'))
+      .then((res) => setJournalEntries(res));
+  }, []);
 
   return (
     <Layout route='journal'>
       <JournalInput />
       <section className='grid grid-cols-2 gap-5 p-6 pb-32'>
         <h2 className='col-span-2 font-semibold text-lg'>Past Entries</h2>
-        {journalEntries.map((entry, index) => (
-          <EntryCard entry={entry} key={index} />
-        ))}
+
+        {journalEntries != null ? (
+          journalEntries.map((entry, index) => (
+            <EntryCard entry={entry} key={index} />
+          ))
+        ) : (
+          <p className='text-center w-full col-span-2 text-black/50'>
+            Past entries will show up here, add an entry to get started.
+          </p>
+        )}
       </section>
     </Layout>
   );

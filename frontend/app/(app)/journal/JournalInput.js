@@ -4,15 +4,20 @@ import { MaterialSymbolsSwipeUpRounded } from '../../../components/Icons';
 import { motion, AnimatePresence } from 'motion/react';
 import GestureHint from '../../../components/GestureHint';
 import { motionProps } from '../../utils/motion';
-
+import { createEntry } from '../../lib/journal';
 
 export default function JournalInput() {
   const [ui, setUi] = useState('initial');
   const [entry, setEntry] = useState('');
+  const [submitEntry, setSubmitEntry] = useState(null);
   const [showGestureHint, setShowGestureHint] = useState(true);
 
   function hideHint() {
     setShowGestureHint(false);
+  }
+
+  function handleSubmitEntry() {
+    createEntry({ content: entry });
   }
 
   return (
@@ -38,6 +43,7 @@ export default function JournalInput() {
             {...motionProps(0)}
             type='button'
             className='bg-yellow-950 text-white px-6 py-4 font-bold rounded-full'
+            onClick={handleSubmitEntry}
           >
             Log Entry
           </motion.button>
