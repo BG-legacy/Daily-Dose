@@ -1,7 +1,5 @@
-import { initializeApp } from "firebase/app";
-import { getAuth, GoogleAuthProvider, signInWithPopup } from "firebase/auth";
-
-console.log(process.env.NEXT_PUBLIC_FIREBASE_API_KEY);
+import { initializeApp } from 'firebase/app';
+import { getAuth, GoogleAuthProvider, signInWithPopup } from 'firebase/auth';
 
 const firebaseConfig = {
   apiKey: process.env.NEXT_PUBLIC_FIREBASE_API_KEY,
@@ -24,7 +22,7 @@ const signInWithGoogle = async () => {
     console.log(user);
     return user;
   } catch (error) {
-    console.error("Error signing in with Google: ", error);
+    console.error('Error signing in with Google: ', error);
   }
 };
 

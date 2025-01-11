@@ -5,6 +5,7 @@ import { motion, AnimatePresence } from 'motion/react';
 import GestureHint from '../../../components/GestureHint';
 import { motionProps } from '../../utils/motion';
 
+
 export default function JournalInput() {
   const [ui, setUi] = useState('initial');
   const [entry, setEntry] = useState('');

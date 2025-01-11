@@ -9,6 +9,7 @@ import happyface from '/public/assets/brand/Happy.png';
 import Link from 'next/link';
 import { useState } from 'react';
 import { getAuth, signInWithEmailAndPassword } from 'firebase/auth';
+import { useAuth } from '../../contexts/authContext/authIndex';
 
 const auth = getAuth();
 
@@ -18,6 +19,7 @@ export default function SignInPage() {
   const [error, setError] = useState(null);
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const { user, setUser } = useAuth();
 
   // Handle Google Sign-In
   const handleGoogleSignIn = async () => {
@@ -39,6 +41,8 @@ export default function SignInPage() {
 
         if (response.ok) {
           console.log('User logged in:', data);
+          setUser(data);
+
           router.push('/home');
         } else {
           setError('Error registering user');
@@ -63,6 +67,7 @@ export default function SignInPage() {
       );
       const user = userCredential.user;
       console.log('User logged in:', user);
+      setUser(user);
       router.push('/home');
     } catch (error) {
       if (error.code === 'auth/user-not-found') {

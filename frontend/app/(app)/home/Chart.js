@@ -1,7 +1,7 @@
-'use client'
-import { motion } from "motion/react"
-import { motionProps } from "../../utils/motion"
-import Link from "next/link"
+'use client';
+import { motion } from 'motion/react';
+import { motionProps } from '../../utils/motion';
+import Link from 'next/link';
 import {
   Chart as ChartJS,
   CategoryScale,
@@ -13,6 +13,7 @@ import {
   Legend,
 } from 'chart.js';
 import { Line } from 'react-chartjs-2';
+import { useAuth } from '../../contexts/authContext/authIndex';
 
 ChartJS.register(
   CategoryScale,
@@ -25,9 +26,10 @@ ChartJS.register(
 );
 
 export default function Chart({ weeklyMoodSummary }) {
+  const { user } = useAuth();
   const options = {
     responsive: true,
-    borderColor: "#FDD34E",
+    borderColor: '#FDD34E',
     borderWidth: 4,
     cubicInterpolationMode: 'monotone',
     scales: {
@@ -54,14 +56,18 @@ export default function Chart({ weeklyMoodSummary }) {
     ],
   };
 
-  let name = 'User'
   return (
-    <motion.section {...motionProps(1)} className="m-6 p-8 bg-neutral-100/50 rounded-2xl flex flex-col gap-4">
-      <h2 className="font-bold text-xl">Stellar Week, {name}!</h2>
+    <motion.section
+      {...motionProps(1)}
+      className='m-6 p-8 bg-neutral-100/50 rounded-2xl flex flex-col gap-4'
+    >
+      <h2 className='font-bold text-xl'>
+        Stellar Week, {user?.displayName ? user?.displayName : user?.email}!
+      </h2>
       <p>Your mood has been great this week.</p>
-      <div><Line options={options} data={data} /></div>
-      <Link href={'/mood'} className="font-semibold">See Mood Entries &rarr;</Link>
+      <div>
+        <Line options={options} data={data} />
+      </div>
     </motion.section>
-  )
+  );
 }
-
