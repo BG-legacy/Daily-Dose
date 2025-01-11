@@ -47,7 +47,7 @@ const useAuth = () => {
         const creation = new Date().toISOString();
         const item = {userID: userID, name:name, email: email, password:password}
 
-        const response = await fetch('http://localhost:3011/newUser', {
+        const response = await fetch('http://localhost:3001/newUser', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',

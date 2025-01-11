@@ -1,22 +1,28 @@
+const db =
+  process.env.NODE_ENV === 'development'
+    ? 'http://localhost:3000'
+    : process.env.DB_URL;
+
 /** @todo create helper functions to set mood
  */
-
 
 /**
  * Set user's mood for today
  * @param {('happy' | 'sad' | 'upset')} mood - User inputted mood
  * @param {string} userId - User ID
  */
+export async function setMood(mood) {
+  const res = await fetch(`${db}/inputMood`, { method: 'POST', body: mood });
 
-export async function setMood(mood, userId) {
+  const response = res.json();
 
-
-  return
+  return response;
 }
 
-const sampleSummary = { Monday: 1, Tuesday: 2, Wednesday: 3, Thursday: 2, Friday: 2, Saturday: 2, Sunday: 3 }
-
-
 export async function getWeeklyMoodSummary() {
-  return sampleSummary
+  const res = await fetch(`${db}/view-mood-chart`, { method: 'GET' });
+
+  const weeklyMoodSummary = res.json();
+
+  return weeklyMoodSummary;
 }
