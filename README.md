@@ -7,6 +7,12 @@
 - Receive AI-driven recommendations tailored to their journal entries and mood.
 - Save, share, and revisit past content.
 
+
+
+https://github.com/user-attachments/assets/c3853892-569a-4e61-8d62-827e7ef1c48e
+
+
+
 ## Features
 1. **Daily Dose Feed**
    - Refreshing daily content with inspirational quotes, mental health tips, and productivity hacks.
