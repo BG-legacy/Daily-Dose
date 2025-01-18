@@ -1,45 +1,81 @@
-import NextAuth from "next-auth"
-import Credientials from 'next-auth/providers/credentials'
-import { loginUser } from "./app/utils/user"
+import firebase from 'firebase-admin';
+import { initializeApp } from 'firebase-admin/app';
+import 'firebase-admin/auth';
+import { getAuth, 
+  createUserWithEmailAndPassword, 
+  signInWithEmailAndPassword, 
+  signOut as firebaseSignOut, 
+  onAuthStateChanged as firebaseOnAuthStateChanged, 
+  User, 
+  getIdToken } from 'firebase/auth';
 
-import { DynamoDB, DynamoDBClientConfig } from "@aws-sdk/client-dynamodb"
-import { DynamoDBDocument } from "@aws-sdk/lib-dynamodb"
-import { DynamoDBAdapter } from "@auth/dynamodb-adapter"
+// firebase configuration
+const serviceAccount = require('../frontend/firebase.config.json');
 
-const config: DynamoDBClientConfig = {
-  credentials: {
-    accessKeyId: process.env.AUTH_DYNAMODB_ID,
-    secretAccessKey: process.env.AUTH_DYNAMODB_SECRET,
-  },
-  region: process.env.AUTH_DYNAMODB_REGION,
+// initialize firebase
+if(!firebase.apps.length) {
+  firebase.initializeApp(serviceAccount);
+} else {
+  firebase.app()
 }
+const auth = getAuth();
 
-const client = DynamoDBDocument.from(new DynamoDB(config), {
-  marshallOptions: {
-    convertEmptyValues: true,
-    removeUndefinedValues: true,
-    convertClassInstanceToMap: true,
-  },
-})
+// sign up a user
+export const signUp = async (email: string, password: string): Promise<User | null> => {
+  try {
+    const userCredentials = await createUserWithEmailAndPassword(auth, email, password);
+    const user = userCredentials.user;
+    console.log("User signed up:", user);
+    return user;
+  }catch (error: unknown) {
+    if (error instanceof Error) {
+      throw new Error(error.message);
+    } else {
+      throw new Error('An unknown error occurred');
+    }
+  }
+};
 
-export const { handlers, signIn, signOut, auth } = NextAuth({
-  providers: [
-    Credientials({
-      credentials: {
-        userID: {},
-      },
-      authorize: async (credientials) => {
-        let user = null
 
-        user = await loginUser(credientials.userID as string)
+// sign in 
+export const signIn = async(email: string, password: string): Promise<User | null> => {
+  try {
+    const userCredentials = await signInWithEmailAndPassword(auth, email, password);
+    const user = userCredentials.user;
+    console.log("User signed in:", user);
+    return user;
 
-        if (!user) {
-          throw new Error('Invalid credientials.')
-        }
+  } catch(error) {
+    console.error("Error signing in:", error);
+    throw new Error("error signing in ")
+  }
+};
 
-        return user
-      }
-    })
-  ],
-  adapter: DynamoDBAdapter(client),
-})
+// sign out
+export const signOut = async(): Promise<void> => {
+  try {
+    await firebaseSignOut(auth);
+    console.log('User signed out');
+  } catch (error: unknown) {
+    if (error instanceof Error) {
+      throw new Error(error.message);
+    } else {
+      throw new Error('An unknown error occurred');
+    }
+  }
+};
+
+
+// get firebase id token for backend
+export const getToken = async (): Promise<string> => {
+  const user = auth.currentUser;
+  if(user) {
+    const token = await getIdToken(user);
+    console.log("Firebase token:", token);
+    return token;
+  } else {
+    throw new Error('No user signed in');
+  }
+};
+
+module.exports = {getToken, signOut, signIn, signUp}
