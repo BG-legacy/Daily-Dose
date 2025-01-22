@@ -6,12 +6,10 @@ import Image from 'next/image';
 
 import canon from '../../../public/assets/media/canon.jpg';
 
-const url = 'https://localhost:3001';
-
 export default function QuoteCard({ quote }) {
   let shareData = {
     title: 'Quote from Daily Dose',
-    url: `${url}/quote/${quote.quoteID}`,
+    url: `${process.env.NEXT_PUBLIC_APP_URL}/quote/${quote.quoteID}`,
   };
 
   return (

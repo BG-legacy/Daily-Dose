@@ -1,15 +1,14 @@
 'use client';
 import Layout from '../../../components/Layout';
 import { useState, useEffect } from 'react';
-
+import ProtectedRoute from '../../components/ProtectedRoute';
 import getQuote from '../../../app/lib/quote';
 import { getWeeklyMoodSummary } from '../../../app/lib/mood';
 import { getWeeklyJournalSummary } from '../../../app/lib/journal';
 import QuoteCard from './QuoteCard';
-import JournalCTA from './JournalCTA';
 import Chart from './Chart';
 import Streak from './Streak';
-
+import HealthCheck from '../../components/HealthCheck';
 import { useAuth } from '../../contexts/authContext/authIndex';
 import { useToast } from '../../contexts/toastContext/toastContext';
 
@@ -18,28 +17,25 @@ export default function Page() {
   const { triggerToast } = useToast();
   const [weeklyMoodSummary, setWeeklyMoodSummary] = useState(null);
   const [weeklyJournalSummary, setWeeklyJournalSummary] = useState(null);
-  // const quote = await getQuote({
-  //   userID: 'jan!',
-  //   creationDate: new Date().getUTCDay(),
-  // });
 
   useEffect(() => {
-    getWeeklyMoodSummary()
-      .catch((error) => triggerToast('An error occurred.'))
-      .then((res) => setWeeklyMoodSummary(res));
-    getWeeklyJournalSummary()
-      .catch((error) => triggerToast('An error occurred.'))
-      .then((res) => setWeeklyJournalSummary(res));
-  }, []);
+    if (user) {
+      getWeeklyMoodSummary()
+        .catch((error) => triggerToast('An error occurred.'))
+        .then((res) => setWeeklyMoodSummary(res));
+      getWeeklyJournalSummary()
+        .catch((error) => triggerToast('An error occurred.'))
+        .then((res) => setWeeklyJournalSummary(res));
+    }
+  }, [user]);
 
-  // todo: get today's journal entry, set true if completed
-  // const dailyJournalCompleted = false;
   return (
-    <Layout route='home' className='pb-24'>
-      <QuoteCard quote={{ quote: 'Be the change you want to see.' }} />
-      <Streak weeklyJournalSummary={weeklyJournalSummary} />
-      {/* {dailyJournalCompleted ? null : <JournalCTA />} */}
-      <Chart weeklyMoodSummary={weeklyMoodSummary} />
-    </Layout>
+    <ProtectedRoute>
+      <Layout route='home' className='pb-24'>
+        <QuoteCard quote={{ quote: 'Be the change you want to see.' }} />
+        <Streak weeklyJournalSummary={weeklyJournalSummary} />
+        <Chart weeklyMoodSummary={weeklyMoodSummary} />
+      </Layout>
+    </ProtectedRoute>
   );
 }

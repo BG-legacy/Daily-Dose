@@ -114,5 +114,30 @@ const loginUser = async (req, res) => {
   }
 };
 
+// Google OAuth route
+app.get('/auth/google', (req, res) => {
+  // Initialize Google OAuth flow
+  const authUrl = `https://accounts.google.com/o/oauth2/v2/auth?
+    client_id=${process.env.GOOGLE_CLIENT_ID}
+    &redirect_uri=${process.env.REDIRECT_URI}
+    &response_type=code
+    &scope=email profile`;
+  
+  res.redirect(authUrl);
+});
+
+// Callback route after Google OAuth
+app.get('/auth/google/callback', async (req, res) => {
+  const { code } = req.query;
+  try {
+    // Exchange code for tokens
+    // Create or update user in your database
+    // Set session/JWT
+    res.redirect('/dashboard'); // Redirect to your frontend
+  } catch (error) {
+    console.error('OAuth callback error:', error);
+    res.redirect('/login?error=auth_failed');
+  }
+});
 
 module.exports = { newUser, loginUser };
