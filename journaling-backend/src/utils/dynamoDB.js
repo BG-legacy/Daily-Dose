@@ -161,10 +161,10 @@ function UserManager() {
 
         //TODO: TEST
     UserManager.prototype.getUserByEmail = async function(email) {
-        const command = new QueryCommand({
+        // First try scanning since we might not have the index yet
+        const command = new ScanCommand({
             TableName: this.tableName,
-            IndexName: 'Email-index',
-            KeyConditionExpression: 'Email = :email',
+            FilterExpression: 'Email = :email',
             ExpressionAttributeValues: {
                 ':email': email
             }
@@ -173,7 +173,6 @@ function UserManager() {
         try {
             const response = await this.docClient.send(command);
             if (response.Items && response.Items.length > 0) {
-                
                 return response.Items[0].UserID;
             } else {
                 console.log(`No user found with email: ${email}`);

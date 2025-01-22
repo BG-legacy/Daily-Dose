@@ -1,3 +1,5 @@
+import { apiClient } from './api';
+
 const db =
   process.env.NODE_ENV === 'development'
     ? 'http://localhost:3000'
@@ -6,30 +8,20 @@ const db =
 const sampleSummary = [true, false, true, false, true, true, true];
 
 export async function getWeeklyJournalSummary() {
-  return null;
+  return await apiClient.request('/api/journal/summary/weekly');
 }
 
 export async function createEntry({ content }) {
-  const res = await fetch(`${db}/thoughts`, {
+  return await apiClient.request('/api/journal/thoughts', {
     method: 'POST',
-    body: JSON.stringify(content),
+    body: JSON.stringify({ content })
   });
-
-  const response = await res.json();
-
-  return response;
 }
 
 export async function getEntry({ entryID }) {
-  const res = await fetch(`${db}/thoughts/${entryID}`, { method: 'GET' });
-  const entry = await res.json();
-  return entry;
+  return await apiClient.request(`/api/journal/thoughts/${entryID}`);
 }
 
 export async function getAllJournalEntries() {
-  const res = await fetch(`${db}/history`, { method: 'GET' });
-
-  const entries = res.json();
-
-  return entries;
+  return await apiClient.request('/api/journal/history');
 }

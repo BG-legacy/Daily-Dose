@@ -1,3 +1,5 @@
+import { apiClient } from './api';
+
 const db =
   process.env.NODE_ENV === 'development'
     ? 'http://localhost:3000'
@@ -11,18 +13,19 @@ const db =
  * @param {('happy' | 'sad' | 'upset')} mood - User inputted mood
  * @param {string} userId - User ID
  */
-export async function setMood(mood) {
-  const res = await fetch(`${db}/inputMood`, { method: 'POST', body: mood });
-
-  const response = res.json();
-
-  return response;
+export async function setMood({ content }) {
+  return await apiClient.request('/api/mood', {
+    method: 'POST',
+    body: JSON.stringify({ content })
+  });
 }
 
 export async function getWeeklyMoodSummary() {
-  const res = await fetch(`${db}/view-mood-chart`, { method: 'GET' });
-
-  const weeklyMoodSummary = res.json();
-
-  return weeklyMoodSummary;
+  try {
+    const response = await apiClient.request('/api/mood/summary/weekly');
+    return response.data;
+  } catch (error) {
+    console.error('Failed to fetch weekly mood summary:', error);
+    return null;
+  }
 }

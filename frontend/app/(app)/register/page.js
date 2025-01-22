@@ -2,16 +2,13 @@
 
 import { Box, Typography, Button, Container, TextField } from '@mui/material';
 import { useRouter } from 'next/navigation';
-import { signInWithGoogle } from '../../lib/firebase';
 import Image from 'next/image';
 import { motion } from 'motion/react';
 import happyface from '/public/assets/brand/Happy.png';
 import Link from 'next/link';
 import { useState } from 'react';
-import { getAuth, createUserWithEmailAndPassword } from 'firebase/auth';
 import { useAuth } from '../../contexts/authContext/authIndex';
-
-const auth = getAuth();
+import { apiClient } from '../../lib/api';
 
 export default function SignUpPage() {
   const router = useRouter();
@@ -20,44 +17,22 @@ export default function SignUpPage() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [username, setUsername] = useState('');
-  const { user, setUser } = useAuth();
+  const { setUser, login } = useAuth();
 
-  //hands the google sign in
+  // handles the google sign in
   const handleGoogleSignIn = async () => {
     setLoading(true);
     try {
-      const user = await signInWithGoogle();
-      if (user) {
-        const response = await fetch('/api/register', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            uid: user.uid,
-            email: user.email,
-            displayName: user.displayName,
-          }),
-        });
-
-        const data = await response.json();
-
-        if (response.ok) {
-          console.log('User registered:', data);
-          setUser(data);
-          router.push('/home');
-        } else {
-          // if they cant register, log the error
-          setError('Error registering user');
-        }
-      }
+      await apiClient.signInWithGoogle();
+      // The redirect will happen automatically
     } catch (error) {
       setError('Error signing up with Google');
       console.error('Error signing up with Google: ', error);
-    } finally {
       setLoading(false);
     }
   };
 
-  // this handles manual sign-up with email, password, and username
+  // handles manual sign-up with email, password, and username
   const handleSignUp = async () => {
     if (password.length < 6) {
       setError('Password must be at least 6 characters long.');
@@ -66,45 +41,26 @@ export default function SignUpPage() {
 
     setLoading(true);
     try {
-      const userCredential = await createUserWithEmailAndPassword(
-        auth,
-        email,
-        password
-      );
-      const user = userCredential.user;
-
-      // Save username and other details to the database
-      const response = await fetch('/api/register', {
+      const response = await apiClient.request('/register', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          uid: user.uid,
-          email: user.email,
-          displayName: username, // Save the username
+          email,
+          password,
+          displayName: username,
         }),
       });
 
-      // Check if response is OK and try to parse JSON
-      const data = await response.json();
-
-      if (!response.ok) {
-        setError(data.message || 'Error registering user');
-      } else {
-        console.log('User registered:', data);
-        setUser(data);
-
+      if (response.token) {
+        login(response.user, response.token);
         router.push('/home');
+      } else {
+        throw new Error('No token received');
       }
     } catch (error) {
-      // Catch Firebase specific error (like weak password or email already in use)
-      if (error.code === 'auth/weak-password') {
-        setError('Password should be at least 6 characters.');
-      } else if (error.code === 'auth/email-already-in-use') {
+      if (error.message.includes('email-already-in-use')) {
         setError('Email is already in use. Please log in instead.');
-      } else if (error instanceof SyntaxError) {
-        setError(
-          'Unexpected error occurred while registering. Please try again.'
-        );
+      } else if (error.message.includes('weak-password')) {
+        setError('Password should be at least 6 characters.');
       } else {
         setError('Error signing up');
       }
