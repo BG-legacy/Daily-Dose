@@ -2,82 +2,64 @@
 
 import { Box, Typography, Button, Container, TextField } from '@mui/material';
 import { useRouter } from 'next/navigation';
-import { signInWithGoogle } from '../../lib/firebase';
 import Image from 'next/image';
 import { motion } from 'motion/react';
 import happyface from '/public/assets/brand/Happy.png';
 import Link from 'next/link';
 import { useState } from 'react';
-import { getAuth, signInWithEmailAndPassword } from 'firebase/auth';
 import { useAuth } from '../../contexts/authContext/authIndex';
-
-const auth = getAuth();
+import { apiClient } from '../../lib/api';
 
 export default function SignInPage() {
+  // Initialize Next.js router for navigation
   const router = useRouter();
+  
+  // State management for form fields and UI states
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const { user, setUser } = useAuth();
+  
+  // Get authentication context methods
+  const { user, setUser, login } = useAuth();
 
-  // Handle Google Sign-In
+  // Handle Google OAuth Sign-In
   const handleGoogleSignIn = async () => {
     setLoading(true);
     try {
-      const user = await signInWithGoogle();
-      if (user) {
-        const response = await fetch('/api/signin', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            uid: user.uid,
-            email: user.email,
-            displayName: user.displayName,
-          }),
-        });
-
-        const data = await response.json();
-
-        if (response.ok) {
-          console.log('User logged in:', data);
-          setUser(data);
-
-          router.push('/home');
-        } else {
-          setError('Error registering user');
-        }
-      }
+      // Redirect to Google OAuth flow
+      await apiClient.signInWithGoogle();
+      // The redirect will happen automatically via the API client
     } catch (error) {
       setError('Error signing in with Google');
       console.error('Error signing in with Google: ', error);
-    } finally {
       setLoading(false);
     }
   };
 
-  // Handle Email & Password Login
+  // Handle traditional email/password login
   const handleEmailPasswordLogin = async () => {
     setLoading(true);
     try {
-      const userCredential = await signInWithEmailAndPassword(
-        auth,
-        email,
-        password
-      );
-      const user = userCredential.user;
-      console.log('User logged in:', user);
-      setUser(user);
-      router.push('/home');
-    } catch (error) {
-      if (error.code === 'auth/user-not-found') {
-        setError('No user found with this email.');
-      } else if (error.code === 'auth/wrong-password') {
-        setError('Incorrect password.');
+      // Send login request to backend
+      const response = await apiClient.request('/auth/login', {
+        method: 'POST',
+        body: JSON.stringify({
+          email,
+          password
+        })
+      });
+
+      // If authentication successful, update context and redirect
+      if (response.authenticated) {
+        await login(response.user, response.token);
+        router.push('/home');
       } else {
-        setError('Error signing in with email and password');
+        throw new Error(response.message || 'Authentication failed');
       }
-      console.error('Error signing in with email and password:', error);
+    } catch (error) {
+      console.error('Login error:', error);
+      setError(error.message || 'Error signing in with email and password');
     } finally {
       setLoading(false);
     }

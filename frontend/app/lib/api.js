@@ -1,11 +1,23 @@
+// Base URL for API requests - defaults to localhost in development
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3011'; // Match backend port
 
+/**
+ * API Client class for handling all server requests
+ * Provides a centralized way to manage API calls with consistent error handling
+ */
 class ApiClient {
   constructor() {
+    // Remove trailing slashes from base URL for consistency
     this.baseUrl = API_BASE_URL.replace(/\/+$/, '');
     console.log('API Client initialized with base URL:', this.baseUrl);
   }
 
+  /**
+   * Generic request method that handles all API calls
+   * @param {string} endpoint - The API endpoint to call (e.g., '/auth/login')
+   * @param {object} options - Fetch options (method, headers, body, etc.)
+   * @returns {Promise<any>} - Parsed JSON response
+   */
   async request(endpoint, options = {}) {
     const url = `${this.baseUrl}${endpoint}`;
     
@@ -19,7 +31,7 @@ class ApiClient {
         },
       });
 
-      // Handle non-200 responses
+      // Handle non-200 responses with custom error messages
       if (!response.ok) {
         const errorData = await response.json().catch(() => ({}));
         throw new Error(errorData.message || `HTTP error! status: ${response.status}`);
@@ -32,6 +44,10 @@ class ApiClient {
     }
   }
 
+  /**
+   * Health check endpoint to verify server status
+   * @returns {Promise<boolean>} - True if server is healthy
+   */
   async checkServerHealth() {
     try {
       const response = await this.request('/health');
@@ -42,6 +58,10 @@ class ApiClient {
     }
   }
 
+  /**
+   * Initiates Google OAuth sign-in flow
+   * Redirects user to Google's authentication page
+   */
   async signInWithGoogle() {
     try {
       const callbackUrl = `${window.location.origin}/auth/callback`;
@@ -51,11 +71,25 @@ class ApiClient {
       throw error;
     }
   }
+
+  /**
+   * Traditional email/password login
+   * @param {string} email - User's email
+   * @param {string} password - User's password
+   * @returns {Promise<object>} - Response containing user data and token
+   */
+  async login(email, password) {
+    return this.request('/auth/login', {
+      method: 'POST',
+      body: JSON.stringify({ email, password })
+    });
+  }
 }
 
+// Create a singleton instance of the API client
 export const apiClient = new ApiClient();
 
-// Test connection on load
+// Test server connection on load
 apiClient.checkServerHealth().then(isHealthy => {
   console.log('Server health check:', isHealthy ? 'OK' : 'Failed');
 }); 

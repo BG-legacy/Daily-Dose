@@ -4,11 +4,10 @@ const { OAuth2Client } = require('google-auth-library');
 const journalRoutes = require('./src/api/journal');
 const UserManager = require('./src/utils/dynamoDB');
 
-
 // Load environment variables
 const PORT = process.env.PORT || 3011;
 
-// Initialize Google OAuth client
+// Initialize Google OAuth client with credentials
 const googleClient = new OAuth2Client({
     clientId: process.env.GOOGLE_CLIENT_ID,
     clientSecret: process.env.GOOGLE_CLIENT_SECRET,
@@ -17,7 +16,7 @@ const googleClient = new OAuth2Client({
 
 const app = express();
 
-// Debug middleware
+// Debug middleware - Logs all incoming requests
 app.use((req, res, next) => {
     console.log('=== Incoming Request ===');
     console.log(`${req.method} ${req.url}`);
@@ -30,44 +29,45 @@ app.use((req, res, next) => {
     next();
 });
 
-// Update CORS configuration
+// CORS configuration for cross-origin requests
 app.use(cors({
     origin: process.env.NODE_ENV === 'production' 
         ? process.env.FRONTEND_URL
-        : 'http://localhost:3001', // Updated frontend port
+        : 'http://localhost:3001', // Frontend port
     credentials: true,
     methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
     allowedHeaders: ['Content-Type', 'Authorization']
 }));
 
-// Middleware
+// Body parsing middleware
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-// Add health check endpoint (before other routes)
+// Health check endpoint for monitoring
 app.get('/health', (req, res) => {
     res.json({ 
         status: 'ok',
         timestamp: new Date().toISOString(),
         services: {
-            database: 'ok',  // You can add actual DB health check later
-            auth: 'ok'       // You can add actual auth health check later
+            database: 'ok',  // Placeholder for actual DB health check
+            auth: 'ok'       // Placeholder for actual auth health check
         }
     });
 });
 
-// Auth middleware (only for /api routes)
+// Authentication middleware for protected routes
 const authMiddleware = (req, res, next) => {
     console.log('=== Auth Middleware ===');
     console.log('Path:', req.path);
     console.log('Method:', req.method);
     console.log('Auth Header:', req.headers.authorization);
     
-    // Skip OPTIONS requests
+    // Skip authentication for OPTIONS requests
     if (req.method === 'OPTIONS') {
         return next();
     }
 
+    // Verify authorization header exists and format
     const authHeader = req.headers.authorization;
     if (!authHeader) {
         console.log('No auth header present');
@@ -79,14 +79,13 @@ const authMiddleware = (req, res, next) => {
         return res.status(401).json({ error: 'Invalid authorization format' });
     }
 
-    // Extract and verify token
     const token = authHeader.split(' ')[1];
     console.log('Token received:', token.substring(0, 20) + '...');
     
     next();
 };
 
-// Add session endpoint (before other routes)
+// Session verification endpoint
 app.get('/auth/session', async (req, res) => {
     console.log('=== Session Check ===');
     
@@ -101,32 +100,57 @@ app.get('/auth/session', async (req, res) => {
     const token = authHeader.split(' ')[1];
     
     try {
-        // Verify the Google token
-        const ticket = await googleClient.verifyIdToken({
-            idToken: token,
-            audience: process.env.GOOGLE_CLIENT_ID
-        });
-        
-        const payload = ticket.getPayload();
-        const userManager = new UserManager();
-        const userID = await userManager.getUserByEmail(payload.email);
+        // Check if it's a Google token (they are typically longer and contain dots)
+        if (token.includes('.')) {
+            // Verify Google token
+            const ticket = await googleClient.verifyIdToken({
+                idToken: token,
+                audience: process.env.GOOGLE_CLIENT_ID
+            });
+            
+            const payload = ticket.getPayload();
+            const userManager = new UserManager();
+            const userID = await userManager.getUserByEmail(payload.email);
 
-        if (!userID) {
-            return res.status(401).json({
-                authenticated: false,
-                message: 'User not found'
+            if (!userID) {
+                return res.status(401).json({
+                    authenticated: false,
+                    message: 'User not found'
+                });
+            }
+
+            return res.status(200).json({
+                authenticated: true,
+                user: {
+                    uid: userID,
+                    email: payload.email,
+                    name: payload.name,
+                    picture: payload.picture
+                }
+            });
+        } else {
+            // Handle our custom session token
+            // TODO: Implement proper token verification
+            const userManager = new UserManager();
+            // For now, assume token is userID
+            const user = await userManager.getUser(token);
+            
+            if (!user) {
+                return res.status(401).json({
+                    authenticated: false,
+                    message: 'User not found'
+                });
+            }
+
+            return res.status(200).json({
+                authenticated: true,
+                user: {
+                    uid: user.UserID,
+                    email: user.Email,
+                    name: user.Name
+                }
             });
         }
-
-        return res.status(200).json({
-            authenticated: true,
-            user: {
-                uid: userID,
-                email: payload.email,
-                name: payload.name,
-                picture: payload.picture
-            }
-        });
     } catch (error) {
         console.error('Session verification error:', error);
         return res.status(401).json({
@@ -136,7 +160,7 @@ app.get('/auth/session', async (req, res) => {
     }
 });
 
-// Mount journal routes with auth middleware
+// Mount journal routes with authentication
 app.use('/api/journal', authMiddleware, (req, res, next) => {
     console.log('=== Journal Route Hit ===');
     console.log('Method:', req.method);
@@ -144,8 +168,9 @@ app.use('/api/journal', authMiddleware, (req, res, next) => {
     next();
 }, journalRoutes);
 
-// Update Google OAuth routes
+// Google OAuth routes
 app.get('/auth/google', (req, res) => {
+    // Generate Google OAuth URL and redirect user
     const authUrl = googleClient.generateAuthUrl({
         access_type: 'offline',
         scope: [
@@ -154,11 +179,11 @@ app.get('/auth/google', (req, res) => {
         ],
         redirect_uri: 'http://localhost:3011/auth/google/callback'
     });
-
     console.log('Redirecting to Google OAuth URL:', authUrl);
     res.redirect(authUrl);
 });
 
+// Google OAuth callback handler
 app.get('/auth/google/callback', async (req, res) => {
     try {
         const { code } = req.query;
@@ -216,7 +241,111 @@ app.get('/auth/google/callback', async (req, res) => {
     }
 });
 
-// Error handling
+// Traditional login endpoint
+app.post('/auth/login', async (req, res) => {
+    console.log('=== Login Request ===');
+    const { email, password } = req.body;
+
+    if (!email || !password) {
+        return res.status(400).json({
+            authenticated: false,
+            message: 'Email and password are required'
+        });
+    }
+
+    try {
+        const userManager = new UserManager();
+        const userID = await userManager.getUserByEmail(email);
+
+        if (!userID) {
+            return res.status(401).json({
+                authenticated: false,
+                message: 'User not found'
+            });
+        }
+
+        const user = await userManager.getUser(userID);
+
+        // TODO: Add proper password verification
+        // Currently accepts any password for testing
+        
+        // Generate session token (replace with JWT in production)
+        const sessionToken = userID;
+
+        return res.status(200).json({
+            authenticated: true,
+            token: sessionToken,
+            user: {
+                uid: user.UserID,
+                email: user.Email,
+                name: user.Name
+            }
+        });
+    } catch (error) {
+        console.error('Login error:', error);
+        return res.status(500).json({
+            authenticated: false,
+            message: 'Internal server error'
+        });
+    }
+});
+
+// Registration endpoint
+app.post('/register', async (req, res) => {
+    console.log('=== Registration Request ===');
+    const { email, password, displayName } = req.body;
+
+    if (!email || !password || !displayName) {
+        return res.status(400).json({
+            success: false,
+            message: 'Email, password, and display name are required'
+        });
+    }
+
+    try {
+        const userManager = new UserManager();
+        
+        // Check if user already exists
+        const existingUser = await userManager.getUserByEmail(email);
+        if (existingUser) {
+            return res.status(400).json({
+                success: false,
+                message: 'email-already-in-use'
+            });
+        }
+
+        // Create new user
+        const userID = Date.now().toString(); // Simple ID generation - consider using UUID in production
+        await userManager.addUser({
+            UserID: userID,
+            Name: displayName,
+            Email: email,
+            CreationDate: new Date().toISOString()
+            // TODO: Add hashed password storage
+        });
+
+        // Generate session token (replace with proper JWT implementation)
+        const sessionToken = 'temp-session-token'; // Replace with proper JWT
+
+        return res.status(200).json({
+            success: true,
+            token: sessionToken,
+            user: {
+                uid: userID,
+                email: email,
+                name: displayName
+            }
+        });
+    } catch (error) {
+        console.error('Registration error:', error);
+        return res.status(500).json({
+            success: false,
+            message: 'Internal server error'
+        });
+    }
+});
+
+// Global error handler
 app.use((err, req, res, next) => {
     console.error('=== Error Handler ===');
     console.error('Error:', err.message);
@@ -224,6 +353,7 @@ app.use((err, req, res, next) => {
     res.status(500).json({ error: err.message || 'Something went wrong!' });
 });
 
+// Start server
 app.listen(PORT, () => {
     console.log('=== Server Started ===');
     console.log(`Server running on http://localhost:${PORT}`);
