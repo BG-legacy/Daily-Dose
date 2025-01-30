@@ -3,6 +3,7 @@ const cors = require('cors');
 const { OAuth2Client } = require('google-auth-library');
 const journalRoutes = require('./src/api/journal');
 const UserManager = require('./src/utils/dynamoDB');
+const moodRoutes = require('./src/api/mood');
 
 // Load environment variables
 const PORT = process.env.PORT || 3011;
@@ -82,7 +83,17 @@ const authMiddleware = (req, res, next) => {
     const token = authHeader.split(' ')[1];
     console.log('Token received:', token.substring(0, 20) + '...');
     
-    next();
+    // Set user object on request
+    try {
+        // For now, use token as userID (this should be replaced with proper token verification)
+        req.user = {
+            uid: token // This will be the userID from the token
+        };
+        next();
+    } catch (error) {
+        console.error('Auth middleware error:', error);
+        return res.status(401).json({ error: 'Invalid token' });
+    }
 };
 
 // Session verification endpoint
@@ -168,6 +179,9 @@ app.use('/api/journal', authMiddleware, (req, res, next) => {
     next();
 }, journalRoutes);
 
+// Mount mood routes with authentication
+app.use('/api/mood', authMiddleware, moodRoutes);
+
 // Google OAuth routes
 app.get('/auth/google', (req, res) => {
     // Generate Google OAuth URL and redirect user
@@ -220,7 +234,7 @@ app.get('/auth/google/callback', async (req, res) => {
             console.log('Created new user:', userID);
         }
 
-        // Generate session token (you might want to use a proper JWT library)
+        // Use id_token as the session token
         const sessionToken = tokens.id_token;
 
         // Construct the frontend callback URL with user data and token
@@ -366,5 +380,7 @@ app.listen(PORT, () => {
     console.log('- GET /api/journal/summary/weekly');
     console.log('- GET /api/journal/:thoughtId');
     console.log('- DELETE /api/journal/:thoughtId');
+    console.log('- POST /api/mood');
+    console.log('- GET /api/mood/summary/weekly');
 });
 
