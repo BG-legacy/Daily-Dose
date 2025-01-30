@@ -40,22 +40,22 @@ router.post('/', async (req, res) => {
 
 // GET /api/mood/summary/weekly - Get weekly mood summary
 router.get('/summary/weekly', async (req, res) => {
+    console.log('Received weekly mood summary request'); // Debug log
     try {
-        // Verify user authentication
         if (!req.user || !req.user.uid) {
+            console.log('User not authenticated:', req.user); // Debug log
             throw new Error('User not authenticated');
         }
         const userID = req.user.uid;
+        console.log('Fetching mood summary for user:', userID); // Debug log
         
-        // Fetch weekly mood summary from database
         const moodManager = new MoodManager();
         const weeklyMoods = await moodManager.getWeeklyMoodSummary(userID);
         
-        // Return mood summary data
+        console.log('Weekly moods response:', weeklyMoods); // Debug log
         res.json(weeklyMoods);
     } catch (error) {
         console.error('Error fetching weekly mood summary:', error);
-        // Return appropriate error status with message
         res.status(error.message === 'User not authenticated' ? 401 : 500)
            .json({ error: error.message || 'Failed to fetch mood summary' });
     }

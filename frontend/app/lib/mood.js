@@ -38,9 +38,8 @@ export async function getWeeklyMoodSummary() {
   try {
     // Retrieve authentication token for API request
     const token = sessionStorage.getItem('token');
-    console.log('Token from sessionStorage:', token); // Debug log
+    console.log('Fetching weekly mood summary with token:', token); // Debug log
     
-    // Verify authentication status
     if (!token) {
       console.error('No token found in sessionStorage');
       throw new Error('Not authenticated');
@@ -48,14 +47,17 @@ export async function getWeeklyMoodSummary() {
 
     // Fetch weekly mood data with authentication
     const response = await apiClient.request('/api/mood/summary/weekly', {
+      method: 'GET',
       headers: {
         'Authorization': `Bearer ${token}`
       }
     });
-    return response.data;
+
+    console.log('Weekly mood response:', response); // Debug log
+    return response;  // Return the direct response, not response.data
+
   } catch (error) {
-    // Handle any errors during the fetch operation
     console.error('Failed to fetch weekly mood summary:', error);
-    return null; // Return null if request fails
+    return null;
   }
 }
