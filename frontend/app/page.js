@@ -1,6 +1,6 @@
 'use client';
 import Image from 'next/image';
-import { useState, useRef } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import { motion } from 'motion/react';
 
 import { scrollInProps as motionProps } from './utils/motion.js';
@@ -23,65 +23,82 @@ import { useAuth } from './contexts/authContext/authIndex.js';
 export default function Home() {
   const [currentText, setCurrentText] = useState('Gloomy Days');
   const [currentEmoticon, setCurrentEmoticon] = useState(sad);
+  const [transparentHeader, setTransparentHeader] = useState(false)
 
   const { user } = useAuth();
 
   const constraintsRef = useRef(null);
+  const heroRef = useRef(null);
+
+
+
+  useEffect(() => {
+    const observer = new IntersectionObserver(callback, { threshold: 0.2 })
+
+    function callback(entries) {
+      entries.forEach(entry => {
+        entry.isIntersecting ? setTransparentHeader(false) : setTransparentHeader(true)
+      });
+    }
+    observer.observe(heroRef.current)
+  }, [])
 
   return (
     <div className='tracking-tight'>
-      <header className='justify-between flex fixed container mx-auto left-0 right-0 items-center top-16 text-yellow-950 px-12 md:p-0 z-30'>
-        <motion.p {...motionProps(0)}>
-          <Link
-            href={'/'}
-            className='flex gap-2 items-center leading-none font-extrabold'
-          >
-            <Image src={happy} alt='Daily Dose Logo' width='42' height='42' />
-            <span>
-              Daily
-              <br />
-              Dose
-            </span>
-          </Link>
-        </motion.p>
-        <div className='flex items-center gap-8 font-bold'>
-          <motion.p
-            {...motionProps(1)}
-            className='hidden md:block hover:text-white transition-colors duration-300 ease-in-out'
-          >
-            <Link href={'/'}>Home</Link>
+      <header className={`fixed left-0 right-0 items-center top-0 pt-16 md:pt-16 text-yellow-950 px-12 md:p-0 z-30 transition-all before:absolute before:-z-10 before:top-0 before:left-0 before:right-0 before:h-44 before:bg-gradient-to-b before:from-white before:pointer-events-none before:transition-opacity before:ease-in-out before:duration-500 ${transparentHeader ? 'before:opacity-100' : 'before:opacity-0'}`}>
+        <div className='justify-between flex container mx-auto'>
+          <motion.p {...motionProps(0)}>
+            <Link
+              href={'/'}
+              className='flex gap-2 items-center leading-none font-extrabold'
+            >
+              <Image src={happy} alt='Daily Dose Logo' width='42' height='42' />
+              <span>
+                Daily
+                <br />
+                Dose
+              </span>
+            </Link>
           </motion.p>
-          <motion.p
-            {...motionProps(2)}
-            className='hidden md:block hover:text-white transition-colors duration-300 ease-in-out'
-          >
-            <Link href={'#features'}>Features</Link>
-          </motion.p>
-          <motion.p
-            {...motionProps(3)}
-            className='hidden md:block hover:text-white transition-colors duration-300 ease-in-out'
-          >
-            <Link href={'#about'}>About</Link>
-          </motion.p>
-          {user != null ? (
-            <motion.p {...motionProps(4)}>
-              <Link
-                href={'/home'}
-                className='bg-white text-yellow-950 px-6 py-4 font-bold rounded-full hover:bg-yellow-950 hover:text-white transition-colors duration-300 ease-in-out'
-              >
-                Dashboard
-              </Link>
+          <div className='flex items-center gap-8 font-bold'>
+            <motion.p
+              {...motionProps(1)}
+              className='hidden md:block hover:text-white transition-colors duration-300 ease-in-out'
+            >
+              <Link href={'/'}>Home</Link>
             </motion.p>
-          ) : (
-            <motion.p {...motionProps(4)}>
-              <Link
-                href={'/register'}
-                className='bg-white text-yellow-950 px-6 py-4 font-bold rounded-full hover:bg-yellow-950 hover:text-white transition-colors duration-300 ease-in-out'
-              >
-                Sign Up
-              </Link>
+            <motion.p
+              {...motionProps(2)}
+              className='hidden md:block hover:text-white transition-colors duration-300 ease-in-out'
+            >
+              <Link href={'#features'}>Features</Link>
             </motion.p>
-          )}
+            <motion.p
+              {...motionProps(3)}
+              className='hidden md:block hover:text-white transition-colors duration-300 ease-in-out'
+            >
+              <Link href={'#about'}>About</Link>
+            </motion.p>
+            {user != null ? (
+              <motion.p {...motionProps(4)}>
+                <Link
+                  href={'/home'}
+                  className={`${transparentHeader ? 'bg-yellow-950 text-white hover:bg-white hover:text-yellow-950' : 'bg-white text-yellow-950 hover:bg-yellow-950 hover:text-white'} px-6 py-4 font-bold rounded-full transition-colors duration-300 ease-in-out`}
+                >
+                  Dashboard
+                </Link>
+              </motion.p>
+            ) : (
+              <motion.p {...motionProps(4)}>
+                <Link
+                  href={'/register'}
+                  className={`${transparentHeader ? 'bg-yellow-950 text-white hover:bg-white hover:text-yellow-950' : 'bg-white text-yellow-950 hover:bg-yellow-950 hover:text-white'} px-6 py-4 font-bold rounded-full transition-colors duration-300 ease-in-out`}
+                >
+                  Sign Up
+                </Link>
+              </motion.p>
+            )}
+          </div>
         </div>
       </header>
       <main ref={constraintsRef} className='relative overflow-x-hidden'>
@@ -112,7 +129,7 @@ export default function Home() {
             className='w-32 h-32 md:w-96 md:h-96 -rotate-12 pointer-events-none'
           />
         </motion.div>
-        <section className='grid w-full px-6 mt-6'>
+        <section className='grid w-full px-6 mt-6' ref={heroRef}>
           <div className='col-end-1 row-end-1 z-10 w-full flex flex-col justify-end items-center gap-3 text-yellow-950 py-12 bg-gradient-to-t from-white/40 via-transparent to-white/40 rounded-2xl'>
             <h1 className='flex flex-col items-center gap-1'>
               <span>

@@ -20,13 +20,21 @@ import { setMood as setUserMood } from '../../lib/mood';
 import Link from 'next/link';
 
 export default function Page() {
+  // Authentication and state management
   const { user } = useAuth();
   const [mood, setMood] = useState('happy');
   const [showGestureHint, setShowGestureHint] = useState(true);
-  const [ui, setUi] = useState('initial');
+  const [ui, setUi] = useState('initial'); // Controls which UI state to show (initial form or submission success)
   const { triggerToast } = useToast();
 
+  // Handle mood submission
   function handleSubmitEntry() {
+    const token = sessionStorage.getItem('token');
+    if (!token) {
+      triggerToast('Please log in to submit your mood');
+      return;
+    }
+
     setUserMood({ content: mood })
       .catch((error) => triggerToast('An error occurred.'))
       .then((res) => setUi('submitted'));
@@ -113,15 +121,17 @@ export default function Page() {
   );
 }
 
+// Slider component for mood selection
 function Slider({ setMood }) {
   const [sliderIndex, setSliderIndex] = useState(1);
   const sliderLength = 3;
-
   const dragX = useMotionValue(0);
 
+  // Handle drag gesture completion
   const onDragEnd = () => {
     const x = dragX.get();
 
+    // Update slider index based on drag direction and buffer
     if (x <= -DRAG_BUFFER && sliderIndex < sliderLength - 1) {
       setSliderIndex((pv) => pv + 1);
     } else if (x >= DRAG_BUFFER && sliderIndex > 0) {
@@ -131,6 +141,7 @@ function Slider({ setMood }) {
     updateState();
   };
 
+  // Update mood state based on slider position
   function updateState() {
     if (sliderIndex === 0) setMood('sad');
     if (sliderIndex === 1) setMood('happy');
@@ -204,8 +215,10 @@ function Slider({ setMood }) {
   );
 }
 
-const DRAG_BUFFER = 50;
+// Constants for drag interaction
+const DRAG_BUFFER = 50; // Minimum drag distance to trigger slider movement
 
+// Animation spring configuration
 const SPRING_OPTIONS = {
   type: 'spring',
   mass: 3,
