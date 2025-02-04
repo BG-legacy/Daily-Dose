@@ -37,22 +37,22 @@ export default function Page() {
           'Authorization': `Bearer ${token}`
         }
       })
-      .then(res => res.json())
-      .then(data => {
-        setWeeklyMoodSummary(data);
-        // Set initial mood based on last recorded mood from summary
-        if (data.data && data.data[data.data.length - 1]) {
-          const lastMoodValue = data.data[data.data.length - 1];
-          // Map numerical values from backend to mood strings
-          const moodMap = {
-            3: 'happy',
-            2: 'sad',
-            1: 'upset'
-          };
-          setMood(moodMap[lastMoodValue] || 'happy');
-        }
-      })
-      .catch(err => console.error('Error fetching mood summary:', err));
+        .then(res => res.json())
+        .then(data => {
+          setWeeklyMoodSummary(data);
+          // Set initial mood based on last recorded mood from summary
+          if (data.data && data.data[data.data.length - 1]) {
+            const lastMoodValue = data.data[data.data.length - 1];
+            // Map numerical values from backend to mood strings
+            const moodMap = {
+              3: 'happy',
+              2: 'sad',
+              1: 'upset'
+            };
+            setMood(moodMap[lastMoodValue] || 'happy');
+          }
+        })
+        .catch(err => console.error('Error fetching mood summary:', err));
     }
   }, [user]); // Re-run when user changes (login/logout)
 
@@ -74,16 +74,16 @@ export default function Page() {
             'Authorization': `Bearer ${token}`
           }
         })
-        .then(res => res.json())
-        .then(data => setWeeklyMoodSummary(data));
+          .then(res => res.json())
+          .then(data => setWeeklyMoodSummary(data));
       });
   }
 
   return (
     <Layout route='mood' fullWidth onClick={() => setShowGestureHint(false)}>
       <section className='w-full h-svh grid relative pointer-events-none'>
-        <div className='w-full h-full flex flex-col justify-center items-center col-end-1 row-end-1 z-20'>
-          {ui === 'initial' && (
+        {ui === 'initial' && (
+          <div className='w-full h-full flex flex-col justify-center items-center col-end-1 row-end-1 z-20'>
             <div className='flex flex-col gap-8 justify-center items-center pointer-events-auto'>
               <motion.p
                 {...motionProps(0)}
@@ -102,45 +102,42 @@ export default function Page() {
                 Submit
               </motion.button>
             </div>
-          )}
-        </div>
-        <AnimatePresence>
-          {ui === 'submitted' && (
-            <motion.div
-              className='flex justify-center flex-col items-center gap-5 col-end-1 row-end-1 z-20'
-              {...motionProps(0)}
-            >
-              <Image
-                src={
-                  mood === 'happy'
-                    ? happy
-                    : mood === 'sad'
+          </div>
+        )}
+        {ui === 'submitted' && (
+          <motion.div
+            className='flex justify-center flex-col items-center gap-5 col-end-1 row-end-1 z-30 relative pointer-events-auto'
+            {...motionProps(0)}
+          >
+            <Image
+              src={
+                mood === 'happy'
+                  ? happy
+                  : mood === 'sad'
                     ? sad
                     : mood === 'upset'
-                    ? upset
-                    : null
-                }
-                alt='Daily Dose Dynamic Emoticon'
-                className='w-14 h-14'
-              />
-              <h1 className='font-bold text-xl'>Mood logged!</h1>
-              <motion.button
-                {...motionProps(1)}
-                className='bg-yellow-950 text-white px-6 py-4 font-bold rounded-full'
-              >
-                <Link href={'/home'}>Go Home &rarr;</Link>
-              </motion.button>
-            </motion.div>
-          )}
-        </AnimatePresence>
+                      ? upset
+                      : null
+              }
+              alt='Daily Dose Dynamic Emoticon'
+              className='w-14 h-14'
+            />
+            <h1 className='font-bold text-xl'>Mood logged!</h1>
+            <motion.button
+              {...motionProps(1)}
+              className='bg-yellow-950 text-white px-6 py-4 font-bold rounded-full'
+            >
+              <Link href={'/home'}>Go Home &rarr;</Link>
+            </motion.button>
+          </motion.div>
+        )}
 
         <div className='fade-in col-end-1 row-end-1 w-full h-full overflow-hidden z-0 relative pointer-events-none'>
           <Image
             src={halo}
             alt=''
-            className={`object-cover h-full w-full scale-125 z-0 transition-all ${
-              mood === 'sad' ? 'hue-rotate-[160deg]' : ''
-            } ${mood === 'upset' ? 'hue-rotate-[-30]' : ''}`}
+            className={`object-cover h-full w-full scale-125 z-0 transition-all ${mood === 'sad' ? 'hue-rotate-[160deg]' : ''
+              } ${mood === 'upset' ? 'hue-rotate-[-30]' : ''}`}
           />
         </div>
 
@@ -209,9 +206,8 @@ function Slider({ setMood }) {
             setSliderIndex(0);
             setMood('sad');
           }}
-          className={`cursor-pointer pointer-events-none md:pointer-events-auto w-52 h-52 transition-all relative ${
-            sliderIndex === 0 ? '' : 'translate-y-12'
-          }`}
+          className={`cursor-pointer pointer-events-none md:pointer-events-auto w-52 h-52 transition-all relative ${sliderIndex === 0 ? '' : 'translate-y-12'
+            }`}
         >
           <Image
             src={sad}
@@ -224,9 +220,8 @@ function Slider({ setMood }) {
             setSliderIndex(1);
             setMood('happy');
           }}
-          className={`cursor-pointer pointer-events-none md:pointer-events-auto w-52 h-52 transition-all ${
-            sliderIndex === 1 ? '' : 'translate-y-12'
-          }`}
+          className={`cursor-pointer pointer-events-none md:pointer-events-auto w-52 h-52 transition-all ${sliderIndex === 1 ? '' : 'translate-y-12'
+            }`}
         >
           <Image
             src={happy}
@@ -239,9 +234,8 @@ function Slider({ setMood }) {
             setSliderIndex(2);
             setMood('upset');
           }}
-          className={`cursor-pointer pointer-events-none md:pointer-events-auto w-52 h-52 transition-all ${
-            sliderIndex === 2 ? '' : 'translate-y-12'
-          }`}
+          className={`cursor-pointer pointer-events-none md:pointer-events-auto w-52 h-52 transition-all ${sliderIndex === 2 ? '' : 'translate-y-12'
+            }`}
         >
           <Image
             src={upset}
