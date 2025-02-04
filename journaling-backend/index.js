@@ -84,15 +84,23 @@ const authMiddleware = async (req, res, next) => {
     console.log('Token received:', token.substring(0, 20) + '...');
     
     try {
-        // Verify Google token and extract user ID
-        const ticket = await googleClient.verifyIdToken({
-            idToken: token,
-            audience: process.env.GOOGLE_CLIENT_ID
-        });
+        let userID;
         
-        const payload = ticket.getPayload();
-        const userManager = new UserManager();
-        const userID = await userManager.getUserByEmail(payload.email);
+        // Check if it's a Google token (they contain dots)
+        if (token.includes('.')) {
+            // Handle Google token
+            const ticket = await googleClient.verifyIdToken({
+                idToken: token,
+                audience: process.env.GOOGLE_CLIENT_ID
+            });
+            
+            const payload = ticket.getPayload();
+            const userManager = new UserManager();
+            userID = await userManager.getUserByEmail(payload.email);
+        } else {
+            // Handle traditional login token (which is the userID)
+            userID = token;
+        }
 
         if (!userID) {
             return res.status(401).json({ error: 'User not found' });
@@ -296,8 +304,8 @@ app.post('/auth/login', async (req, res) => {
         // TODO: Add proper password verification
         // Currently accepts any password for testing
         
-        // Generate session token (replace with JWT in production)
-        const sessionToken = userID;
+        // Use userID as the session token for traditional login
+        const sessionToken = userID;  // This matches what we check in authMiddleware
 
         return res.status(200).json({
             authenticated: true,
