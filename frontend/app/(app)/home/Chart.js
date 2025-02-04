@@ -156,11 +156,11 @@ export default function Chart() {
       className='m-6 p-8 bg-neutral-100/50 rounded-2xl flex flex-col gap-4'
     >
       <h2 className='font-bold text-xl'>
-        Hi, {user?.displayName ? user?.displayName : user?.email}!
+        Hi, {user?.name ? user?.name : user?.email}!
       </h2>
       <p>
-        {hasMoodData 
-          ? 'Your mood this week:' 
+        {hasMoodData
+          ? 'Your mood this week:'
           : 'Start tracking your mood to see your overview.'}
       </p>
       <div className={`h-[200px] ${hasMoodData ? '' : 'opacity-50'}`}>

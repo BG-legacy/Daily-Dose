@@ -57,7 +57,7 @@ app.get('/health', (req, res) => {
 });
 
 // Authentication middleware for protected routes
-const authMiddleware = (req, res, next) => {
+const authMiddleware = async (req, res, next) => {
     console.log('=== Auth Middleware ===');
     console.log('Path:', req.path);
     console.log('Method:', req.method);
@@ -83,11 +83,32 @@ const authMiddleware = (req, res, next) => {
     const token = authHeader.split(' ')[1];
     console.log('Token received:', token.substring(0, 20) + '...');
     
-    // Set user object on request
     try {
-        // For now, use token as userID (this should be replaced with proper token verification)
+        let userID;
+        
+        // Check if it's a Google token (they contain dots)
+        if (token.includes('.')) {
+            // Handle Google token
+            const ticket = await googleClient.verifyIdToken({
+                idToken: token,
+                audience: process.env.GOOGLE_CLIENT_ID
+            });
+            
+            const payload = ticket.getPayload();
+            const userManager = new UserManager();
+            userID = await userManager.getUserByEmail(payload.email);
+        } else {
+            // Handle traditional login token (which is the userID)
+            userID = token;
+        }
+
+        if (!userID) {
+            return res.status(401).json({ error: 'User not found' });
+        }
+
+        // Set the actual userID on the request object
         req.user = {
-            uid: token // This will be the userID from the token
+            uid: userID
         };
         next();
     } catch (error) {
@@ -283,8 +304,8 @@ app.post('/auth/login', async (req, res) => {
         // TODO: Add proper password verification
         // Currently accepts any password for testing
         
-        // Generate session token (replace with JWT in production)
-        const sessionToken = userID;
+        // Use userID as the session token for traditional login
+        const sessionToken = userID;  // This matches what we check in authMiddleware
 
         return res.status(200).json({
             authenticated: true,
