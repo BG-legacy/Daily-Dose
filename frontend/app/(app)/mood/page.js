@@ -1,5 +1,5 @@
 'use client';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { AnimatePresence, motion, useMotionValue } from 'motion/react';
 import Layout from '../../../components/Layout';
 import Image from 'next/image';
@@ -26,6 +26,35 @@ export default function Page() {
   const [showGestureHint, setShowGestureHint] = useState(true);
   const [ui, setUi] = useState('initial'); // Controls which UI state to show (initial form or submission success)
   const { triggerToast } = useToast();
+  const [weeklyMoodSummary, setWeeklyMoodSummary] = useState(null);
+
+  // Fetch weekly mood summary on component mount
+  useEffect(() => {
+    if (user) {
+      const token = sessionStorage.getItem('token');
+      fetch('http://localhost:3011/api/mood/summary/weekly', {
+        headers: {
+          'Authorization': `Bearer ${token}`
+        }
+      })
+      .then(res => res.json())
+      .then(data => {
+        setWeeklyMoodSummary(data);
+        // Set initial mood based on last recorded mood from summary
+        if (data.data && data.data[data.data.length - 1]) {
+          const lastMoodValue = data.data[data.data.length - 1];
+          // Map numerical values from backend to mood strings
+          const moodMap = {
+            3: 'happy',
+            2: 'sad',
+            1: 'upset'
+          };
+          setMood(moodMap[lastMoodValue] || 'happy');
+        }
+      })
+      .catch(err => console.error('Error fetching mood summary:', err));
+    }
+  }, [user]); // Re-run when user changes (login/logout)
 
   // Handle mood submission
   function handleSubmitEntry() {
@@ -37,7 +66,17 @@ export default function Page() {
 
     setUserMood({ content: mood })
       .catch((error) => triggerToast('An error occurred.'))
-      .then((res) => setUi('submitted'));
+      .then((res) => {
+        setUi('submitted');
+        // Added mood summary refresh after submission to keep data in sync
+        fetch('http://localhost:3011/api/mood/summary/weekly', {
+          headers: {
+            'Authorization': `Bearer ${token}`
+          }
+        })
+        .then(res => res.json())
+        .then(data => setWeeklyMoodSummary(data));
+      });
   }
 
   return (

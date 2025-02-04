@@ -57,7 +57,7 @@ app.get('/health', (req, res) => {
 });
 
 // Authentication middleware for protected routes
-const authMiddleware = (req, res, next) => {
+const authMiddleware = async (req, res, next) => {
     console.log('=== Auth Middleware ===');
     console.log('Path:', req.path);
     console.log('Method:', req.method);
@@ -83,11 +83,24 @@ const authMiddleware = (req, res, next) => {
     const token = authHeader.split(' ')[1];
     console.log('Token received:', token.substring(0, 20) + '...');
     
-    // Set user object on request
     try {
-        // For now, use token as userID (this should be replaced with proper token verification)
+        // Verify Google token and extract user ID
+        const ticket = await googleClient.verifyIdToken({
+            idToken: token,
+            audience: process.env.GOOGLE_CLIENT_ID
+        });
+        
+        const payload = ticket.getPayload();
+        const userManager = new UserManager();
+        const userID = await userManager.getUserByEmail(payload.email);
+
+        if (!userID) {
+            return res.status(401).json({ error: 'User not found' });
+        }
+
+        // Set the actual userID on the request object
         req.user = {
-            uid: token // This will be the userID from the token
+            uid: userID
         };
         next();
     } catch (error) {
