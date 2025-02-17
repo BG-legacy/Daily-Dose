@@ -12,6 +12,15 @@ class ApiClient {
     console.log('API Client initialized with base URL:', this.baseUrl);
   }
 
+  // Add method to get auth token
+  getAuthToken() {
+    // Only access localStorage on the client side
+    if (typeof window !== 'undefined') {
+      return localStorage.getItem('authToken');
+    }
+    return null;
+  }
+
   /**
    * Generic request method that handles all API calls
    * @param {string} endpoint - The API endpoint to call (e.g., '/auth/login')
@@ -20,6 +29,7 @@ class ApiClient {
    */
   async request(endpoint, options = {}) {
     const url = `${this.baseUrl}${endpoint}`;
+    const token = options.headers?.Authorization || `Bearer ${this.getAuthToken()}`;
     
     try {
       const response = await fetch(url, {
@@ -27,6 +37,7 @@ class ApiClient {
         credentials: 'include', // Important for cookies
         headers: {
           'Content-Type': 'application/json',
+          'Authorization': token,
           ...options.headers,
         },
       });

@@ -4,6 +4,7 @@ const { OAuth2Client } = require('google-auth-library');
 const journalRoutes = require('./src/api/journal');
 const UserManager = require('./src/utils/dynamoDB');
 const moodRoutes = require('./src/api/mood');
+const { loginUser } = require('./src/utils/auth');
 
 // Load environment variables
 const PORT = process.env.PORT || 3011;
@@ -63,53 +64,56 @@ const authMiddleware = async (req, res, next) => {
     console.log('Method:', req.method);
     console.log('Auth Header:', req.headers.authorization);
     
-    // Skip authentication for OPTIONS requests
     if (req.method === 'OPTIONS') {
         return next();
     }
 
-    // Verify authorization header exists and format
-    const authHeader = req.headers.authorization;
-    if (!authHeader) {
-        console.log('No auth header present');
-        return res.status(401).json({ error: 'No authorization header' });
-    }
-    
-    if (!authHeader.startsWith('Bearer ')) {
-        console.log('Invalid auth header format');
-        return res.status(401).json({ error: 'Invalid authorization format' });
-    }
-
-    const token = authHeader.split(' ')[1];
-    console.log('Token received:', token.substring(0, 20) + '...');
-    
     try {
-        let userID;
-        
-        // Check if it's a Google token (they contain dots)
+        const authHeader = req.headers.authorization;
+        if (!authHeader || authHeader === 'Bearer null') {
+            return res.status(401).json({ error: 'Authentication required' });
+        }
+
+        const token = authHeader.split(' ')[1];
+        if (!token) {
+            return res.status(401).json({ error: 'No token provided' });
+        }
+
+        // Check token type (Google or Regular)
         if (token.includes('.')) {
-            // Handle Google token
+            // Google OAuth token handling
             const ticket = await googleClient.verifyIdToken({
                 idToken: token,
                 audience: process.env.GOOGLE_CLIENT_ID
             });
             
             const payload = ticket.getPayload();
-            const userManager = new UserManager();
-            userID = await userManager.getUserByEmail(payload.email);
+            req.user = {
+                uid: payload.sub,
+                email: payload.email,
+                name: payload.name
+            };
         } else {
-            // Handle traditional login token (which is the userID)
-            userID = token;
+            // Regular auth token (format: "user_[userId]")
+            // Keep the full token as the userID since that's how it's stored in the database
+            const userID = token;
+            console.log('Looking up user with ID:', userID);
+            
+            const userManager = new UserManager();
+            const user = await userManager.getUser(userID);
+            
+            if (!user) {
+                console.log('User not found:', userID);
+                return res.status(401).json({ error: 'User not found' });
+            }
+
+            req.user = {
+                uid: userID,
+                email: user.Email,
+                name: user.Name
+            };
         }
 
-        if (!userID) {
-            return res.status(401).json({ error: 'User not found' });
-        }
-
-        // Set the actual userID on the request object
-        req.user = {
-            uid: userID
-        };
         next();
     } catch (error) {
         console.error('Auth middleware error:', error);

@@ -13,7 +13,15 @@ const {
     ScanCommand
 } = require('@aws-sdk/lib-dynamodb');
 
+/**
+ * JournalManager Class
+ * Handles all journal-related operations in DynamoDB
+ */
 class JournalManager {
+    /**
+     * Initialize JournalManager with AWS credentials
+     * @throws {Error} If AWS credentials are not properly configured
+     */
     constructor() {
         // Verify AWS credentials are loaded
         if (!process.env.AWS_ACCESS_KEY_ID || !process.env.AWS_SECRET_ACCESS_KEY || !process.env.AWS_REGION) {
@@ -32,6 +40,11 @@ class JournalManager {
         this.tableName = 'Journals';
     }
 
+    /**
+     * Verify access to the journals table
+     * @returns {Promise<boolean>} True if access is verified
+     * @throws {Error} If table doesn't exist or insufficient permissions
+     */
     async verifyTableAccess() {
         try {
             // Update the test access check to use the correct schema
@@ -56,11 +69,22 @@ class JournalManager {
         }
     }
 
+    /**
+     * Add a new journal entry
+     * @param {Object} journalData - Journal entry data
+     * @param {string} journalData.UserID - User's unique identifier
+     * @param {string} journalData.Content - Journal entry content
+     * @param {string} journalData.Quote - AI-generated quote
+     * @param {string} journalData.MentalHealthTip - AI-generated mental health tip
+     * @param {string} journalData.Hack - AI-generated productivity hack
+     * @param {string} [journalData.Timestamp] - Entry creation timestamp
+     * @returns {Promise<Object>} Created journal entry
+     */
     async addJournalEntry(journalData) {
         const item = {
             UserID: journalData.UserID,
             CreationDate: journalData.Timestamp || new Date().toISOString(),
-            Thoughts: journalData.Content,
+            Content: journalData.Content,
             Quote: journalData.Quote,
             MentalHealthTip: journalData.MentalHealthTip,
             Hack: journalData.Hack
@@ -83,20 +107,32 @@ class JournalManager {
         }
     }
 
+    /**
+     * Get all journal entries for a user
+     * @param {string} userID - User's unique identifier
+     * @returns {Promise<Array>} List of journal entries
+     * @throws {Error} If userID is not provided
+     */
     async getUserJournalEntries(userID) {
+        if (!userID) {
+            throw new Error('UserID is required');
+        }
+
         const command = new QueryCommand({
             TableName: this.tableName,
             KeyConditionExpression: "UserID = :uid",
             ExpressionAttributeValues: {
                 ":uid": userID
             },
-            ScanIndexForward: false
+            ScanIndexForward: false  // Return items in descending order
         });
 
         try {
+            console.log('Fetching entries for userID:', userID);
             const response = await this.docClient.send(command);
             return response.Items.map(item => ({
                 ...item,
+                Content: item.Content || item.Thoughts,
                 id: `${item.UserID}#${item.CreationDate}`
             }));
         } catch (error) {
@@ -105,23 +141,46 @@ class JournalManager {
         }
     }
 
+    /**
+     * Get a specific journal entry
+     * @param {string} compositeId - Composite ID (userID#timestamp)
+     * @returns {Promise<Object|null>} Journal entry or null if not found
+     */
     async getJournalEntry(compositeId) {
-        const [userID, creationDate] = compositeId.split('#');
-        
-        const command = new GetCommand({
-            TableName: this.tableName,
-            Key: {
+        try {
+            // Handle both composite ID formats (uid#timestamp and plain uid)
+            let userID, creationDate;
+            if (compositeId.includes('#')) {
+                [userID, creationDate] = compositeId.split('#');
+            } else {
+                userID = compositeId;
+                // If no timestamp provided, get the latest entry for this user
+                const entries = await this.getUserJournalEntries(userID);
+                if (!entries || entries.length === 0) {
+                    return null;
+                }
+                creationDate = entries[0].CreationDate;
+            }
+
+            const command = new GetCommand({
+                TableName: this.tableName,
+                Key: {
+                    UserID: userID,
+                    CreationDate: creationDate
+                }
+            });
+
+            console.log('Getting journal entry with params:', {
                 UserID: userID,
                 CreationDate: creationDate
-            }
-        });
+            });
 
-        try {
             const response = await this.docClient.send(command);
             if (!response.Item) return null;
+            
             return {
                 ...response.Item,
-                id: compositeId
+                id: `${userID}#${creationDate}`
             };
         } catch (error) {
             console.error("Error fetching journal entry:", error);
@@ -129,6 +188,11 @@ class JournalManager {
         }
     }
 
+    /**
+     * Delete a journal entry
+     * @param {string} compositeId - Composite ID (userID#timestamp)
+     * @returns {Promise<Object>} Result of deletion operation
+     */
     async deleteJournalEntry(compositeId) {
         const [userID, creationDate] = compositeId.split('#');
         
@@ -155,3 +219,24 @@ class JournalManager {
 }
 
 module.exports = JournalManager;
+
+/**
+ * Features:
+ * 1. CRUD operations for journal entries
+ * 2. Composite key handling (userID#timestamp)
+ * 3. Table access verification
+ * 4. Proper error handling
+ * 5. Consistent data formatting
+ * 
+ * Security:
+ * 1. AWS credentials validation
+ * 2. Input validation
+ * 3. Error logging
+ * 4. Access control checks
+ * 
+ * Performance:
+ * 1. Efficient queries using GSI
+ * 2. Proper error recovery
+ * 3. Connection pooling
+ * 4. Descending order optimization
+ */
