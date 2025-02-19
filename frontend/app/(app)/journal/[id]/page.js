@@ -7,6 +7,7 @@ import Layout from '../../../../components/Layout';
 import AI from '../../../../public/assets/brand/AI.png';
 import Image from 'next/image';
 import { getEntry } from '../../../lib/journal';
+import { use } from 'react';
 
 /**
  * Array of weekday abbreviations for date display
@@ -28,6 +29,7 @@ export default function Page({ params }) {
     const [error, setError] = useState(null);
     const { user } = useAuth();
     const router = useRouter();
+    const resolvedParams = use(params);
 
     // Fetch entry data on component mount
     useEffect(() => {
@@ -42,8 +44,9 @@ export default function Page({ params }) {
          */
         const fetchEntry = async () => {
             try {
-                console.log('Fetching entry:', params.id);
-                const data = await getEntry({ entryID: params.id });
+                const decodedId = decodeURIComponent(resolvedParams.id);
+                console.log('Fetching entry:', decodedId);
+                const data = await getEntry({ entryID: decodedId });
                 console.log('Received entry:', data);
                 if (!data) {
                     throw new Error('Entry not found');
@@ -56,7 +59,7 @@ export default function Page({ params }) {
         };
 
         fetchEntry();
-    }, [params.id, user, router]);
+    }, [resolvedParams.id, user, router]);
 
     // Error state UI
     if (error) {

@@ -33,28 +33,26 @@ class MoodManager {
     }
 
     async addMood(moodData) {
-        // Extract just the date portion for consistent daily entries
-        const dateStr = new Date().toISOString().split('T')[0];
+        // Get current date in user's local timezone and ensure it's in local time
+        const now = new Date();
+        // Format date in YYYY-MM-DD format in local timezone
+        const dateStr = new Date(now.getTime() - (now.getTimezoneOffset() * 60000))
+            .toISOString()
+            .split('T')[0];
         
-        // Structure mood entry for database:
-        // - UserID: Unique identifier for the user
-        // - Timestamp: Start of day (00:00:00) for consistent querying
-        // - Type: 'MOOD' to distinguish from other entry types
-        // - Content: The actual mood ('happy', 'sad', 'upset')
-        // - CreationDate: Exact time for audit purposes
+        // Structure mood entry for database
         const item = {
             UserID: moodData.UserID,
-            Timestamp: `${dateStr}T00:00:00.000Z`,
+            Timestamp: `${dateStr}T00:00:00.000Z`, // This will be the start of the day in local time
             Type: 'MOOD',
             Content: moodData.Content,
-            CreationDate: new Date().toISOString()
+            CreationDate: now.toISOString()
         };
 
         // Create DynamoDB put command
         const command = new PutCommand({
             TableName: this.tableName,
             Item: item,
-            // Only allow one mood entry per day
             ConditionExpression: 'attribute_not_exists(#ts) OR begins_with(#ts, :date)',
             ExpressionAttributeNames: {
                 '#ts': 'Timestamp'
@@ -95,12 +93,14 @@ class MoodManager {
         // Calculate the current week's date range (Sunday to Saturday)
         const now = new Date();
         const currentDay = now.getDay();  // 0 = Sunday, 1 = Monday, etc.
+        
+        // Adjust to user's local timezone
         const startOfWeek = new Date(now);
-        startOfWeek.setDate(now.getDate() - currentDay);  // Go back to Sunday
+        startOfWeek.setDate(now.getDate() - currentDay);
         startOfWeek.setHours(0, 0, 0, 0);
 
         const endOfWeek = new Date(startOfWeek);
-        endOfWeek.setDate(startOfWeek.getDate() + 6);  // Forward to Saturday
+        endOfWeek.setDate(startOfWeek.getDate() + 6);
         endOfWeek.setHours(23, 59, 59, 999);
 
         const command = new QueryCommand({
@@ -139,16 +139,18 @@ class MoodManager {
             for (let i = 0; i < 7; i++) {
                 const date = new Date(startOfWeek);
                 date.setDate(startOfWeek.getDate() + i);
-                days.push(date.toISOString().split('T')[0]);
+                // Store dates in local timezone
+                days.push(date.toLocaleDateString('en-CA')); // YYYY-MM-DD format
                 dayLabels.push(date.toLocaleDateString('en-US', { weekday: 'short' }));
             }
 
             // Map database entries to mood values for each day
             const moodData = days.map(day => {
-                const dayMood = items.find(item => 
-                    item.Timestamp.startsWith(day)
-                );
-                return dayMood ? moodValues[dayMood.Content] || 2 : null;
+                const dayMood = items.find(item => {
+                    const itemDate = item.Timestamp.split('T')[0];
+                    return itemDate === day;
+                });
+                return dayMood ? moodValues[dayMood.Content] || null : null;
             });
 
             console.log('Weekly Mood Data:', {

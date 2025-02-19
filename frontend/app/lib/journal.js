@@ -51,36 +51,21 @@ export async function createEntry({ content }) {
 }
 
 /**
- * Retrieves a specific journal entry
- * @param {Object} params - The entry parameters
- * @param {string} params.entryID - The ID of the journal entry to retrieve
- * @returns {Promise<Object>} The requested journal entry
+ * Get a specific journal entry
+ * @param {Object} params - Request parameters
+ * @param {string} params.entryID - ID of the journal entry to fetch
+ * @returns {Promise<Object>} Journal entry data
  */
 export async function getEntry({ entryID }) {
-  try {
-    // Get auth token from localStorage on client side only
-    const token = typeof window !== 'undefined' ? localStorage.getItem('authToken') : null;
-    
-    if (!token) {
-      throw new Error('Authentication required');
+    try {
+        // Ensure the entryID is properly encoded in the URL
+        const endpoint = `/api/journal/thoughts/${encodeURIComponent(entryID)}`;
+        const response = await apiClient.request(endpoint);
+        return response;
+    } catch (error) {
+        console.error('Error fetching journal entry:', error);
+        throw error;
     }
-
-    const response = await apiClient.request(`/api/journal/thoughts/${entryID}`, {
-      method: 'GET',
-      headers: {
-        'Authorization': `Bearer ${token}`
-      }
-    });
-
-    if (!response) {
-      throw new Error('Entry not found');
-    }
-
-    return response;
-  } catch (error) {
-    console.error('Error fetching journal entry:', error);
-    throw error;
-  }
 }
 
 /**

@@ -15,15 +15,48 @@ export default function Page() {
   const [journalEntries, setJournalEntries] = useState(null);  // Stores all journal entries
   const { triggerToast } = useToast();  // Toast notification system
   const [showGestureHint, setShowGestureHint] = useState(true);  // Controls gesture hint visibility
+  const [isLoading, setIsLoading] = useState(true);
 
   /**
    * Effect Hook to fetch all journal entries on component mount
    */
   useEffect(() => {
-    getAllJournalEntries()
-      .catch((error) => triggerToast('An error occurred.'))
-      .then((res) => setJournalEntries(res));
-  }, []);
+    let isMounted = true;
+    
+    const fetchEntries = async () => {
+      try {
+        setIsLoading(true);
+        const res = await getAllJournalEntries();
+        
+        if (isMounted) {
+          // Deduplicate entries by ID
+          const uniqueEntries = new Map();
+          res.forEach(entry => {
+            const id = entry.id || `${entry.UserID}#${entry.CreationDate}`;
+            if (!uniqueEntries.has(id)) {
+              uniqueEntries.set(id, entry);
+            }
+          });
+          
+          setJournalEntries(Array.from(uniqueEntries.values()));
+        }
+      } catch (error) {
+        if (isMounted) {
+          triggerToast('An error occurred.');
+        }
+      } finally {
+        if (isMounted) {
+          setIsLoading(false);
+        }
+      }
+    };
+
+    fetchEntries();
+    
+    return () => {
+      isMounted = false;
+    };
+  }, [triggerToast]);
 
   return (
     <Layout route='journal' onClick={() => setShowGestureHint(false)}>
@@ -69,8 +102,11 @@ function EntryCard({ entry }) {
   // Parse the entry date
   const date = new Date(entry.CreationDate);
   
+  // Ensure we're using the correct ID format
+  const entryId = entry.id || `${entry.UserID}#${entry.CreationDate}`;
+  
   return (
-    <Link href={`/journal/${entry.id}`}>
+    <Link href={`/journal/${encodeURIComponent(entryId)}`}>
       <article className='p-6 bg-neutral-100/50 rounded-2xl flex flex-col gap-4'>
         {/* Date Display */}
         <div className='flex flex-col gap-1 items-center justify-center rounded-lg w-14 bg-white'>

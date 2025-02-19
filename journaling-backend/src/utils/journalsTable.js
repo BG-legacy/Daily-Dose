@@ -81,9 +81,10 @@ class JournalManager {
      * @returns {Promise<Object>} Created journal entry
      */
     async addJournalEntry(journalData) {
+        const creationDate = journalData.Timestamp || new Date().toISOString();
         const item = {
             UserID: journalData.UserID,
-            CreationDate: journalData.Timestamp || new Date().toISOString(),
+            CreationDate: creationDate,
             Content: journalData.Content,
             Quote: journalData.Quote,
             MentalHealthTip: journalData.MentalHealthTip,
@@ -213,6 +214,33 @@ class JournalManager {
             };
         } catch (error) {
             console.error("Error deleting journal entry:", error);
+            throw error;
+        }
+    }
+
+    /**
+     * Get journal entries within a date range
+     * @param {string} userID - User's unique identifier
+     * @param {Date} startDate - Start of date range
+     * @param {Date} endDate - End of date range
+     * @returns {Promise<Array>} List of journal entries
+     */
+    async getEntriesInDateRange(userID, startDate, endDate) {
+        const command = new QueryCommand({
+            TableName: this.tableName,
+            KeyConditionExpression: 'UserID = :uid AND CreationDate BETWEEN :start AND :end',
+            ExpressionAttributeValues: {
+                ':uid': userID,
+                ':start': startDate.toISOString(),
+                ':end': endDate.toISOString()
+            }
+        });
+
+        try {
+            const response = await this.docClient.send(command);
+            return response.Items || [];
+        } catch (error) {
+            console.error("Error fetching entries in date range:", error);
             throw error;
         }
     }
