@@ -2,7 +2,6 @@
 import Layout from '../../../components/Layout';
 import { useState, useEffect } from 'react';
 import ProtectedRoute from '../../components/ProtectedRoute';
-import getQuote from '../../../app/lib/quote';
 import { getWeeklyMoodSummary } from '../../../app/lib/mood';
 import { getWeeklyJournalSummary } from '../../../app/lib/journal';
 import QuoteCard from './QuoteCard';

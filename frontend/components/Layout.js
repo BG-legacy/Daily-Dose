@@ -5,7 +5,7 @@ import { motionProps } from '../app/utils/motion';
 import logo from '../public/assets/brand/Happy.png';
 import Link from 'next/link';
 
-import { MaterialSymbolsLogoutRounded } from '../components/Icons';
+import { MaterialSymbolsLogoutRounded, MaterialSymbolsPersonRounded } from '../components/Icons';
 
 import { useAuth } from '../app/contexts/authContext/authIndex';
 import { useRouter } from 'next/navigation';
@@ -28,15 +28,15 @@ export default function Layout({
     route === 'home'
       ? 'left-1 w-[75px]'
       : route === 'mood'
-      ? 'right-1 w-[75px]'
-      : route === 'journal'
-      ? 'left-1/2 right-1/2 -translate-x-1/2 w-20'
-      : '';
+        ? 'right-1 w-[75px]'
+        : route === 'journal'
+          ? 'left-1/2 right-1/2 -translate-x-1/2 w-20'
+          : '';
 
-  function signOut() {
-    setUser(null);
-    router.push('/');
-  }
+  // function signOut() {
+  //  setUser(null);
+  //  router.push('/');
+  //}
 
   return (
     <main
@@ -61,10 +61,9 @@ export default function Layout({
       <motion.div
         className='fixed z-50 top-12 lg:bottom-12 right-12 drop-shadow-xl rounded-full backdrop-blur-xl'
         {...motionProps(1)}
-        onClick={signOut}
       >
         <Link href='/user' className='p-4 flex rounded-full bg-yellow-950/5'>
-          <MaterialSymbolsLogoutRounded className='w-6 h-6 text-yellow-950' />
+          <MaterialSymbolsPersonRounded className='w-6 h-6 text-yellow-950' />
         </Link>
       </motion.div>
       <motion.footer

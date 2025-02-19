@@ -5,6 +5,8 @@ import { getAllJournalEntries } from '../../lib/journal';
 import JournalInput from './JournalInput';
 import { useState, useEffect } from 'react';
 import { useToast } from '../../contexts/toastContext/toastContext';
+import { motion } from 'motion/react';
+import { fadeInProps } from '../../utils/motion';
 
 /**
  * Main Journal Page Component
@@ -12,9 +14,9 @@ import { useToast } from '../../contexts/toastContext/toastContext';
  */
 export default function Page() {
   // State Management
-  const [journalEntries, setJournalEntries] = useState(null);  // Stores all journal entries
-  const { triggerToast } = useToast();  // Toast notification system
-  const [showGestureHint, setShowGestureHint] = useState(true);  // Controls gesture hint visibility
+  const [journalEntries, setJournalEntries] = useState(null); // Stores all journal entries
+  const { triggerToast } = useToast(); // Toast notification system
+  const [showGestureHint, setShowGestureHint] = useState(true); // Controls gesture hint visibility
   const [isLoading, setIsLoading] = useState(true);
 
   /**
@@ -22,22 +24,22 @@ export default function Page() {
    */
   useEffect(() => {
     let isMounted = true;
-    
+
     const fetchEntries = async () => {
       try {
         setIsLoading(true);
         const res = await getAllJournalEntries();
-        
+
         if (isMounted) {
           // Deduplicate entries by ID
           const uniqueEntries = new Map();
-          res.forEach(entry => {
+          res.forEach((entry) => {
             const id = entry.id || `${entry.UserID}#${entry.CreationDate}`;
             if (!uniqueEntries.has(id)) {
               uniqueEntries.set(id, entry);
             }
           });
-          
+
           setJournalEntries(Array.from(uniqueEntries.values()));
         }
       } catch (error) {
@@ -52,7 +54,7 @@ export default function Page() {
     };
 
     fetchEntries();
-    
+
     return () => {
       isMounted = false;
     };
@@ -71,11 +73,20 @@ export default function Page() {
         <h2 className='col-span-2 font-semibold text-lg'>Past Entries</h2>
 
         {/* Conditional Rendering of Entries */}
-        {journalEntries != null ? (
+        {!isLoading && journalEntries != null ? (
           journalEntries.map((entry, index) => (
-            <EntryCard entry={entry} key={index} />
+            <EntryCard entry={entry} key={index} pos={index} />
           ))
         ) : (
+          <>
+            <SkeletonCard />
+            <SkeletonCard />
+            <SkeletonCard />
+            <SkeletonCard />
+            <SkeletonCard />
+          </>
+        )}
+        {journalEntries == null && (
           <p className='text-center w-full col-span-2 text-black/50'>
             Past entries will show up here, add an entry to get started.
           </p>
@@ -94,20 +105,24 @@ const weekday = ['SUN', 'MON', 'TUE', 'WED', 'THUR', 'FRI', 'SAT'];
 /**
  * EntryCard Component
  * Displays a preview of a journal entry with date
- * 
+ *
  * @param {Object} props - Component props
  * @param {Object} props.entry - Journal entry data
+ * @param {Number} pos - Position in array
  */
-function EntryCard({ entry }) {
+function EntryCard({ entry, pos }) {
   // Parse the entry date
   const date = new Date(entry.CreationDate);
-  
+
   // Ensure we're using the correct ID format
   const entryId = entry.id || `${entry.UserID}#${entry.CreationDate}`;
-  
+
   return (
     <Link href={`/journal/${encodeURIComponent(entryId)}`}>
-      <article className='p-6 bg-neutral-100/50 rounded-2xl flex flex-col gap-4'>
+      <motion.article
+        className='p-6 bg-neutral-100/50 rounded-2xl flex flex-col gap-4'
+        {...fadeInProps(pos)}
+      >
         {/* Date Display */}
         <div className='flex flex-col gap-1 items-center justify-center rounded-lg w-14 bg-white'>
           <p className='text-xs font-semibold bg-yellow-200 w-full rounded-t-lg text-center py-1'>
@@ -117,7 +132,31 @@ function EntryCard({ entry }) {
         </div>
         {/* Entry Preview */}
         <p className='line-clamp-2'>{entry.Content}</p>
-      </article>
+      </motion.article>
     </Link>
+  );
+}
+
+/**
+ * SkeletonCard component
+ * skeleton loading state for entry cards
+ */
+function SkeletonCard() {
+  return (
+    <article className='p-6 bg-neutral-100/50 rounded-2xl flex flex-col gap-4 animate-pulse'>
+      {/* date display */}
+      <div className='flex flex-col gap-1 items-center justify-center rounded-lg w-14 bg-white'>
+        <p className='text-xs font-semibold bg-neutral-200 w-full rounded-t-lg text-center py-1'>
+          MON
+        </p>
+        <p className='text-lg font-bold'>01</p>
+      </div>
+      {/* entry preview */}
+      <p className='line-clamp-2 text-neutral-100'>
+        ███████
+        <br />
+        ███████
+      </p>
+    </article>
   );
 }

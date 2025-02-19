@@ -27,6 +27,7 @@ export default function Page() {
   const [ui, setUi] = useState('initial'); // Controls which UI state to show (initial form or submission success)
   const { triggerToast } = useToast();
   const [weeklyMoodSummary, setWeeklyMoodSummary] = useState(null);
+  const [submissionMessage, setSubmissionMessage] = useState('Mood Logged!');
 
   // Fetch weekly mood summary on component mount
   useEffect(() => {
@@ -34,11 +35,11 @@ export default function Page() {
       const token = sessionStorage.getItem('token');
       fetch('http://localhost:3011/api/mood/summary/weekly', {
         headers: {
-          'Authorization': `Bearer ${token}`
-        }
+          Authorization: `Bearer ${token}`,
+        },
       })
-        .then(res => res.json())
-        .then(data => {
+        .then((res) => res.json())
+        .then((data) => {
           setWeeklyMoodSummary(data);
           // Set initial mood based on last recorded mood from summary
           if (data.data && data.data[data.data.length - 1]) {
@@ -47,14 +48,27 @@ export default function Page() {
             const moodMap = {
               3: 'happy',
               2: 'sad',
-              1: 'upset'
+              1: 'upset',
             };
             setMood(moodMap[lastMoodValue] || 'happy');
           }
         })
-        .catch(err => console.error('Error fetching mood summary:', err));
+        .catch((err) => console.error('Error fetching mood summary:', err));
     }
   }, [user]); // Re-run when user changes (login/logout)
+
+  // Set UI to post submission if a mood has been logged today
+  useEffect(() => {
+    const now = new Date().getDay();
+    const moodMap = {
+      3: 'happy',
+      2: 'sad',
+      1: 'upset',
+    };
+    setMood(moodMap[weeklyMoodSummary?.data[now]]);
+    setSubmissionMessage('Mood already set today.');
+    setUi('submitted');
+  }, [weeklyMoodSummary]);
 
   // Handle mood submission
   function handleSubmitEntry() {
@@ -71,11 +85,11 @@ export default function Page() {
         // Added mood summary refresh after submission to keep data in sync
         fetch('http://localhost:3011/api/mood/summary/weekly', {
           headers: {
-            'Authorization': `Bearer ${token}`
-          }
+            Authorization: `Bearer ${token}`,
+          },
         })
-          .then(res => res.json())
-          .then(data => setWeeklyMoodSummary(data));
+          .then((res) => res.json())
+          .then((data) => setWeeklyMoodSummary(data));
       });
   }
 
@@ -114,21 +128,34 @@ export default function Page() {
                 mood === 'happy'
                   ? happy
                   : mood === 'sad'
-                    ? sad
-                    : mood === 'upset'
-                      ? upset
-                      : null
+                  ? sad
+                  : mood === 'upset'
+                  ? upset
+                  : null
               }
               alt='Daily Dose Dynamic Emoticon'
               className='w-14 h-14'
+              priority
             />
-            <h1 className='font-bold text-xl'>Mood logged!</h1>
-            <motion.button
-              {...motionProps(1)}
-              className='bg-yellow-950 text-white px-6 py-4 font-bold rounded-full'
-            >
-              <Link href={'/home'}>Go Home &rarr;</Link>
-            </motion.button>
+            <h1 className='font-bold text-xl'>{submissionMessage}</h1>
+            <div className='flex gap-2'>
+              <motion.button
+                {...motionProps(1)}
+                className='border-yellow-950 border-2 bg-yellow-950 text-white px-6 py-4 font-bold rounded-full'
+              >
+                <Link href={'/home'}>Go Home &rarr;</Link>
+              </motion.button>
+              <motion.button
+                {...motionProps(2)}
+                className='border-yellow-950 border-2 px-6 py-4 font-bold rounded-full'
+                onClick={() => {
+                  setMood('happy');
+                  setUi('initial');
+                }}
+              >
+                Update Mood
+              </motion.button>
+            </div>
           </motion.div>
         )}
 
@@ -136,8 +163,9 @@ export default function Page() {
           <Image
             src={halo}
             alt=''
-            className={`object-cover h-full w-full scale-125 z-0 transition-all ${mood === 'sad' ? 'hue-rotate-[160deg]' : ''
-              } ${mood === 'upset' ? 'hue-rotate-[-30]' : ''}`}
+            className={`object-cover h-full w-full scale-125 z-0 transition-all ${
+              mood === 'sad' ? 'hue-rotate-[160deg]' : ''
+            } ${mood === 'upset' ? 'hue-rotate-[-30]' : ''}`}
           />
         </div>
 
@@ -206,8 +234,9 @@ function Slider({ setMood }) {
             setSliderIndex(0);
             setMood('sad');
           }}
-          className={`cursor-pointer pointer-events-none md:pointer-events-auto w-52 h-52 transition-all relative ${sliderIndex === 0 ? '' : 'translate-y-12'
-            }`}
+          className={`cursor-pointer pointer-events-none md:pointer-events-auto w-52 h-52 transition-all relative ${
+            sliderIndex === 0 ? '' : 'translate-y-12'
+          }`}
         >
           <Image
             src={sad}
@@ -220,8 +249,9 @@ function Slider({ setMood }) {
             setSliderIndex(1);
             setMood('happy');
           }}
-          className={`cursor-pointer pointer-events-none md:pointer-events-auto w-52 h-52 transition-all ${sliderIndex === 1 ? '' : 'translate-y-12'
-            }`}
+          className={`cursor-pointer pointer-events-none md:pointer-events-auto w-52 h-52 transition-all ${
+            sliderIndex === 1 ? '' : 'translate-y-12'
+          }`}
         >
           <Image
             src={happy}
@@ -234,8 +264,9 @@ function Slider({ setMood }) {
             setSliderIndex(2);
             setMood('upset');
           }}
-          className={`cursor-pointer pointer-events-none md:pointer-events-auto w-52 h-52 transition-all ${sliderIndex === 2 ? '' : 'translate-y-12'
-            }`}
+          className={`cursor-pointer pointer-events-none md:pointer-events-auto w-52 h-52 transition-all ${
+            sliderIndex === 2 ? '' : 'translate-y-12'
+          }`}
         >
           <Image
             src={upset}
