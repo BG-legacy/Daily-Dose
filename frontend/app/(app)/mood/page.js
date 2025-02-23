@@ -20,19 +20,20 @@ import { setMood as setUserMood } from '../../lib/mood';
 import Link from 'next/link';
 
 export default function Page() {
-  // Authentication and state management
-  const { user } = useAuth();
-  const [mood, setMood] = useState('happy');
-  const [showGestureHint, setShowGestureHint] = useState(true);
-  const [ui, setUi] = useState('initial'); // Controls which UI state to show (initial form or submission success)
-  const { triggerToast } = useToast();
-  const [weeklyMoodSummary, setWeeklyMoodSummary] = useState(null);
-  const [submissionMessage, setSubmissionMessage] = useState('Mood Logged!');
+  // Authentication and state management hooks
+  const { user } = useAuth();                                    // Get current authenticated user
+  const [mood, setMood] = useState('happy');                     // Track selected mood state
+  const [showGestureHint, setShowGestureHint] = useState(true); // Control gesture hint visibility
+  const [ui, setUi] = useState('initial');                       // Toggle between initial form and success view
+  const { triggerToast } = useToast();                          // Toast notification handler
+  const [weeklyMoodSummary, setWeeklyMoodSummary] = useState(null); // Store weekly mood data
+  const [submissionMessage, setSubmissionMessage] = useState('Mood Logged!'); // Dynamic submission feedback
 
-  // Fetch weekly mood summary on component mount
+  // Fetch weekly mood summary when component mounts
   useEffect(() => {
     if (user) {
       const token = sessionStorage.getItem('token');
+      // Make API call to get weekly mood summary
       fetch('http://localhost:3011/api/mood/summary/weekly', {
         headers: {
           Authorization: `Bearer ${token}`,
@@ -41,10 +42,10 @@ export default function Page() {
         .then((res) => res.json())
         .then((data) => {
           setWeeklyMoodSummary(data);
-          // Set initial mood based on last recorded mood from summary
+          // Set initial mood based on user's last recorded mood
           if (data.data && data.data[data.data.length - 1]) {
             const lastMoodValue = data.data[data.data.length - 1];
-            // Map numerical values from backend to mood strings
+            // Map backend numerical values to mood strings
             const moodMap = {
               3: 'happy',
               2: 'sad',
@@ -57,7 +58,7 @@ export default function Page() {
     }
   }, [user]); // Re-run when user changes (login/logout)
 
-  // Set UI to post submission if a mood has been logged today
+  // Check if user has already submitted a mood for today
   useEffect(() => {
     const now = new Date().getDay();
     const moodMap = {
@@ -65,42 +66,55 @@ export default function Page() {
       2: 'sad',
       1: 'upset',
     };
+    // If mood exists for today, update UI accordingly
     if (weeklyMoodSummary?.data[now]) {
       setMood(moodMap[weeklyMoodSummary.data[now]]);
-      setSubmissionMessage('Mood already set today.');
+      setSubmissionMessage('Today\'s mood is already set. You can update it if you\'d like.');
       setUi('submitted');
     }
   }, [weeklyMoodSummary]);
 
-  // Handle mood submission
-  function handleSubmitEntry() {
+  // Handle mood submission or update
+  function handleSubmitEntry(isUpdate = false) {
     const token = sessionStorage.getItem('token');
+    // Check for authentication
     if (!token) {
       triggerToast('Please log in to submit your mood');
       return;
     }
 
+    // Submit mood to backend
     setUserMood({ content: mood })
-      .catch((error) => triggerToast('An error occurred.'))
       .then((res) => {
         setUi('submitted');
-        // Added mood summary refresh after submission to keep data in sync
-        fetch('http://localhost:3011/api/mood/summary/weekly', {
+        // Update feedback message based on whether it's new or updated
+        setSubmissionMessage(res.wasUpdated ? 'Mood Updated!' : 'Mood Logged!');
+        // Refresh mood summary data
+        return fetch('http://localhost:3011/api/mood/summary/weekly', {
           headers: {
             Authorization: `Bearer ${token}`,
           },
-        })
-          .then((res) => res.json())
-          .then((data) => setWeeklyMoodSummary(data));
-      });
+        });
+      })
+      .then((res) => res.json())
+      .then((data) => {
+        setWeeklyMoodSummary(data);
+        // Trigger chart refresh if available
+        if (window.refreshMoodChart) {
+          window.refreshMoodChart();
+        }
+      })
+      .catch((error) => triggerToast('An error occurred.'));
   }
 
   return (
     <Layout route='mood' fullWidth onClick={() => setShowGestureHint(false)}>
       <section className='w-full h-svh grid relative pointer-events-none'>
+        {/* Initial mood selection UI */}
         {ui === 'initial' && (
           <div className='w-full h-full flex flex-col justify-center items-center col-end-1 row-end-1 z-20'>
             <div className='flex flex-col gap-8 justify-center items-center pointer-events-auto'>
+              {/* Mood question prompt */}
               <motion.p
                 {...motionProps(0)}
                 className='font-bold items-center justify-center text-pretty text-center text-lg'
@@ -108,23 +122,28 @@ export default function Page() {
                 How was your <b>mood</b> today?
               </motion.p>
 
+              {/* Mood selection slider */}
               <Slider mood={mood} setMood={setMood} />
 
+              {/* Submit button */}
               <motion.button
                 {...motionProps(2)}
                 className='bg-yellow-950 text-white px-6 py-4 font-bold rounded-full'
-                onClick={handleSubmitEntry}
+                onClick={() => handleSubmitEntry(false)}
               >
                 Submit
               </motion.button>
             </div>
           </div>
         )}
+
+        {/* Success/confirmation UI */}
         {ui === 'submitted' && (
           <motion.div
             className='flex justify-center flex-col items-center gap-5 col-end-1 row-end-1 z-30 relative pointer-events-auto'
             {...motionProps(0)}
           >
+            {/* Display selected mood emoticon */}
             <Image
               src={
                 mood === 'happy'
@@ -139,7 +158,9 @@ export default function Page() {
               className='w-14 h-14'
               priority
             />
+            {/* Success message */}
             <h1 className='font-bold text-xl'>{submissionMessage}</h1>
+            {/* Navigation buttons */}
             <div className='flex gap-2'>
               <motion.button
                 {...motionProps(1)}
@@ -155,21 +176,24 @@ export default function Page() {
                   setUi('initial');
                 }}
               >
-                Update Mood
+                Change Mood
               </motion.button>
             </div>
           </motion.div>
         )}
 
+        {/* Background halo image with mood-based color adjustments */}
         <div className='fade-in col-end-1 row-end-1 w-full h-full overflow-hidden z-0 relative pointer-events-none'>
           <Image
             src={halo}
             alt=''
-            className={`object-cover h-full w-full scale-125 z-0 transition-all ${mood === 'sad' ? 'hue-rotate-[160deg]' : ''
-              } ${mood === 'upset' ? 'hue-rotate-[-30]' : ''}`}
+            className={`object-cover h-full w-full scale-125 z-0 transition-all ${
+              mood === 'sad' ? 'hue-rotate-[160deg]' : ''
+            } ${mood === 'upset' ? 'hue-rotate-[-30]' : ''}`}
           />
         </div>
 
+        {/* Gesture hint overlay */}
         <div className='absolute top-0 left-0 right-0 bottom-0 radial-gradient z-10 pointer-events-none'>
           {ui === 'initial' && (
             <GestureHint
