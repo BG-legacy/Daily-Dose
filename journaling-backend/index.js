@@ -11,34 +11,34 @@ const PORT = process.env.PORT || 3011;
 
 // Initialize Google OAuth client with credentials
 const googleClient = new OAuth2Client({
-    clientId: process.env.GOOGLE_CLIENT_ID,
-    clientSecret: process.env.GOOGLE_CLIENT_SECRET,
-    redirectUri: 'http://localhost:3011/auth/google/callback'
+  clientId: process.env.GOOGLE_CLIENT_ID,
+  clientSecret: process.env.GOOGLE_CLIENT_SECRET,
+  redirectUri: 'http://localhost:3011/auth/google/callback'
 });
 
 const app = express();
 
 // Debug middleware - Logs all incoming requests
 app.use((req, res, next) => {
-    console.log('=== Incoming Request ===');
-    console.log(`${req.method} ${req.url}`);
-    console.log('Origin:', req.headers.origin);
-    console.log('Headers:', JSON.stringify(req.headers, null, 2));
-    if (req.body) {
-        console.log('Body:', JSON.stringify(req.body, null, 2));
-    }
-    console.log('======================');
-    next();
+  console.log('=== Incoming Request ===');
+  console.log(`${req.method} ${req.url}`);
+  console.log('Origin:', req.headers.origin);
+  console.log('Headers:', JSON.stringify(req.headers, null, 2));
+  if (req.body) {
+    console.log('Body:', JSON.stringify(req.body, null, 2));
+  }
+  console.log('======================');
+  next();
 });
 
 // CORS configuration for cross-origin requests
 app.use(cors({
-    origin: process.env.NODE_ENV === 'production' 
-        ? process.env.FRONTEND_URL
-        : 'http://localhost:3001', // Frontend port
-    credentials: true,
-    methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
-    allowedHeaders: ['Content-Type', 'Authorization']
+  origin: process.env.NODE_ENV === 'production'
+    ? process.env.FRONTEND_URL
+    : 'http://localhost:3001', // Frontend port
+  credentials: true,
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization']
 }));
 
 // Body parsing middleware
@@ -47,161 +47,161 @@ app.use(express.urlencoded({ extended: true }));
 
 // Health check endpoint for monitoring
 app.get('/health', (req, res) => {
-    res.json({ 
-        status: 'ok',
-        timestamp: new Date().toISOString(),
-        services: {
-            database: 'ok',  // Placeholder for actual DB health check
-            auth: 'ok'       // Placeholder for actual auth health check
-        }
-    });
+  res.json({
+    status: 'ok',
+    timestamp: new Date().toISOString(),
+    services: {
+      database: 'ok',  // Placeholder for actual DB health check
+      auth: 'ok'       // Placeholder for actual auth health check
+    }
+  });
 });
 
 // Authentication middleware for protected routes
 const authMiddleware = async (req, res, next) => {
-    console.log('=== Auth Middleware ===');
-    console.log('Path:', req.path);
-    console.log('Method:', req.method);
-    console.log('Auth Header:', req.headers.authorization);
-    
-    if (req.method === 'OPTIONS') {
-        return next();
+  console.log('=== Auth Middleware ===');
+  console.log('Path:', req.path);
+  console.log('Method:', req.method);
+  console.log('Auth Header:', req.headers.authorization);
+
+  if (req.method === 'OPTIONS') {
+    return next();
+  }
+
+  try {
+    const authHeader = req.headers.authorization;
+    if (!authHeader || authHeader === 'Bearer null') {
+      return res.status(401).json({ error: 'Authentication required' });
     }
 
-    try {
-        const authHeader = req.headers.authorization;
-        if (!authHeader || authHeader === 'Bearer null') {
-            return res.status(401).json({ error: 'Authentication required' });
-        }
-
-        const token = authHeader.split(' ')[1];
-        if (!token) {
-            return res.status(401).json({ error: 'No token provided' });
-        }
-
-        // Check token type (Google or Regular)
-        if (token.includes('.')) {
-            // Google OAuth token handling
-            const ticket = await googleClient.verifyIdToken({
-                idToken: token,
-                audience: process.env.GOOGLE_CLIENT_ID
-            });
-            
-            const payload = ticket.getPayload();
-            req.user = {
-                uid: payload.sub,
-                email: payload.email,
-                name: payload.name
-            };
-        } else {
-            // Regular auth token (format: "user_[userId]")
-            // Keep the full token as the userID since that's how it's stored in the database
-            const userID = token;
-            console.log('Looking up user with ID:', userID);
-            
-            const userManager = new UserManager();
-            const user = await userManager.getUser(userID);
-            
-            if (!user) {
-                console.log('User not found:', userID);
-                return res.status(401).json({ error: 'User not found' });
-            }
-
-            req.user = {
-                uid: userID,
-                email: user.Email,
-                name: user.Name
-            };
-        }
-
-        next();
-    } catch (error) {
-        console.error('Auth middleware error:', error);
-        return res.status(401).json({ error: 'Invalid token' });
+    const token = authHeader.split(' ')[1];
+    if (!token) {
+      return res.status(401).json({ error: 'No token provided' });
     }
+
+    // Check token type (Google or Regular)
+    if (token.includes('.')) {
+      // Google OAuth token handling
+      const ticket = await googleClient.verifyIdToken({
+        idToken: token,
+        audience: process.env.GOOGLE_CLIENT_ID
+      });
+
+      const payload = ticket.getPayload();
+      req.user = {
+        uid: payload.sub,
+        email: payload.email,
+        name: payload.name
+      };
+    } else {
+      // Regular auth token (format: "user_[userId]")
+      // Keep the full token as the userID since that's how it's stored in the database
+      const userID = token;
+      console.log('Looking up user with ID:', userID);
+
+      const userManager = new UserManager();
+      const user = await userManager.getUser(userID);
+
+      if (!user) {
+        console.log('User not found:', userID);
+        return res.status(401).json({ error: 'User not found' });
+      }
+
+      req.user = {
+        uid: userID,
+        email: user.Email,
+        name: user.Name
+      };
+    }
+
+    next();
+  } catch (error) {
+    console.error('Auth middleware error:', error);
+    return res.status(401).json({ error: 'Invalid token' });
+  }
 };
 
 // Session verification endpoint
 app.get('/auth/session', async (req, res) => {
-    console.log('=== Session Check ===');
-    
-    const authHeader = req.headers.authorization;
-    if (!authHeader || !authHeader.startsWith('Bearer ')) {
-        return res.status(401).json({ 
-            authenticated: false,
-            message: 'Invalid authorization format' 
-        });
-    }
+  console.log('=== Session Check ===');
 
-    const token = authHeader.split(' ')[1];
-    
-    try {
-        // Check if it's a Google token (they are typically longer and contain dots)
-        if (token.includes('.')) {
-            // Verify Google token
-            const ticket = await googleClient.verifyIdToken({
-                idToken: token,
-                audience: process.env.GOOGLE_CLIENT_ID
-            });
-            
-            const payload = ticket.getPayload();
-            const userManager = new UserManager();
-            const userID = await userManager.getUserByEmail(payload.email);
+  const authHeader = req.headers.authorization;
+  if (!authHeader || !authHeader.startsWith('Bearer ')) {
+    return res.status(401).json({
+      authenticated: false,
+      message: 'Invalid authorization format'
+    });
+  }
 
-            if (!userID) {
-                return res.status(401).json({
-                    authenticated: false,
-                    message: 'User not found'
-                });
-            }
+  const token = authHeader.split(' ')[1];
 
-            return res.status(200).json({
-                authenticated: true,
-                user: {
-                    uid: userID,
-                    email: payload.email,
-                    name: payload.name,
-                    picture: payload.picture
-                }
-            });
-        } else {
-            // Handle our custom session token
-            // TODO: Implement proper token verification
-            const userManager = new UserManager();
-            // For now, assume token is userID
-            const user = await userManager.getUser(token);
-            
-            if (!user) {
-                return res.status(401).json({
-                    authenticated: false,
-                    message: 'User not found'
-                });
-            }
+  try {
+    // Check if it's a Google token (they are typically longer and contain dots)
+    if (token.includes('.')) {
+      // Verify Google token
+      const ticket = await googleClient.verifyIdToken({
+        idToken: token,
+        audience: process.env.GOOGLE_CLIENT_ID
+      });
 
-            return res.status(200).json({
-                authenticated: true,
-                user: {
-                    uid: user.UserID,
-                    email: user.Email,
-                    name: user.Name
-                }
-            });
-        }
-    } catch (error) {
-        console.error('Session verification error:', error);
+      const payload = ticket.getPayload();
+      const userManager = new UserManager();
+      const userID = await userManager.getUserByEmail(payload.email);
+
+      if (!userID) {
         return res.status(401).json({
-            authenticated: false,
-            message: 'Invalid token'
+          authenticated: false,
+          message: 'User not found'
         });
+      }
+
+      return res.status(200).json({
+        authenticated: true,
+        user: {
+          uid: userID,
+          email: payload.email,
+          name: payload.name,
+          picture: payload.picture,
+        }
+      });
+    } else {
+      // Handle our custom session token
+      // TODO: Implement proper token verification
+      const userManager = new UserManager();
+      // For now, assume token is userID
+      const user = await userManager.getUser(token);
+
+      if (!user) {
+        return res.status(401).json({
+          authenticated: false,
+          message: 'User not found'
+        });
+      }
+
+      return res.status(200).json({
+        authenticated: true,
+        user: {
+          uid: user.UserID,
+          email: user.Email,
+          name: user.Name,
+        }
+      });
     }
+  } catch (error) {
+    console.error('Session verification error:', error);
+    return res.status(401).json({
+      authenticated: false,
+      message: 'Invalid token'
+    });
+  }
 });
 
 // Mount journal routes with authentication
 app.use('/api/journal', authMiddleware, (req, res, next) => {
-    console.log('=== Journal Route Hit ===');
-    console.log('Method:', req.method);
-    console.log('Path:', req.path);
-    next();
+  console.log('=== Journal Route Hit ===');
+  console.log('Method:', req.method);
+  console.log('Path:', req.path);
+  next();
 }, journalRoutes);
 
 // Mount mood routes with authentication
@@ -209,203 +209,203 @@ app.use('/api/mood', authMiddleware, moodRoutes);
 
 // Google OAuth routes
 app.get('/auth/google', (req, res) => {
-    // Generate Google OAuth URL and redirect user
-    const authUrl = googleClient.generateAuthUrl({
-        access_type: 'offline',
-        scope: [
-            'https://www.googleapis.com/auth/userinfo.profile',
-            'https://www.googleapis.com/auth/userinfo.email'
-        ],
-        redirect_uri: 'http://localhost:3011/auth/google/callback'
-    });
-    console.log('Redirecting to Google OAuth URL:', authUrl);
-    res.redirect(authUrl);
+  // Generate Google OAuth URL and redirect user
+  const authUrl = googleClient.generateAuthUrl({
+    access_type: 'offline',
+    scope: [
+      'https://www.googleapis.com/auth/userinfo.profile',
+      'https://www.googleapis.com/auth/userinfo.email'
+    ],
+    redirect_uri: 'http://localhost:3011/auth/google/callback'
+  });
+  console.log('Redirecting to Google OAuth URL:', authUrl);
+  res.redirect(authUrl);
 });
 
 // Google OAuth callback handler
 app.get('/auth/google/callback', async (req, res) => {
-    try {
-        const { code } = req.query;
-        console.log('Received callback with code:', code);
-        
-        const { tokens } = await googleClient.getToken({
-            code,
-            redirect_uri: 'http://localhost:3011/auth/google/callback'
-        });
+  try {
+    const { code } = req.query;
+    console.log('Received callback with code:', code);
 
-        const ticket = await googleClient.verifyIdToken({
-            idToken: tokens.id_token,
-            audience: process.env.GOOGLE_CLIENT_ID
-        });
+    const { tokens } = await googleClient.getToken({
+      code,
+      redirect_uri: 'http://localhost:3011/auth/google/callback'
+    });
 
-        const payload = ticket.getPayload();
-        console.log('Google auth payload:', payload);
+    const ticket = await googleClient.verifyIdToken({
+      idToken: tokens.id_token,
+      audience: process.env.GOOGLE_CLIENT_ID
+    });
 
-        // Generate a unique user ID if needed
-        const userID = payload.sub;
+    const payload = ticket.getPayload();
+    console.log('Google auth payload:', payload);
 
-        // Create or update user in database
-        const userManager = new UserManager();
-        let dbUser = await userManager.getUserByEmail(payload.email);
+    // Generate a unique user ID if needed
+    const userID = payload.sub;
 
-        if (!dbUser) {
-            // Create new user
-            await userManager.addUser({
-                UserID: userID,
-                Name: payload.name,
-                Email: payload.email,
-                CreationDate: new Date().toISOString()
-            });
-            console.log('Created new user:', userID);
-        }
+    // Create or update user in database
+    const userManager = new UserManager();
+    let dbUser = await userManager.getUserByEmail(payload.email);
 
-        // Use id_token as the session token
-        const sessionToken = tokens.id_token;
-
-        // Construct the frontend callback URL with user data and token
-        const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:3001';
-        const redirectUrl = `${frontendUrl}/auth/callback?token=${sessionToken}&user=${encodeURIComponent(JSON.stringify({
-            uid: userID,
-            email: payload.email,
-            name: payload.name,
-            picture: payload.picture
-        }))}`;
-
-        console.log('Redirecting to frontend:', redirectUrl);
-        res.redirect(redirectUrl);
-    } catch (error) {
-        console.error('Google auth error:', error);
-        const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:3001';
-        res.redirect(`${frontendUrl}/auth/error?message=${encodeURIComponent(error.message)}`);
+    if (!dbUser) {
+      // Create new user
+      await userManager.addUser({
+        UserID: userID,
+        Name: payload.name,
+        Email: payload.email,
+        CreationDate: new Date().toISOString()
+      });
+      console.log('Created new user:', userID);
     }
+
+    // Use id_token as the session token
+    const sessionToken = tokens.id_token;
+
+    // Construct the frontend callback URL with user data and token
+    const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:3001';
+    const redirectUrl = `${frontendUrl}/auth/callback?token=${sessionToken}&user=${encodeURIComponent(JSON.stringify({
+      uid: userID,
+      email: payload.email,
+      name: payload.name,
+      picture: payload.picture
+    }))}`;
+
+    console.log('Redirecting to frontend:', redirectUrl);
+    res.redirect(redirectUrl);
+  } catch (error) {
+    console.error('Google auth error:', error);
+    const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:3001';
+    res.redirect(`${frontendUrl}/auth/error?message=${encodeURIComponent(error.message)}`);
+  }
 });
 
 // Traditional login endpoint
 app.post('/auth/login', async (req, res) => {
-    console.log('=== Login Request ===');
-    const { email, password } = req.body;
+  console.log('=== Login Request ===');
+  const { email, password } = req.body;
 
-    if (!email || !password) {
-        return res.status(400).json({
-            authenticated: false,
-            message: 'Email and password are required'
-        });
+  if (!email || !password) {
+    return res.status(400).json({
+      authenticated: false,
+      message: 'Email and password are required'
+    });
+  }
+
+  try {
+    const userManager = new UserManager();
+    const userID = await userManager.getUserByEmail(email);
+
+    if (!userID) {
+      return res.status(401).json({
+        authenticated: false,
+        message: 'User not found'
+      });
     }
 
-    try {
-        const userManager = new UserManager();
-        const userID = await userManager.getUserByEmail(email);
+    const user = await userManager.getUser(userID);
 
-        if (!userID) {
-            return res.status(401).json({
-                authenticated: false,
-                message: 'User not found'
-            });
-        }
+    // TODO: Add proper password verification
+    // Currently accepts any password for testing
 
-        const user = await userManager.getUser(userID);
+    // Use userID as the session token for traditional login
+    const sessionToken = userID;  // This matches what we check in authMiddleware
 
-        // TODO: Add proper password verification
-        // Currently accepts any password for testing
-        
-        // Use userID as the session token for traditional login
-        const sessionToken = userID;  // This matches what we check in authMiddleware
-
-        return res.status(200).json({
-            authenticated: true,
-            token: sessionToken,
-            user: {
-                uid: user.UserID,
-                email: user.Email,
-                name: user.Name
-            }
-        });
-    } catch (error) {
-        console.error('Login error:', error);
-        return res.status(500).json({
-            authenticated: false,
-            message: 'Internal server error'
-        });
-    }
+    return res.status(200).json({
+      authenticated: true,
+      token: sessionToken,
+      user: {
+        uid: user.UserID,
+        email: user.Email,
+        name: user.Name
+      }
+    });
+  } catch (error) {
+    console.error('Login error:', error);
+    return res.status(500).json({
+      authenticated: false,
+      message: 'Internal server error'
+    });
+  }
 });
 
 // Registration endpoint
 app.post('/register', async (req, res) => {
-    console.log('=== Registration Request ===');
-    const { email, password, displayName } = req.body;
+  console.log('=== Registration Request ===');
+  const { email, password, displayName } = req.body;
 
-    if (!email || !password || !displayName) {
-        return res.status(400).json({
-            success: false,
-            message: 'Email, password, and display name are required'
-        });
+  if (!email || !password || !displayName) {
+    return res.status(400).json({
+      success: false,
+      message: 'Email, password, and display name are required'
+    });
+  }
+
+  try {
+    const userManager = new UserManager();
+
+    // Check if user already exists
+    const existingUser = await userManager.getUserByEmail(email);
+    if (existingUser) {
+      return res.status(400).json({
+        success: false,
+        message: 'email-already-in-use'
+      });
     }
 
-    try {
-        const userManager = new UserManager();
-        
-        // Check if user already exists
-        const existingUser = await userManager.getUserByEmail(email);
-        if (existingUser) {
-            return res.status(400).json({
-                success: false,
-                message: 'email-already-in-use'
-            });
-        }
+    // Create new user
+    const userID = Date.now().toString(); // Simple ID generation - consider using UUID in production
+    await userManager.addUser({
+      UserID: userID,
+      Name: displayName,
+      Email: email,
+      CreationDate: new Date().toISOString()
+      // TODO: Add hashed password storage
+    });
 
-        // Create new user
-        const userID = Date.now().toString(); // Simple ID generation - consider using UUID in production
-        await userManager.addUser({
-            UserID: userID,
-            Name: displayName,
-            Email: email,
-            CreationDate: new Date().toISOString()
-            // TODO: Add hashed password storage
-        });
+    // Generate session token (replace with proper JWT implementation)
+    const sessionToken = 'temp-session-token'; // Replace with proper JWT
 
-        // Generate session token (replace with proper JWT implementation)
-        const sessionToken = 'temp-session-token'; // Replace with proper JWT
-
-        return res.status(200).json({
-            success: true,
-            token: sessionToken,
-            user: {
-                uid: userID,
-                email: email,
-                name: displayName
-            }
-        });
-    } catch (error) {
-        console.error('Registration error:', error);
-        return res.status(500).json({
-            success: false,
-            message: 'Internal server error'
-        });
-    }
+    return res.status(200).json({
+      success: true,
+      token: sessionToken,
+      user: {
+        uid: userID,
+        email: email,
+        name: displayName
+      }
+    });
+  } catch (error) {
+    console.error('Registration error:', error);
+    return res.status(500).json({
+      success: false,
+      message: 'Internal server error'
+    });
+  }
 });
 
 // Global error handler
 app.use((err, req, res, next) => {
-    console.error('=== Error Handler ===');
-    console.error('Error:', err.message);
-    console.error('Stack:', err.stack);
-    res.status(500).json({ error: err.message || 'Something went wrong!' });
+  console.error('=== Error Handler ===');
+  console.error('Error:', err.message);
+  console.error('Stack:', err.stack);
+  res.status(500).json({ error: err.message || 'Something went wrong!' });
 });
 
 // Start server
 app.listen(PORT, () => {
-    console.log('=== Server Started ===');
-    console.log(`Server running on http://localhost:${PORT}`);
-    console.log('CORS configured for: http://localhost:3001');
-    console.log('Routes mounted:');
-    console.log('- GET /health');
-    console.log('- GET /auth/session');
-    console.log('- POST /api/journal');
-    console.log('- GET /api/journal');
-    console.log('- GET /api/journal/summary/weekly');
-    console.log('- GET /api/journal/:thoughtId');
-    console.log('- DELETE /api/journal/:thoughtId');
-    console.log('- POST /api/mood');
-    console.log('- GET /api/mood/summary/weekly');
+  console.log('=== Server Started ===');
+  console.log(`Server running on http://localhost:${PORT}`);
+  console.log('CORS configured for: http://localhost:3001');
+  console.log('Routes mounted:');
+  console.log('- GET /health');
+  console.log('- GET /auth/session');
+  console.log('- POST /api/journal');
+  console.log('- GET /api/journal');
+  console.log('- GET /api/journal/summary/weekly');
+  console.log('- GET /api/journal/:thoughtId');
+  console.log('- DELETE /api/journal/:thoughtId');
+  console.log('- POST /api/mood');
+  console.log('- GET /api/mood/summary/weekly');
 });
 

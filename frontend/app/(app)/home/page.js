@@ -31,7 +31,7 @@ export default function Page() {
   return (
     <ProtectedRoute>
       <Layout route='home' className='pb-24'>
-        <QuoteCard quote={{ quote: 'Be the change you want to see.' }} />
+        <QuoteCard />
         <Streak weeklyJournalSummary={weeklyJournalSummary} />
         <Chart weeklyMoodSummary={weeklyMoodSummary} />
       </Layout>

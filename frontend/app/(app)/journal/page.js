@@ -120,7 +120,7 @@ function EntryCard({ entry, pos }) {
   return (
     <Link href={`/journal/${encodeURIComponent(entryId)}`}>
       <motion.article
-        className='p-6 bg-neutral-100/50 rounded-2xl flex flex-col gap-4'
+        className='p-6 bg-neutral-100/50 rounded-2xl flex flex-col gap-4 h-full'
         {...fadeInProps(pos)}
       >
         {/* Date Display */}

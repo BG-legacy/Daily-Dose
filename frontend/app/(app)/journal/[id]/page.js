@@ -13,6 +13,7 @@ import {
   MaterialSymbolsThumbDown,
   MaterialSymbolsThumbUp,
 } from '../../../../components/Icons';
+import { useToast } from '../../../contexts/toastContext/toastContext';
 
 /**
  * Array of weekday abbreviations for date display
@@ -33,6 +34,7 @@ export default function Page({ params }) {
   const [entry, setEntry] = useState(null);
   const [error, setError] = useState(null);
   const { user } = useAuth();
+  const { triggerToast } = useToast();
   const router = useRouter();
   const resolvedParams = use(params);
 
@@ -66,6 +68,14 @@ export default function Page({ params }) {
     fetchEntry();
   }, [resolvedParams.id, user, router]);
 
+  /** 
+   * Sets Journal Entry Feedback Rating
+   * @param {('good'|'bad')} feedback 
+   */
+  function rateFeedback(feedback) {
+    triggerToast("Couldn't set feedback.")
+  }
+
   // Error state UI
   if (error) {
     return (
@@ -87,8 +97,13 @@ export default function Page({ params }) {
   if (!entry) {
     return (
       <Layout route='journal'>
-        <div className='p-6 text-center'>
-          <p>Loading...</p>
+        <div className='flex flex-col gap-6 p-6 py-40'>
+          <div className='bg-neutral-50 rounded-lg p-6 shadow-sm h-40' />
+          <div className='bg-neutral-50 rounded-lg p-6 shadow-sm h-72' />
+          <div className='px-6 flex justify-between text-neutral-100 animate-pulse'>
+            <p>██████ █ █</p>
+            <p>█ ███████</p>
+          </div>
         </div>
       </Layout>
     );
@@ -148,11 +163,11 @@ export default function Page({ params }) {
         </div>
 
         {/* AI Insights Feedback */}
-        <div className='px-6 flex justify-between text-neutral-400'>
+        <div className='px-6 flex justify-between text-neutral-400 gap-2 text-sm'>
           <div className='flex gap-2 items-center'>
             <p>Rate Feedback</p>
-            <MaterialSymbolsThumbUp />
-            <MaterialSymbolsThumbDown />
+            <MaterialSymbolsThumbUp onClick={() => rateFeedback('good')} className='cursor-pointer' />
+            <MaterialSymbolsThumbDown onClick={() => rateFeedback('bad')} className='cursor-pointer' />
           </div>
           <div className='flex gap-2 items-center'>
             <MaterialSymbolsFlag />

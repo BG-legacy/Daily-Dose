@@ -65,9 +65,11 @@ export default function Page() {
       2: 'sad',
       1: 'upset',
     };
-    setMood(moodMap[weeklyMoodSummary?.data[now]]);
-    setSubmissionMessage('Mood already set today.');
-    setUi('submitted');
+    if (weeklyMoodSummary?.data[now]) {
+      setMood(moodMap[weeklyMoodSummary.data[now]]);
+      setSubmissionMessage('Mood already set today.');
+      setUi('submitted');
+    }
   }, [weeklyMoodSummary]);
 
   // Handle mood submission
@@ -128,10 +130,10 @@ export default function Page() {
                 mood === 'happy'
                   ? happy
                   : mood === 'sad'
-                  ? sad
-                  : mood === 'upset'
-                  ? upset
-                  : null
+                    ? sad
+                    : mood === 'upset'
+                      ? upset
+                      : null
               }
               alt='Daily Dose Dynamic Emoticon'
               className='w-14 h-14'
@@ -163,9 +165,8 @@ export default function Page() {
           <Image
             src={halo}
             alt=''
-            className={`object-cover h-full w-full scale-125 z-0 transition-all ${
-              mood === 'sad' ? 'hue-rotate-[160deg]' : ''
-            } ${mood === 'upset' ? 'hue-rotate-[-30]' : ''}`}
+            className={`object-cover h-full w-full scale-125 z-0 transition-all ${mood === 'sad' ? 'hue-rotate-[160deg]' : ''
+              } ${mood === 'upset' ? 'hue-rotate-[-30]' : ''}`}
           />
         </div>
 
@@ -234,9 +235,8 @@ function Slider({ setMood }) {
             setSliderIndex(0);
             setMood('sad');
           }}
-          className={`cursor-pointer pointer-events-none md:pointer-events-auto w-52 h-52 transition-all relative ${
-            sliderIndex === 0 ? '' : 'translate-y-12'
-          }`}
+          className={`cursor-pointer pointer-events-none md:pointer-events-auto w-52 h-52 transition-all relative ${sliderIndex === 0 ? '' : 'translate-y-12'
+            }`}
         >
           <Image
             src={sad}
@@ -249,9 +249,8 @@ function Slider({ setMood }) {
             setSliderIndex(1);
             setMood('happy');
           }}
-          className={`cursor-pointer pointer-events-none md:pointer-events-auto w-52 h-52 transition-all ${
-            sliderIndex === 1 ? '' : 'translate-y-12'
-          }`}
+          className={`cursor-pointer pointer-events-none md:pointer-events-auto w-52 h-52 transition-all ${sliderIndex === 1 ? '' : 'translate-y-12'
+            }`}
         >
           <Image
             src={happy}
@@ -264,9 +263,8 @@ function Slider({ setMood }) {
             setSliderIndex(2);
             setMood('upset');
           }}
-          className={`cursor-pointer pointer-events-none md:pointer-events-auto w-52 h-52 transition-all ${
-            sliderIndex === 2 ? '' : 'translate-y-12'
-          }`}
+          className={`cursor-pointer pointer-events-none md:pointer-events-auto w-52 h-52 transition-all ${sliderIndex === 2 ? '' : 'translate-y-12'
+            }`}
         >
           <Image
             src={upset}
