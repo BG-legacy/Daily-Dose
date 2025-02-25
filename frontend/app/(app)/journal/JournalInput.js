@@ -10,7 +10,7 @@ import Image from 'next/image';
 import Link from 'next/link';
 import fire from '../../../public/assets/brand/Fire.png';
 
-export default function JournalInput({ showGestureHint, setShowGestureHint }) {
+export default function JournalInput({ showGestureHint, setShowGestureHint, refreshEntries }) {
   const [ui, setUi] = useState('initial');
   const [entry, setEntry] = useState('');
   const { triggerToast } = useToast();
@@ -18,8 +18,18 @@ export default function JournalInput({ showGestureHint, setShowGestureHint }) {
   function handleSubmitEntry() {
     setUi('loading')
     createEntry({ content: entry })
-      .catch((error) => triggerToast('An error occurred.'))
-      .then((res) => setUi('submitted'));
+      .then((res) => {
+        setUi('submitted');
+        // Call the refreshEntries callback to update the journal entries list
+        if (refreshEntries) {
+          refreshEntries();
+        }
+      })
+      .catch((error) => {
+        console.error('Error creating entry:', error);
+        triggerToast('An error occurred.');
+        setUi('initial');
+      });
   }
 
   return (
@@ -69,12 +79,35 @@ export default function JournalInput({ showGestureHint, setShowGestureHint }) {
               className='w-14 h-14 object-contain'
             />
             <h1 className='font-bold text-xl'>Journal logged!</h1>
-            <motion.button
-              {...motionProps(1)}
-              className='bg-yellow-950 text-white px-6 py-4 font-bold rounded-full'
-            >
-              <Link href={'/home'}>Go Home &rarr;</Link>
-            </motion.button>
+            <div className='flex flex-col gap-3 w-full'>
+              <motion.button
+                {...motionProps(1)}
+                className='bg-yellow-950 text-white px-6 py-4 font-bold rounded-full'
+                onClick={() => {
+                  // Scroll to the entries section
+                  document.getElementById('past-entries')?.scrollIntoView({ behavior: 'smooth' });
+                }}
+              >
+                View Entries
+              </motion.button>
+              <motion.button
+                {...motionProps(2)}
+                className='bg-white border border-yellow-950 text-yellow-950 px-6 py-4 font-bold rounded-full'
+                onClick={() => {
+                  // Reset the form to add a new entry
+                  setUi('initial');
+                  setEntry('');
+                }}
+              >
+                New Entry
+              </motion.button>
+              <motion.button
+                {...motionProps(3)}
+                className='bg-white border border-yellow-950/30 text-yellow-950/70 px-6 py-4 font-bold rounded-full'
+              >
+                <Link href={'/home'}>Go Home</Link>
+              </motion.button>
+            </div>
           </motion.div>
         )}
       </AnimatePresence>

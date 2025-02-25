@@ -3,7 +3,7 @@ import Link from 'next/link';
 import Layout from '../../../components/Layout';
 import { getAllJournalEntries } from '../../lib/journal';
 import JournalInput from './JournalInput';
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useToast } from '../../contexts/toastContext/toastContext';
 import { motion } from 'motion/react';
 import { fadeInProps } from '../../utils/motion';
@@ -20,45 +20,49 @@ export default function Page() {
   const [isLoading, setIsLoading] = useState(true);
 
   /**
+   * Function to fetch all journal entries
+   */
+  const fetchEntries = useCallback(async () => {
+    try {
+      setIsLoading(true);
+      const res = await getAllJournalEntries();
+
+      // Deduplicate entries by ID
+      const uniqueEntries = new Map();
+      res.forEach((entry) => {
+        const id = entry.id || `${entry.UserID}#${entry.CreationDate}`;
+        if (!uniqueEntries.has(id)) {
+          uniqueEntries.set(id, entry);
+        }
+      });
+
+      setJournalEntries(Array.from(uniqueEntries.values()));
+    } catch (error) {
+      console.error('Error fetching entries:', error);
+      triggerToast('An error occurred while fetching entries.');
+    } finally {
+      setIsLoading(false);
+    }
+  }, [triggerToast]);
+
+  /**
    * Effect Hook to fetch all journal entries on component mount
    */
   useEffect(() => {
     let isMounted = true;
 
-    const fetchEntries = async () => {
-      try {
-        setIsLoading(true);
-        const res = await getAllJournalEntries();
-
-        if (isMounted) {
-          // Deduplicate entries by ID
-          const uniqueEntries = new Map();
-          res.forEach((entry) => {
-            const id = entry.id || `${entry.UserID}#${entry.CreationDate}`;
-            if (!uniqueEntries.has(id)) {
-              uniqueEntries.set(id, entry);
-            }
-          });
-
-          setJournalEntries(Array.from(uniqueEntries.values()));
-        }
-      } catch (error) {
-        if (isMounted) {
-          triggerToast('An error occurred.');
-        }
-      } finally {
-        if (isMounted) {
-          setIsLoading(false);
-        }
+    const loadEntries = async () => {
+      if (isMounted) {
+        await fetchEntries();
       }
     };
 
-    fetchEntries();
+    loadEntries();
 
     return () => {
       isMounted = false;
     };
-  }, [triggerToast]);
+  }, [fetchEntries]);
 
   return (
     <Layout route='journal' onClick={() => setShowGestureHint(false)}>
@@ -66,11 +70,15 @@ export default function Page() {
       <JournalInput
         showGestureHint={showGestureHint}
         setShowGestureHint={setShowGestureHint}
+        refreshEntries={fetchEntries}
       />
 
       {/* Past Entries Section */}
-      <section className='grid grid-cols-2 gap-5 p-6 pb-32'>
-        <h2 className='col-span-2 font-semibold text-lg'>Past Entries</h2>
+      <section id="past-entries" className='grid grid-cols-2 gap-5 p-6 pb-32'>
+        <div className='col-span-2 flex justify-between items-center'>
+          <h2 className='font-semibold text-lg'>Past Entries</h2>
+          {isLoading && <span className='text-sm text-gray-500'>Refreshing...</span>}
+        </div>
 
         {/* Conditional Rendering of Entries */}
         {!isLoading && journalEntries != null ? (
