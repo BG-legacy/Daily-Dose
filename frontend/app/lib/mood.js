@@ -1,14 +1,5 @@
 import { apiClient } from './api';
 
-// Set API base URL based on environment
-const db =
-  process.env.NODE_ENV === 'development'
-    ? 'http://localhost:3000'
-    : process.env.DB_URL;
-
-/** @todo create helper functions to set mood
- */
-
 /**
  * Set user's mood for today
  * @param {('happy' | 'sad' | 'upset')} mood - User inputted mood
@@ -17,7 +8,7 @@ export async function setMood({ content }) {
   // Retrieve authentication token from sessionStorage (more secure than localStorage)
   const token = sessionStorage.getItem('token');
   console.log('Token from sessionStorage:', token); // Debug log
-  
+
   // Ensure user is authenticated before proceeding
   if (!token) {
     console.error('No token found in sessionStorage');
@@ -39,7 +30,7 @@ export async function getWeeklyMoodSummary() {
     // Retrieve authentication token for API request
     const token = sessionStorage.getItem('token');
     console.log('Fetching weekly mood summary with token:', token); // Debug log
-    
+
     if (!token) {
       console.error('No token found in sessionStorage');
       throw new Error('Not authenticated');

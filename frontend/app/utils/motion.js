@@ -8,6 +8,16 @@ export function motionProps(i) {
   return motionProps;
 }
 
+export function fadeInProps(i) {
+  const motionProps = {
+    initial: { opacity: 0, },
+    animate: { opacity: 1, },
+    transition: { ease: 'circOut', delay: i * 0.15, duration: 0.25 },
+  };
+
+  return motionProps;
+}
+
 export function scrollInProps(i) {
   const motionProps = {
     initial: { opacity: 0, translateY: 50 },

@@ -33,16 +33,15 @@ router.post('/thoughts', journalController.addThought);
 router.get('/history', journalController.getHistory);
 
 /**
- * GET /api/journal/thoughts/:thoughtId
+ * GET /api/journal/thoughts/:userID/:timestamp
  * Retrieves a specific journal entry
  * 
  * @requires authentication
- * @param {string} thoughtId - Format: userID#timestamp
+ * @param {string} userID - User ID
+ * @param {string} timestamp - Entry timestamp
  * @returns {Object} Journal entry with AI insights
- * @throws {404} If entry not found
- * @throws {403} If user not authorized to access entry
  */
-router.get('/thoughts/:thoughtId', journalController.getThought);
+router.get('/thoughts/:userID/:timestamp?', journalController.getThought);
 
 /**
  * DELETE /api/journal/thoughts/:thoughtId
@@ -55,6 +54,15 @@ router.get('/thoughts/:thoughtId', journalController.getThought);
  * @throws {403} If user not authorized to delete entry
  */
 router.delete('/thoughts/:thoughtId', journalController.deleteThought);
+
+/**
+ * GET /api/journal/summary/weekly
+ * Retrieves weekly summary of journal entries
+ * 
+ * @requires authentication
+ * @returns {Object} Weekly summary data
+ */
+router.get('/summary/weekly', journalController.getWeeklySummary);
 
 /**
  * Response Format for Journal Entries:

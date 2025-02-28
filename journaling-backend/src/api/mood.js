@@ -11,30 +11,30 @@ app.use(bodyParser.json());
 // POST /api/mood - Create new mood entry
 router.post('/', async (req, res) => {
     try {
-        // Extract mood content from request body
         const { content } = req.body;
         
-        // Verify user authentication via middleware-injected user object
+        // Validate mood content
+        const validMoods = ['happy', 'sad', 'upset'];
+        if (!validMoods.includes(content.toLowerCase())) {
+            throw new Error('Invalid mood value');
+        }
+
         if (!req.user || !req.user.uid) {
             throw new Error('User not authenticated');
         }
-        const userID = req.user.uid;
         
-        // Create new mood entry using MoodManager utility
         const moodManager = new MoodManager();
         const result = await moodManager.addMood({
-            UserID: userID,
-            Content: content,
-            Timestamp: new Date().toISOString() // Store current time in ISO format
+            UserID: req.user.uid,
+            Content: content.toLowerCase()
         });
 
-        // Return created mood entry with 201 status
         res.status(201).json(result);
     } catch (error) {
         console.error('Error creating mood entry:', error);
-        // Return appropriate error status: 401 for auth errors, 500 for server errors
-        res.status(error.message === 'User not authenticated' ? 401 : 500)
-           .json({ error: error.message || 'Failed to create mood entry' });
+        const status = error.message === 'User not authenticated' ? 401 :
+                      error.message === 'Invalid mood value' ? 400 : 500;
+        res.status(status).json({ error: error.message });
     }
 });
 

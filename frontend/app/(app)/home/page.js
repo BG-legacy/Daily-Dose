@@ -2,7 +2,6 @@
 import Layout from '../../../components/Layout';
 import { useState, useEffect } from 'react';
 import ProtectedRoute from '../../components/ProtectedRoute';
-import getQuote from '../../../app/lib/quote';
 import { getWeeklyMoodSummary } from '../../../app/lib/mood';
 import { getWeeklyJournalSummary } from '../../../app/lib/journal';
 import QuoteCard from './QuoteCard';
@@ -32,7 +31,7 @@ export default function Page() {
   return (
     <ProtectedRoute>
       <Layout route='home' className='pb-24'>
-        <QuoteCard quote={{ quote: 'Be the change you want to see.' }} />
+        <QuoteCard />
         <Streak weeklyJournalSummary={weeklyJournalSummary} />
         <Chart weeklyMoodSummary={weeklyMoodSummary} />
       </Layout>

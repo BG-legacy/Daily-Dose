@@ -8,11 +8,13 @@ import fire from '../../../public/assets/brand/Fire.png';
 
 export default function Streak({ weeklyJournalSummary }) {
   var streak = 0;
-  console.log(weeklyJournalSummary);
-
-  if (weeklyJournalSummary != null) {
-    for (let i = weeklyJournalSummary.length - 1; i >= 0; i--) {
-      if (weeklyJournalSummary[i]) {
+  
+  // Get the summary array from the response object
+  const summary = weeklyJournalSummary?.summary;
+  
+  if (summary) {
+    for (let i = summary.length - 1; i >= 0; i--) {
+      if (summary[i]) {
         streak++;
       } else {
         break;
@@ -21,7 +23,8 @@ export default function Streak({ weeklyJournalSummary }) {
   }
 
   const sampleSummary = [true, false, true, false, true, true, true];
-  if (weeklyJournalSummary != null) {
+  
+  if (summary) {
     return (
       <motion.section
         {...motionProps(1)}
@@ -30,7 +33,7 @@ export default function Streak({ weeklyJournalSummary }) {
         <p>Journaling Streak</p>
         <h2 className='text-2xl font-bold'>{streak} Day Streak 🔥</h2>
         <div className='flex gap-2.5'>
-          {weeklyJournalSummary.map((j, index) => (
+          {summary.map((j, index) => (
             <motion.div {...motionProps(index * 0.2)} key={index}>
               <Image
                 src={fire}
@@ -40,12 +43,12 @@ export default function Streak({ weeklyJournalSummary }) {
             </motion.div>
           ))}
         </div>
-        {!weeklyJournalSummary[weeklyJournalSummary.length - 1] && (
+        {!summary[summary.length - 1] && (
           <Link
             href='/journal'
             className='w-full text-center mt-4 bg-yellow-950 text-white px-6 py-4 font-bold rounded-full'
           >
-            {weeklyJournalSummary[weeklyJournalSummary.length - 2]
+            {summary[summary.length - 2]
               ? 'Keep Up Your Streak'
               : 'Log Daily Entry'}{' '}
             &rarr;

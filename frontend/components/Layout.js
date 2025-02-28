@@ -1,14 +1,13 @@
 'use client';
 import Image from 'next/image';
-import { motion, useTime } from 'motion/react';
+import { useState } from 'react';
+import { motion } from 'motion/react';
 import { motionProps } from '../app/utils/motion';
 import logo from '../public/assets/brand/Happy.png';
 import Link from 'next/link';
 
-import { MaterialSymbolsLogoutRounded } from '../components/Icons';
+import { MaterialSymbolsPersonRounded } from '../components/Icons';
 
-import { useAuth } from '../app/contexts/authContext/authIndex';
-import { useRouter } from 'next/navigation';
 
 /**
  * Layout
@@ -22,20 +21,18 @@ export default function Layout({
   onClick,
   className,
 }) {
-  const { setUser } = useAuth();
-  const router = useRouter();
-  const selectedStyles =
-    route === 'home'
-      ? 'left-1 w-[75px]'
-      : route === 'mood'
-      ? 'right-1 w-[75px]'
-      : route === 'journal'
-      ? 'left-1/2 right-1/2 -translate-x-1/2 w-20'
-      : '';
+  const [highlightedRoute, setHighlightedRoute] = useState(route)
+  const highlightStyles = {
+    'home'
+      : 'left-1 w-[75px]',
+    'mood':
+      'left-[155px] w-[75px]',
+    'journal':
+      'left-1/2 right-1/2 -translate-x-1/2 w-20'
+  }
 
-  function signOut() {
-    setUser(null);
-    router.push('/');
+  function resetHighlightedRoute() {
+    setHighlightedRoute(route)
   }
 
   return (
@@ -61,10 +58,9 @@ export default function Layout({
       <motion.div
         className='fixed z-50 top-12 lg:bottom-12 right-12 drop-shadow-xl rounded-full backdrop-blur-xl'
         {...motionProps(1)}
-        onClick={signOut}
       >
         <Link href='/user' className='p-4 flex rounded-full bg-yellow-950/5'>
-          <MaterialSymbolsLogoutRounded className='w-6 h-6 text-yellow-950' />
+          <MaterialSymbolsPersonRounded className='w-6 h-6 text-yellow-950' />
         </Link>
       </motion.div>
       <motion.footer
@@ -72,17 +68,17 @@ export default function Layout({
         className='fixed z-50 bottom-12 w-[235.84px] left-0 right-0 mx-auto rounded-full flex justify-center items-center drop-shadow-xl backdrop-blur-xl'
       >
         <div className='px-5 py-4 bg-yellow-950/5 flex items-center justify-center gap-7 rounded-full font-bold relative'>
-          <Link href='/home' className='z-10'>
+          <Link href='/home' className='z-10' onMouseOver={() => setHighlightedRoute('home')} onMouseOut={resetHighlightedRoute}>
             Home
           </Link>
-          <Link href='/journal' className='z-10'>
+          <Link href='/journal' className='z-10' onMouseOver={() => setHighlightedRoute('journal')} onMouseOut={resetHighlightedRoute}>
             Journal
           </Link>
-          <Link href='/mood' className='z-10'>
+          <Link href='/mood' className='z-10' onMouseOver={() => setHighlightedRoute('mood')} onMouseOut={resetHighlightedRoute}>
             Mood
           </Link>
           <div
-            className={`absolute top-1/2 ${selectedStyles} bottom-1/2 -translate-y-1/2 h-12 rounded-full bg-white/95 transition-all`}
+            className={`absolute top-1/2 ${highlightStyles[highlightedRoute]} bottom-1/2 -translate-y-1/2 h-12 rounded-full bg-white/95 transition-all delay-[50ms] ease-in-out duration-300 pointer-events-none`}
           />
         </div>
       </motion.footer>
