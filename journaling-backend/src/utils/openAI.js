@@ -75,6 +75,16 @@ class OpenAIService {
             throw new Error('Failed to generate AI insights');
         }
     }
+
+
+    async getDailyNotif() {
+        // the ai should generate wholesome content that really cute 
+        // TODO: find examples ->
+        // - develop great prompt
+        // - has to be 10/10 wholesome. personal for each person. maybe group people into different types based on the type of content they might wanna see
+        // - encouraging, productive, general advice
+        
+    }
 }
 
 module.exports = OpenAIService;
