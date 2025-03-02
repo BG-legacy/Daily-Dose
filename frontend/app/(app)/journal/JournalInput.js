@@ -9,27 +9,117 @@ import { useToast } from '../../contexts/toastContext/toastContext';
 import Image from 'next/image';
 import Link from 'next/link';
 import fire from '../../../public/assets/brand/Fire.png';
+import AI from '../../../public/assets/brand/AI.png';
 
+/**
+ * TypewriterText Component
+ * Displays text with a typewriter animation effect
+ * @param {string} text - The text to be animated
+ * @param {function} onComplete - Callback function to execute when animation completes
+ */
+function TypewriterText({ text = '', onComplete }) {
+  const [displayText, setDisplayText] = useState('');
+  const [currentIndex, setCurrentIndex] = useState(0);
+  const [isComplete, setIsComplete] = useState(false);
+
+  useEffect(() => {
+    if (!text) {
+      if (onComplete) {
+        onComplete();
+      }
+      return;
+    }
+
+    if (currentIndex < text.length) {
+      const timer = setTimeout(() => {
+        setDisplayText(prev => prev + text[currentIndex]);
+        setCurrentIndex(prev => prev + 1);
+      }, 30); // Adjust speed here (lower number = faster)
+
+      return () => clearTimeout(timer);
+    } else {
+      setIsComplete(true);
+    }
+  }, [currentIndex, text, onComplete]);
+
+  return (
+    <div className="space-y-4">
+      <span>{displayText}</span>
+      {isComplete && (
+        <motion.div {...motionProps(1)} className="flex justify-end">
+          <button
+            onClick={onComplete}
+            className="bg-yellow-950 text-white px-4 py-2 rounded-full text-sm font-medium mt-4"
+          >
+            Continue
+          </button>
+        </motion.div>
+      )}
+    </div>
+  );
+}
+
+/**
+ * JournalInput Component
+ * Main component for journal entry creation and display of AI-generated insights
+ * @param {boolean} showGestureHint - Controls visibility of gesture hint
+ * @param {function} setShowGestureHint - Function to update gesture hint visibility
+ * @param {function} refreshEntries - Function to refresh the list of journal entries
+ */
 export default function JournalInput({ showGestureHint, setShowGestureHint, refreshEntries }) {
-  const [ui, setUi] = useState('initial');
-  const [entry, setEntry] = useState('');
+  // UI state management
+  const [ui, setUi] = useState('initial'); // Controls which UI view is displayed
+  const [entry, setEntry] = useState(''); // Stores the journal entry content
+  const [insights, setInsights] = useState(null); // Stores AI-generated insights
+  const [currentInsight, setCurrentInsight] = useState(0); // Tracks current insight being displayed
   const { triggerToast } = useToast();
 
+  /**
+   * Handles journal entry submission and fetches AI insights
+   */
   function handleSubmitEntry() {
     setUi('loading')
     createEntry({ content: entry })
       .then((res) => {
-        setUi('submitted');
-        // Call the refreshEntries callback to update the journal entries list
-        if (refreshEntries) {
-          refreshEntries();
+        // Check if we have insights in the response
+        if (!res.insights || !res.insights.mentalHealthTip || !res.insights.productivityHack || !res.insights.quote) {
+          throw new Error('Incomplete insights received');
         }
+        
+        setInsights({
+          mentalHealthTip: res.insights.mentalHealthTip,
+          productivityHack: res.insights.productivityHack,
+          quote: res.insights.quote
+        });
+        setUi('insights');
       })
       .catch((error) => {
         console.error('Error creating entry:', error);
-        triggerToast('An error occurred.');
+        triggerToast('An error occurred while generating insights.');
         setUi('initial');
       });
+  }
+
+  // Define different types of insights to be displayed
+  const insightTypes = [
+    { title: 'Mental Health Tip', key: 'mentalHealthTip' },
+    { title: 'Productivity Hack', key: 'productivityHack' },
+    { title: 'Quote', key: 'quote' }
+  ];
+
+  /**
+   * Handles the completion of each insight display
+   * Moves to next insight or completes the process
+   */
+  function handleInsightComplete() {
+    if (currentInsight < insightTypes.length - 1) {
+      setCurrentInsight(prev => prev + 1);
+    } else {
+      setUi('submitted');
+      if (refreshEntries) {
+        refreshEntries();
+      }
+    }
   }
 
   return (
@@ -63,10 +153,45 @@ export default function JournalInput({ showGestureHint, setShowGestureHint, refr
             {ui === "loading" ?
               <span><MaterialSymbolsProgressActivity className='w-4 h-4 animate-spin' /></span> : "Log Entry"
             }
-
           </motion.button>
         ) : null}
       </AnimatePresence>
+
+      <AnimatePresence>
+        {ui === 'insights' && insights && (
+          <motion.div
+            className='flex justify-center flex-col items-center gap-5 col-end-1 row-end-1 z-20 w-full'
+            {...motionProps(0)}
+          >
+            <div className='flex gap-2 font-semibold text-lg mb-4 items-center'>
+              <Image
+                src={AI}
+                alt='Daily Dose AI Emoticon'
+                className='w-14 h-14 object-contain'
+              />
+              <h2 className='text-xl'>AI Insights</h2>
+            </div>
+            <div className='bg-white rounded-lg p-6 shadow-sm w-full'>
+              <div className='space-y-6'>
+                {insightTypes.map((type, index) => (
+                  index === currentInsight && (
+                    <motion.div key={type.key} {...motionProps(index)}>
+                      <h3 className='text-lg font-medium mb-3'>{type.title}</h3>
+                      <div className='min-h-[4em]'>
+                        <TypewriterText 
+                          text={insights[type.key]} 
+                          onComplete={handleInsightComplete}
+                        />
+                      </div>
+                    </motion.div>
+                  )
+                ))}
+              </div>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
       <AnimatePresence>
         {ui === 'submitted' && (
           <motion.div
@@ -84,7 +209,6 @@ export default function JournalInput({ showGestureHint, setShowGestureHint, refr
                 {...motionProps(1)}
                 className='bg-yellow-950 text-white px-6 py-4 font-bold rounded-full'
                 onClick={() => {
-                  // Scroll to the entries section
                   document.getElementById('past-entries')?.scrollIntoView({ behavior: 'smooth' });
                 }}
               >
@@ -94,9 +218,10 @@ export default function JournalInput({ showGestureHint, setShowGestureHint, refr
                 {...motionProps(2)}
                 className='bg-white border border-yellow-950 text-yellow-950 px-6 py-4 font-bold rounded-full'
                 onClick={() => {
-                  // Reset the form to add a new entry
                   setUi('initial');
                   setEntry('');
+                  setInsights(null);
+                  setCurrentInsight(0);
                 }}
               >
                 New Entry
@@ -132,7 +257,13 @@ export default function JournalInput({ showGestureHint, setShowGestureHint, refr
   );
 }
 
+/**
+ * MessagePlaceholder Component
+ * Displays rotating placeholder messages in the journal input
+ * when it's empty
+ */
 function MessagePlaceholder() {
+  // Array of placeholder messages to cycle through
   const messages = useMemo(
     () => [
       'Today I overcame...',
@@ -142,6 +273,7 @@ function MessagePlaceholder() {
     []
   );
 
+  // Set up message rotation interval
   useEffect(() => {
     let currentIndex = 0;
     const label = document.getElementById('label');
@@ -157,6 +289,7 @@ function MessagePlaceholder() {
 
     return () => clearInterval(interval);
   }, [messages]);
+  
   return (
     <label
       htmlFor='entry'
