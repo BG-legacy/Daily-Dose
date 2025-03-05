@@ -207,6 +207,38 @@ UserManager.prototype.getUserByEmail = async function(email) {
     }
 }
 
+// to help send out notifications (using pagination)
+// should be called from notifications
+UserManager.prototype.getEmails = async function() {
+    let lastEvaluatedKey;
+    let pageCount = 0;
+
+    do {
+        const params = {
+            TableName: this.tableName,
+            ExclusiveStartKey: lastEvaluatedKey,
+            ProjectionExpression: "Email", // only get the Email field
+        };
+
+        try {
+            const response = await this.client.send(new ScanCommand(params));
+            pageCount++;
+    
+            // extract email value from items
+            const emails = response.Items.map(item => item.Email);
+            console.log(`Page ${pageCount}, Emails:`, emails);
+    
+            lastEvaluatedKey = response.LastEvaluatedKey;
+        } catch(error) {
+            console.error("Couldn't get the email. oops");
+            throw error;
+        }
+
+        
+    } while(lastEvaluatedKey);
+}
+
+
 module.exports = UserManager;
 
 /**

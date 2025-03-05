@@ -22,7 +22,7 @@ const app = express();
 app.use((req, res, next) => {
   console.log('=== Incoming Request ===');
   console.log(`${req.method} ${req.url}`);
-  console.log('Origin:', req.headers.origin);
+  console.log('Origin:', req.headers.origin); // seems to be undefined
   console.log('Headers:', JSON.stringify(req.headers, null, 2));
   if (req.body) {
     console.log('Body:', JSON.stringify(req.body, null, 2));
