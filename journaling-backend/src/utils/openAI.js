@@ -78,11 +78,6 @@ class OpenAIService {
 
 
     async getDailyNotif() {
-        // the ai should generate wholesome content that really cute 
-        // - develop great prompt
-        // - has to be 10/10 wholesome. personal for each person. maybe group people into different types based on the type of content they might wanna see
-        // - encouraging, productive, general advice
-
         const prompt = `
             Your response should be at most three sentences.
 
@@ -92,8 +87,6 @@ class OpenAIService {
                 - "Every day is a new beginning. Take a deep breath, smile, and start again"
                 - "Wake up with determination, go to bed with satisfaction"
                 - "One small positive thought in the morning can change your whole day"
-        
-        
         `;
         
         try {
@@ -115,8 +108,6 @@ class OpenAIService {
 
             try {
                 const insights = response.choices[0].message.content.trim();
-                // const insights = JSON.parse(content); // this is failing tbh
-
                 console.log(insights);
                 return insights;
             }
