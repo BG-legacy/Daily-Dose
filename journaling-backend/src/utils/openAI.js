@@ -79,11 +79,56 @@ class OpenAIService {
 
     async getDailyNotif() {
         // the ai should generate wholesome content that really cute 
-        // TODO: find examples ->
         // - develop great prompt
         // - has to be 10/10 wholesome. personal for each person. maybe group people into different types based on the type of content they might wanna see
         // - encouraging, productive, general advice
+
+        const prompt = `
+            Your response should be at most three sentences.
+
+            You should give wholesome,cute and encouraging quotes to brighten someone's morning
+
+            Examples:
+                - "Every day is a new beginning. Take a deep breath, smile, and start again"
+                - "Wake up with determination, go to bed with satisfaction"
+                - "One small positive thought in the morning can change your whole day"
         
+        
+        `;
+        
+        try {
+            const response = await this.openai.chat.completions.create({
+                model: 'gpt-4',
+                messages: [
+                    {
+                        role: 'system',
+                        content: 'You are that friend that always has something extremely encouraging and motivating to say. Your responses must not be more than 3 sentences.'
+                    }, 
+                    {
+                       role: 'user',
+                       content: prompt 
+                    }
+                ],
+                temperature: 0.7,
+                max_tokens: 500
+            });
+
+            try {
+                const content = response.choices[0].message.content.trim();
+                const insights = JSON.parse(content);
+
+                console.log(insights);
+            }
+            catch(parseError) {
+                console.error('JSON Parse Error:', parseError);
+                console.error('Raw Response:', response.choices[0].message.content);
+                throw new Error('Failed to parse AI insights');
+            }
+
+        } catch(error) {
+            console.error('OpenAI API Error:', error);
+            throw new Error('Failed to generate AI insights');
+        }
     }
 }
 

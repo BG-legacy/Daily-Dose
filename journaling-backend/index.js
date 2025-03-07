@@ -5,6 +5,7 @@ const journalRoutes = require('./src/api/journal');
 const UserManager = require('./src/utils/dynamoDB');
 const moodRoutes = require('./src/api/mood');
 const { loginUser } = require('./src/utils/auth');
+const notifs = require('./src/controller/notifications')
 
 // Load environment variables
 const PORT = process.env.PORT || 3011;
@@ -17,6 +18,8 @@ const googleClient = new OAuth2Client({
 });
 
 const app = express();
+console.log("testing response from chat\n");
+notifs.generateContent();
 
 // Debug middleware - Logs all incoming requests
 app.use((req, res, next) => {
