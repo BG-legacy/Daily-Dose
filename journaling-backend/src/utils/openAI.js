@@ -114,10 +114,11 @@ class OpenAIService {
             });
 
             try {
-                const content = response.choices[0].message.content.trim();
-                const insights = JSON.parse(content);
+                const insights = response.choices[0].message.content.trim();
+                // const insights = JSON.parse(content); // this is failing tbh
 
                 console.log(insights);
+                return insights;
             }
             catch(parseError) {
                 console.error('JSON Parse Error:', parseError);

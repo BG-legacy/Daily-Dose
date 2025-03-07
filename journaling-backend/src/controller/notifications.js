@@ -29,7 +29,7 @@ const transporter = nodemailer.createTransport({
     secure:false, 
     auth: {
         user: "dailydose.bdjk@gmail.com",
-        pass: "daily-dose"
+        pass: "louu iwxq qmnk rwsy"
     }
 })
 
@@ -39,27 +39,42 @@ const notifications = {
     // would i need to store the emails somewhere for the service to read from
     // or can ses read from the table directly?
     emails: [], // just store the emails here
+    uniqueEmails: [],
 
     async sendDaily() {
         this.emails = await db.getEmails();
         // TODO: check for duplicates before sending, then update the array
         const seen = {};
-        const uniqueEmails = this.emails.filter(email => !seen[email] && (seen[email] = true));
-        
+        this.uniqueEmails = this.emails.filter(email => !seen[email] && (seen[email] = true));
+        // console.log(this.uniqueEmails);
     },
 
 
     // TODO: function to get daily motivational quotes from chat
     async generateContent() {
         // call function from chat
-        openAI.getDailyNotif();
+        return await openAI.getDailyNotif();
     },
 
     async sendOut() {
+        await this.sendDaily(); // make sure the emails are loaded before sending
+        console.log(this.uniqueEmails);
+        if(this.uniqueEmails.length == 0) {
+            console.log("No emails to send to.");
+            return;
+        }
+
+        const content = await this.generateContent();
+
         const info = await transporter.sendMail({
             from: ' "Daily Dose" <dailydose.bdjk@gmail.com',
-            to
-        })
+            to: "dfujah@umich.edu",
+            subject: "Your Daily Test",
+            text: content, // Plain text version
+            html: `<h2>Testing</h2><p>${content}</p>` // HTML version
+        });
+
+        console.log("emails sent: ", info.messageId);
     }
 
     //TODO: need to track if an email has been sent already

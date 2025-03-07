@@ -21,6 +21,14 @@ const app = express();
 console.log("testing response from chat\n");
 notifs.generateContent();
 notifs.sendDaily();
+notifs.sendOut();
+// async function runNotifications() {
+//   await notifs.sendDaily(); // Ensures emails are loaded first
+//   await notifs.sendOut();   // Now it has valid `uniqueEmails`
+// }
+
+// runNotifications();
+
 
 // Debug middleware - Logs all incoming requests
 app.use((req, res, next) => {
