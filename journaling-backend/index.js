@@ -20,6 +20,7 @@ const googleClient = new OAuth2Client({
 const app = express();
 console.log("testing response from chat\n");
 notifs.generateContent();
+notifs.sendDaily();
 
 // Debug middleware - Logs all incoming requests
 app.use((req, res, next) => {

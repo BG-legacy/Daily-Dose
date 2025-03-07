@@ -226,9 +226,11 @@ UserManager.prototype.getEmails = async function() {
     
             // extract email value from items
             const emails = response.Items.map(item => item.Email);
-            console.log(`Page ${pageCount}, Emails:`, emails);
+            // console.log(`Page ${pageCount}, Emails:`, emails);
+            console.log(emails);
     
             lastEvaluatedKey = response.LastEvaluatedKey;
+            return emails;
         } catch(error) {
             console.error("Couldn't get the email. oops");
             throw error;
