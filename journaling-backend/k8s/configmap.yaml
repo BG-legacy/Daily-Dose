@@ -1,9 +1,0 @@
-apiVersion: v1
-kind: ConfigMap
-metadata:
-  name: journaling-backend-config
-data:
-  # Add your non-sensitive environment variables here
-  NODE_ENV: "production"
-  PORT: "3011"
-  # Add other configuration as needed 
