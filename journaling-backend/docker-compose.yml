@@ -1,0 +1,51 @@
+# Docker Compose configuration for the journaling backend service
+# Version 3.8 enables the latest features while maintaining good compatibility
+version: '3.8'
+
+services:
+  # Main backend service configuration
+  journaling-backend:
+    # Build configuration for the service
+    build:
+      # Use the current directory as build context
+      context: .
+      # Specify the Dockerfile to use
+      dockerfile: Dockerfile
+    
+    # Port mapping - maps host port 3011 to container port 3011
+    # Format: "HOST_PORT:CONTAINER_PORT"
+    ports:
+      - "3011:3011"
+    
+    # Environment variable configuration
+    # These override any ENV settings in the Dockerfile
+    environment:
+      - PORT=3011
+      - NODE_ENV=production
+    
+    # Load additional environment variables from .env file
+    # This file should be in the parent directory
+    env_file:
+      - ../.env
+    
+    # Volume mounts for development
+    # This enables hot-reloading and persistence of node_modules
+    volumes:
+      # Mount current directory to container working directory
+      - .:/usr/src/app
+      # Anonymous volume to prevent node_modules from being overwritten by host
+      - /usr/src/app/node_modules
+    
+    # Restart policy - container will restart unless manually stopped
+    restart: unless-stopped
+    
+    # Health check configuration to ensure service is running properly
+    healthcheck:
+      # Use curl to check if the /health endpoint responds
+      test: ["CMD", "curl", "-f", "http://localhost:3011/health"]
+      # Check every 30 seconds
+      interval: 30s
+      # Wait up to 10 seconds for a response
+      timeout: 10s
+      # Try 3 times before considering unhealthy
+      retries: 3 
