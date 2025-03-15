@@ -1,0 +1,19 @@
+# Service provides a stable endpoint to access pods
+apiVersion: v1
+kind: Service
+metadata:
+  name: journaling-backend
+  labels:
+    app: journaling-backend
+spec:
+  type: ClusterIP  # Internal cluster IP (default)
+  ports:
+    - port: 80           # Port exposed to the cluster
+      targetPort: 3011   # Port on the container
+      protocol: TCP
+      name: http
+  selector:
+    app: journaling-backend  # Routes traffic to pods with this label
+
+# Apply command: kubectl apply -f service.yaml 
+#To apply all configurations at once, you can use: kubectl apply -f k8s/

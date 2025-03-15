@@ -1,0 +1,20 @@
+# Ingress manages external access to services in the cluster
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: journaling-backend
+  annotations:
+    nginx.ingress.kubernetes.io/rewrite-target: /  # Rewrites the URL path
+spec:
+  rules:
+  - http:
+      paths:
+      - path: /api    # All requests to /api will be routed to the service
+        pathType: Prefix
+        backend:
+          service:
+            name: journaling-backend  # Target service
+            port:
+              number: 80
+
+# Apply command: kubectl apply -f ingress.yaml 

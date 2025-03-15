@@ -1,0 +1,12 @@
+# ConfigMap stores non-sensitive configuration data as key-value pairs
+# Used to decouple configuration from the container image
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: journaling-backend-config  # Name used to reference this ConfigMap
+data:
+  # Application configuration variables
+  PORT: "3011"          # Port on which the backend service will run
+  NODE_ENV: "production"  # Environment setting for the Node.js application
+
+# Apply command: kubectl apply -f configmap.yaml 

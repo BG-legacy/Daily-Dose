@@ -1,0 +1,54 @@
+# Deployment manages a replicated application running on your cluster
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: journaling-backend
+  labels:
+    app: journaling-backend  # Label used for service selection
+spec:
+  replicas: 3  # Maintains 3 identical pods for high availability
+  selector:
+    matchLabels:
+      app: journaling-backend  # Selects pods to manage based on this label
+  template:
+    metadata:
+      labels:
+        app: journaling-backend
+    spec:
+      containers:
+      - name: journaling-backend
+        image: journaling-backend:latest
+        imagePullPolicy: Never  # Uses local image instead of pulling from registry
+        ports:
+        - containerPort: 3011  # Container port to expose
+        resources:
+          # Resource requests - minimum resources needed
+          requests:
+            cpu: "100m"     # 0.1 CPU core
+            memory: "128Mi" # 128 MB memory
+          # Resource limits - maximum resources allowed
+          limits:
+            cpu: "500m"     # 0.5 CPU core
+            memory: "512Mi" # 512 MB memory
+        # Health check to determine if container is alive
+        livenessProbe:
+          httpGet:
+            path: /health
+            port: 3011
+          initialDelaySeconds: 15  # Wait 15s before first probe
+          periodSeconds: 30        # Check every 30s
+        # Check if pod is ready to serve traffic
+        readinessProbe:
+          httpGet:
+            path: /health
+            port: 3011
+          initialDelaySeconds: 5   # Wait 5s before first probe
+          periodSeconds: 10        # Check every 10s
+        # Mount environment variables from ConfigMap and Secrets
+        envFrom:
+        - configMapRef:
+            name: journaling-backend-config
+        - secretRef:
+            name: journaling-backend-secrets
+
+# Apply command: kubectl apply -f deployment.yaml 

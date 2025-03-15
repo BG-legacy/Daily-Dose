@@ -1,0 +1,21 @@
+# HPA automatically scales the number of pods based on observed metrics
+apiVersion: autoscaling/v2
+kind: HorizontalPodAutoscaler
+metadata:
+  name: journaling-backend
+spec:
+  scaleTargetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: journaling-backend  # References the deployment to scale
+  minReplicas: 3    # Minimum number of pods
+  maxReplicas: 10   # Maximum number of pods
+  metrics:
+  - type: Resource
+    resource:
+      name: cpu
+      target:
+        type: Utilization
+        averageUtilization: 70  # Triggers scaling when CPU usage hits 70%
+
+# Apply command: kubectl apply -f hpa.yaml 
