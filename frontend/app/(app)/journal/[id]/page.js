@@ -7,7 +7,6 @@ import Layout from '../../../../components/Layout';
 import AI from '../../../../public/assets/brand/AI.png';
 import Image from 'next/image';
 import { getEntry } from '../../../lib/journal';
-import { use } from 'react';
 import {
   MaterialSymbolsFlag,
   MaterialSymbolsThumbDown,
@@ -36,7 +35,6 @@ export default function Page({ params }) {
   const { user } = useAuth();
   const { triggerToast } = useToast();
   const router = useRouter();
-  const resolvedParams = use(params);
 
   // Fetch entry data on component mount
   useEffect(() => {
@@ -51,7 +49,7 @@ export default function Page({ params }) {
      */
     const fetchEntry = async () => {
       try {
-        const decodedId = decodeURIComponent(resolvedParams.id);
+        const decodedId = decodeURIComponent(params.id);
         console.log('Fetching entry:', decodedId);
         const data = await getEntry({ entryID: decodedId });
         console.log('Received entry:', data);
@@ -66,7 +64,7 @@ export default function Page({ params }) {
     };
 
     fetchEntry();
-  }, [resolvedParams.id, user, router]);
+  }, [params.id, user, router]);
 
   /** 
    * Sets Journal Entry Feedback Rating
