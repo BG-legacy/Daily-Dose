@@ -1,6 +1,6 @@
 {
   "version": 2,
-  "buildCommand": "npm ci && npm install --platform=linux --arch=x64 sharp && npm install -D tailwindcss@latest postcss@latest autoprefixer@latest && npm run build",
+  "buildCommand": "mkdir -p node_modules/tailwindcss node_modules/postcss node_modules/autoprefixer && npm install --no-save tailwindcss postcss autoprefixer && npm install --platform=linux --arch=x64 sharp && npm run build",
   "devCommand": "npm run dev",
   "framework": "nextjs",
   "outputDirectory": ".next",
