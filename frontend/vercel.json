@@ -1,6 +1,6 @@
 {
   "version": 2,
-  "buildCommand": "npm install --platform=linux --arch=x64 sharp && npm run build",
+  "buildCommand": "npm install --platform=linux --arch=x64 sharp && npm install tailwindcss postcss autoprefixer && npm run build",
   "devCommand": "npm run dev",
   "framework": "nextjs",
   "outputDirectory": ".next",
