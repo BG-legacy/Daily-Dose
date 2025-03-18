@@ -23,7 +23,7 @@ const nextConfig = {
     ignoreDuringBuilds: true,
   },
   webpack: (config) => {
-    // Disable processing of static images
+    // Add asset resource handling for images
     config.module.rules.push({
       test: /\.(png|jpg|jpeg|gif|svg)$/i,
       type: 'asset/resource',
