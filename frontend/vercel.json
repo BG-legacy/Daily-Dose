@@ -1,11 +1,13 @@
 {
   "version": 2,
-  "buildCommand": "cd frontend && npm install && npm run vercel-build",
-  "devCommand": "cd frontend && npm run dev",
-  "installCommand": "cd frontend && npm install",
-  "outputDirectory": "frontend/.next",
   "framework": "nextjs",
-  "regions": ["iad1"],
+  "buildCommand": "npm run build",
+  "devCommand": "npm run dev",
+  "installCommand": "npm install",
+  "outputDirectory": ".next",
+  "env": {
+    "NEXT_TELEMETRY_DISABLED": "1"
+  },
   "headers": [
     {
       "source": "/(.*)",
