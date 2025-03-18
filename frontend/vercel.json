@@ -1,6 +1,6 @@
 {
   "version": 2,
-  "buildCommand": "npm install --platform=linux --arch=x64 sharp && npm install -D tailwindcss postcss autoprefixer postcss-import && npm run vercel-build",
+  "buildCommand": "npm install --platform=linux --arch=x64 sharp && npm install -D tailwindcss postcss autoprefixer postcss-import tailwindcss-nesting && npm run vercel-build",
   "devCommand": "npm run dev",
   "framework": "nextjs",
   "outputDirectory": ".next",
