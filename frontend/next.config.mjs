@@ -8,6 +8,7 @@ const nextConfig = {
       },
     ],
     unoptimized: true,
+    disableStaticImages: true,
   },
   output: 'standalone',
   typescript: {
@@ -22,6 +23,12 @@ const nextConfig = {
     // your project has ESLint errors.
     ignoreDuringBuilds: true,
   },
+  // Disable image optimization globally
+  experimental: {
+    images: {
+      allowFutureImage: true
+    }
+  }
 };
 
 export default nextConfig;

@@ -1,6 +1,6 @@
 {
   "version": 2,
-  "buildCommand": "NEXT_DISABLE_IMAGE_OPTIMIZATION=true npm run build",
+  "buildCommand": "npm install --platform=linux --arch=x64 sharp && npm run vercel-build",
   "devCommand": "npm run dev",
   "framework": "nextjs",
   "outputDirectory": ".next",
