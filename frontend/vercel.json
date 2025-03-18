@@ -1,6 +1,6 @@
 {
   "version": 2,
-  "buildCommand": "mkdir -p node_modules/tailwindcss node_modules/postcss node_modules/autoprefixer && npm install --no-save tailwindcss postcss autoprefixer && npm install --platform=linux --arch=x64 sharp && npm run build",
+  "buildCommand": "NEXT_DISABLE_IMAGE_OPTIMIZATION=true npm run build",
   "devCommand": "npm run dev",
   "framework": "nextjs",
   "outputDirectory": ".next",
@@ -26,6 +26,7 @@
     }
   ],
   "env": {
-    "NEXT_TELEMETRY_DISABLED": "1"
+    "NEXT_TELEMETRY_DISABLED": "1",
+    "NEXT_DISABLE_IMAGE_OPTIMIZATION": "true"
   }
 } 
