@@ -22,25 +22,31 @@ export NODE_ENV=production
 
 # Run the build
 echo "Running Next.js build..."
-npm run vercel-build
+npm run vercel-build || {
+    echo "Next.js build failed"
+    exit 1
+}
 
 # Verify build output
 echo "Verifying build output..."
 if [ ! -d ".next" ]; then
     echo "Error: .next directory not found"
+    echo "Current directory contents:"
+    ls -la
     exit 1
 fi
+
+echo "Checking .next directory contents..."
+ls -la .next
 
 if [ ! -f ".next/routes-manifest.json" ]; then
     echo "Error: routes-manifest.json not found"
     echo "Contents of .next directory:"
     ls -la .next
+    echo "Checking for build output files..."
+    find .next -type f -name "*.json"
     exit 1
 fi
-
-# List build output for debugging
-echo "Build output contents:"
-ls -la .next
 
 echo "Build completed successfully"
 exit 0 
