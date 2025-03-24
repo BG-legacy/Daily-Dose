@@ -1,6 +1,6 @@
 {
   "version": 2,
-  "buildCommand": "chmod +x build.sh && ./build.sh",
+  "buildCommand": "bash -x build.sh",
   "devCommand": "npm run dev",
   "framework": "nextjs",
   "outputDirectory": ".next",
