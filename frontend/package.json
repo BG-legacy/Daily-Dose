@@ -7,7 +7,7 @@
     "build": "next build",
     "start": "next start",
     "lint": "next lint",
-    "vercel-build": "NEXT_DISABLE_IMAGE_OPTIMIZATION=true NODE_ENV=production next build"
+    "vercel-build": "NEXT_DISABLE_IMAGE_OPTIMIZATION=true NODE_ENV=production NODE_OPTIONS='--no-warnings' next build"
   },
   "dependencies": {
     "@auth/dynamodb-adapter": "^2.7.4",
