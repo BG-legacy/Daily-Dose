@@ -1,6 +1,6 @@
 {
   "version": 2,
-  "buildCommand": "npm install && npm install --platform=linux --arch=x64 sharp && npm run vercel-build",
+  "buildCommand": "rm -rf .next && npm install && npm install --platform=linux --arch=x64 sharp && npm run vercel-build && npm run postvercel-build",
   "devCommand": "npm run dev",
   "framework": "nextjs",
   "outputDirectory": ".next",
