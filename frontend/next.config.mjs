@@ -1,5 +1,6 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
+  swcMinify: false, // Disable SWC minification which can cause issues
   images: {
     remotePatterns: [
       {

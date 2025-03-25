@@ -4,9 +4,9 @@
   "private": true,
   "scripts": {
     "dev": "next dev -p 3001",
-    "build": "next build",
-    "vercel-build": "NEXT_DISABLE_CACHE=1 NEXT_TRACE_ENTRYPOINT_PLUGIN=false next build",
-    "alt-build": "NEXT_MINIMAL=1 next build",
+    "build": "NODE_OPTIONS='--max-old-space-size=4096' next build",
+    "vercel-build": "NEXT_DISABLE_CACHE=1 NEXT_TRACE_ENTRYPOINT_PLUGIN=false NODE_OPTIONS='--max-old-space-size=4096' next build",
+    "alt-build": "cross-env NODE_ENV=production next build",
     "production-build": "cross-env NODE_ENV=production next build",
     "start": "next start",
     "lint": "next lint"

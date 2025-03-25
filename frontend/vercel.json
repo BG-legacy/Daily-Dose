@@ -1,7 +1,7 @@
 {
   "version": 2,
   "framework": "nextjs",
-  "buildCommand": "rm -rf .next && NEXT_DISABLE_CACHE=1 NEXT_TRACE_ENTRYPOINT_PLUGIN=false NEXT_MINIMAL=1 next build",
+  "buildCommand": "rm -rf .next && npm run vercel-build",
   "devCommand": "npm run dev",
   "installCommand": "npm install",
   "regions": ["iad1"],
