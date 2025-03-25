@@ -20,9 +20,6 @@ const nextConfig = {
     serverActions: {
       bodySizeLimit: '2mb',
     },
-    images: {
-      allowFutureImage: true, // Support for legacy image formats
-    },
   },
   // Use standard output for Vercel
   // Properly handle static and serverless functions

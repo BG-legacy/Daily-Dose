@@ -80,7 +80,7 @@ export default function ImageRotator({ setCurrentText, setCurrentEmoticon }) {
       width={1200}
       height={600}
       priority={true}
-      className={`w-full h-full object-cover transition-opacity duration-1000 ${
+      className={`col-end-1 row-end-1 object-cover w-full rounded-2xl h-[600px] transition-opacity duration-1000 ease-in-out ${
         fade ? 'opacity-0' : 'opacity-100'
       }`}
     />

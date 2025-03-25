@@ -298,6 +298,9 @@ export default function Home() {
             src={aboutImage}
             alt='About Us'
             className='w-full h-80 object-cover rounded-2xl md:col-span-2'
+            width={1200}
+            height={600}
+            priority={true}
           />
         </section>
       </main>
