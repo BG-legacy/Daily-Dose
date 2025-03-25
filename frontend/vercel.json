@@ -3,7 +3,6 @@
   "buildCommand": "bash -x build.sh",
   "devCommand": "npm run dev",
   "framework": "nextjs",
-  "outputDirectory": ".next",
   "regions": ["iad1"],
   "installCommand": "npm install",
   "headers": [
