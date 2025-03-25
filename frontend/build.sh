@@ -51,10 +51,16 @@ if [ -d ".next" ]; then
   "dynamicRoutes": [],
   "staticRoutes": [],
   "dataRoutes": [],
+  "rewrites": {
+    "beforeFiles": [],
+    "afterFiles": [],
+    "fallback": []
+  },
   "rsc": {
     "header": "RSC",
     "varyHeader": "RSC, Next-Router-State-Tree, Next-Router-Prefetch, Next-Url"
-  }
+  },
+  "i18n": null
 }' > .next/routes-manifest.json
         
         # Check server manifests
