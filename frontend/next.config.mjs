@@ -1,17 +1,24 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   images: {
+    domains: ['lh3.googleusercontent.com'],
     remotePatterns: [
       {
         protocol: 'https',
         hostname: 'lh3.googleusercontent.com',
       },
     ],
+    formats: ['image/avif', 'image/webp'],
+    dangerouslyAllowSVG: true,
+    contentSecurityPolicy: "default-src 'self'; script-src 'none'; sandbox;",
     unoptimized: true, // Disable image optimization for simpler deployment
   },
   experimental: {
     serverActions: {
       bodySizeLimit: '2mb',
+    },
+    images: {
+      allowFutureImage: true, // Support for legacy image formats
     },
   },
   // Use standard output for Vercel
@@ -55,7 +62,9 @@ const nextConfig = {
     });
     
     return config;
-  }
+  },
+  // Ensure public assets are properly included
+  assetPrefix: '',
 };
 
 export default nextConfig;

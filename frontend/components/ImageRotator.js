@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import Image from 'next/image';
+import OptimizedImage from './OptimizedImage';
 import heroImage from '../public/assets/media/snow.jpg';
 import sunnyImage from '../public/assets/media/betterdays.png';
 import restlessNights from '../public/assets/media/restlessnights.png';
@@ -51,9 +52,12 @@ export default function ImageRotator({ setCurrentText, setCurrentEmoticon }) {
   }, [setCurrentText, setCurrentEmoticon]);
 
   return (
-    <Image
+    <OptimizedImage
       src={currentImage}
       alt='Mood Image'
+      width={1200}
+      height={600}
+      priority={true}
       className={`col-end-1 row-end-1 object-cover w-full rounded-2xl h-[600px] transition-opacity duration-1000 ease-in-out ${fade ? 'opacity-0' : 'opacity-100'
         }`}
     />

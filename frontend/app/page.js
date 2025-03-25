@@ -4,6 +4,7 @@ import { useState, useRef, useEffect } from 'react';
 import { motion } from 'motion/react';
 
 import { scrollInProps as motionProps } from './utils/motion.js';
+import OptimizedImage from '../components/OptimizedImage';
 
 import happy from '../public/assets/brand/Happy.png';
 import Link from 'next/link';
@@ -52,7 +53,7 @@ export default function Home() {
               href={'/'}
               className='flex gap-2 items-center leading-none font-extrabold'
             >
-              <Image src={happy} alt='Daily Dose Logo' width='42' height='42' />
+              <OptimizedImage src={happy} alt='Daily Dose Logo' width={42} height={42} />
               <span>
                 Daily
                 <br />
@@ -110,10 +111,12 @@ export default function Home() {
           dragConstraints={constraintsRef}
           className='absolute -left-12 md:-left-20 top-48 md:top-60 w-36 h-36 md:w-52 md:h-52 z-20 cursor-grab active:cursor-grabbing'
         >
-          <Image
+          <OptimizedImage
             src={happy}
             alt='Daily Dose Happy Emoticon'
             className='w-36 h-36 md:w-52 md:h-52 rotate-[30deg] pointer-events-none'
+            width={200}
+            height={200}
           />
         </motion.div>
         <motion.div
@@ -123,10 +126,12 @@ export default function Home() {
           dragElastic
           dragConstraints={constraintsRef}
         >
-          <Image
+          <OptimizedImage
             src={sad}
             alt='Daily Dose Sad Emoticon'
             className='w-32 h-32 md:w-96 md:h-96 -rotate-12 pointer-events-none'
+            width={400}
+            height={400}
           />
         </motion.div>
         <section className='grid w-full px-6 mt-6' ref={heroRef}>
@@ -140,7 +145,7 @@ export default function Home() {
                 id='hero-text'
               >
                 {currentText}
-                <Image
+                <OptimizedImage
                   alt='Dynamic Mood Emoticon'
                   src={currentEmoticon}
                   width={120}
@@ -176,10 +181,12 @@ export default function Home() {
           className='py-12 px-6 container mx-auto md:grid-cols-3 grid gap-6'
         >
           <motion.div className='flex flex-col gap-3 px-6' {...motionProps(0)}>
-            <Image
+            <OptimizedImage
               className='w-24 h-24 object-contain'
               src={fire}
               alt='Daily Dose Fire Emoticon'
+              width={96}
+              height={96}
             />
             <h2 className='font-bold text-2xl'>
               Inspiration at Your Fingertips
@@ -192,19 +199,23 @@ export default function Home() {
             className='flex flex-col gap-3 border-x-neutral-950/10 border-y md:border-y-0 md:border-x py-6 md:py-0 px-6'
             {...motionProps(1)}
           >
-            <Image
+            <OptimizedImage
               className='w-24 h-24 object-contain'
               src={moods}
               alt='Daily Dose Emoticons'
+              width={96}
+              height={96}
             />
             <h2 className='font-bold text-2xl'>Mood Tracking Made Easy</h2>
             <p>Monitor your mood trends and build awareness over time.</p>
           </motion.div>
           <motion.div className='flex flex-col gap-3 px-6' {...motionProps(3)}>
-            <Image
+            <OptimizedImage
               className='w-24 h-24 object-contain'
               src={ai}
               alt='Daily Dose AI Emoticon'
+              width={96}
+              height={96}
             />
             <h2 className='font-bold text-2xl'>AI-Powered Journaling</h2>
             <p>
@@ -238,7 +249,7 @@ export default function Home() {
               <Link href={'https://www.colorstack.org/'} className='underline'>
                 ColorStack
               </Link>
-              ’s Winter ‘24 Hackathon ❤️
+              's Winter '24 Hackathon ❤️
             </p>
             <p>
               By{' '}
