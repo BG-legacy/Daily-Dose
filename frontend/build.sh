@@ -9,6 +9,7 @@ echo "Starting build process..."
 echo "Cleaning previous build..."
 rm -rf .next
 rm -rf .vercel
+rm -rf node_modules/.cache
 
 # Install dependencies
 echo "Installing dependencies..."
@@ -22,6 +23,7 @@ npm install --platform=linux --arch=x64 sharp
 echo "Setting environment variables..."
 export NEXT_DISABLE_IMAGE_OPTIMIZATION=true
 export NODE_ENV=production
+export NEXT_DISABLE_CACHE=1
 
 # Run Next.js build
 echo "Running Next.js build..."

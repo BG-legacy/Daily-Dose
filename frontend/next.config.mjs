@@ -36,6 +36,10 @@ const nextConfig = {
       test: /\.(png|jpg|jpeg|gif|svg)$/i,
       type: 'asset/resource',
     });
+    
+    // Disable webpack cache to prevent errors
+    config.cache = false;
+    
     return config;
   }
 };
