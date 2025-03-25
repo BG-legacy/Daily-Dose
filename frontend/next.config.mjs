@@ -13,7 +13,6 @@ const nextConfig = {
     serverActions: {
       bodySizeLimit: '2mb',
     },
-    optimizePackageImports: false,
   },
   // Use standard output for Vercel
   // Properly handle static and serverless functions
@@ -31,7 +30,7 @@ const nextConfig = {
     // your project has ESLint errors.
     ignoreDuringBuilds: true,
   },
-  webpack: (config) => {
+  webpack: (config, { dev, isServer }) => {
     // Add asset resource handling for images
     config.module.rules.push({
       test: /\.(png|jpg|jpeg|gif|svg)$/i,
@@ -41,8 +40,19 @@ const nextConfig = {
     // Disable webpack cache to prevent errors
     config.cache = false;
     
-    // Disable tracing
-    config.optimization.usedExports = false;
+    // Disable tracing and optimizations that cause issues
+    if (config.optimization) {
+      config.optimization.usedExports = false;
+      if (config.optimization.splitChunks) {
+        config.optimization.splitChunks.cacheGroups = {};
+      }
+    }
+    
+    // Disable the trace entry points plugin
+    const plugins = config.plugins || [];
+    config.plugins = plugins.filter(plugin => {
+      return plugin.constructor.name !== 'TraceEntryPointsPlugin';
+    });
     
     return config;
   }

@@ -6,6 +6,8 @@
     "dev": "next dev -p 3001",
     "build": "next build",
     "vercel-build": "NEXT_DISABLE_CACHE=1 NEXT_TRACE_ENTRYPOINT_PLUGIN=false next build",
+    "alt-build": "NEXT_MINIMAL=1 next build",
+    "production-build": "cross-env NODE_ENV=production next build",
     "start": "next start",
     "lint": "next lint"
   },
@@ -19,6 +21,7 @@
     "@types/firebase": "^2.4.32",
     "autoprefixer": "^10.4.20",
     "chart.js": "^4.4.7",
+    "cross-env": "^7.0.3",
     "dotenv": "^16.4.7",
     "firebase": "^11.1.0",
     "firebase-admin": "^13.0.2",
