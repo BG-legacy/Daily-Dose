@@ -1,11 +1,10 @@
 {
   "version": 2,
-  "buildCommand": "bash -x build.sh",
-  "devCommand": "npm run dev",
   "framework": "nextjs",
-  "outputDirectory": ".vercel/output",
-  "regions": ["iad1"],
+  "buildCommand": "npm run build",
+  "devCommand": "npm run dev",
   "installCommand": "npm install",
+  "regions": ["iad1"],
   "headers": [
     {
       "source": "/(.*)",
@@ -27,7 +26,6 @@
   ],
   "env": {
     "NEXT_TELEMETRY_DISABLED": "1",
-    "NEXT_DISABLE_IMAGE_OPTIMIZATION": "true",
     "NODE_ENV": "production"
   }
 } 

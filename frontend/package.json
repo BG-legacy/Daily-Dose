@@ -6,8 +6,7 @@
     "dev": "next dev -p 3001",
     "build": "next build",
     "start": "next start",
-    "lint": "next lint",
-    "vercel-build": "next build"
+    "lint": "next lint"
   },
   "dependencies": {
     "@auth/dynamodb-adapter": "^2.7.4",

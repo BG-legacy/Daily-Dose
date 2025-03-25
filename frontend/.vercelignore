@@ -1,0 +1,30 @@
+# Exclude build script as we're using Vercel's native Next.js support
+build.sh
+
+# Local development files
+.env.local
+.env.*.local
+
+# Test files
+/tests
+/coverage
+
+# Log files
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Editor directories and files
+.idea
+.vscode
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
+
+# Docker files
+Dockerfile
+docker-compose.yml
+.dockerignore 
