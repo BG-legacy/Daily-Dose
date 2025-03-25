@@ -1,9 +1,9 @@
 {
   "version": 2,
   "framework": "nextjs",
-  "buildCommand": "rm -rf .next && npm run vercel-build",
+  "buildCommand": "mkdir -p /tmp/node_modules && cp -r node_modules/sharp /tmp/node_modules/ 2>/dev/null || npm install --prefix /tmp --os=linux --cpu=x64 sharp && rm -rf .next && npm run vercel-build",
   "devCommand": "npm run dev",
-  "installCommand": "npm install",
+  "installCommand": "npm install && npm install --os=linux --cpu=x64 sharp",
   "regions": ["iad1"],
   "headers": [
     {
@@ -28,6 +28,8 @@
     "NEXT_TELEMETRY_DISABLED": "1",
     "NODE_ENV": "production",
     "NEXT_TRACE_ENTRYPOINT_PLUGIN": "false",
-    "NEXT_DISABLE_CACHE": "1"
+    "NEXT_DISABLE_CACHE": "1",
+    "NEXT_DISABLE_IMAGE_OPTIMIZATION": "true",
+    "NEXT_SHARP_PATH": "/tmp/node_modules/sharp"
   }
 } 

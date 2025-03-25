@@ -5,7 +5,7 @@
   "scripts": {
     "dev": "next dev -p 3001",
     "build": "NODE_OPTIONS='--max-old-space-size=4096' next build",
-    "vercel-build": "NEXT_DISABLE_CACHE=1 NEXT_TRACE_ENTRYPOINT_PLUGIN=false NODE_OPTIONS='--max-old-space-size=4096' next build",
+    "vercel-build": "NEXT_DISABLE_CACHE=1 NEXT_TRACE_ENTRYPOINT_PLUGIN=false NEXT_DISABLE_IMAGE_OPTIMIZATION=true NODE_OPTIONS='--max-old-space-size=4096' next build",
     "alt-build": "cross-env NODE_ENV=production next build",
     "production-build": "cross-env NODE_ENV=production next build",
     "start": "next start",

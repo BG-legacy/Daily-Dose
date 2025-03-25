@@ -1,6 +1,5 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-  swcMinify: false, // Disable SWC minification which can cause issues
   images: {
     remotePatterns: [
       {
@@ -18,7 +17,7 @@ const nextConfig = {
   // Use standard output for Vercel
   // Properly handle static and serverless functions
   output: 'standalone',
-  // distDir: '.vercel/output/static',
+  distDir: '.next', // Explicitly set distDir
   typescript: {
     // !! WARN !!
     // Dangerously allow production builds to successfully complete even if
