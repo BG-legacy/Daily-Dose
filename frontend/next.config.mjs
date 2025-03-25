@@ -13,6 +13,7 @@ const nextConfig = {
     serverActions: {
       bodySizeLimit: '2mb',
     },
+    optimizePackageImports: false,
   },
   // Use standard output for Vercel
   // Properly handle static and serverless functions
@@ -39,6 +40,9 @@ const nextConfig = {
     
     // Disable webpack cache to prevent errors
     config.cache = false;
+    
+    // Disable tracing
+    config.optimization.usedExports = false;
     
     return config;
   }

@@ -24,11 +24,19 @@ echo "Setting environment variables..."
 export NEXT_DISABLE_IMAGE_OPTIMIZATION=true
 export NODE_ENV=production
 export NEXT_DISABLE_CACHE=1
+export NEXT_TRACE_ENTRYPOINT_PLUGIN=false
 
 # Run Next.js build
 echo "Running Next.js build..."
 npm run vercel-build
 BUILD_EXIT_CODE=$?
+
+# If build fails, try with additional flags
+if [ $BUILD_EXIT_CODE -ne 0 ]; then
+  echo "First build attempt failed. Trying alternative build approach..."
+  NEXT_MINIMAL=1 npm run build
+  BUILD_EXIT_CODE=$?
+fi
 
 echo "Build process exited with code: $BUILD_EXIT_CODE"
 
