@@ -22,10 +22,10 @@ export NODE_ENV=production
 
 # Run the build
 echo "Running Next.js build..."
-npm run vercel-build || {
-    echo "Next.js build failed"
+if ! npm run vercel-build; then
+    echo "Next.js build failed with exit code $?"
     exit 1
-}
+fi
 
 # Verify build output
 echo "Verifying build output..."
