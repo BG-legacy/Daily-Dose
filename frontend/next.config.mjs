@@ -9,6 +9,13 @@ const nextConfig = {
     ],
     unoptimized: true,
   },
+  experimental: {
+    serverActions: {
+      bodySizeLimit: '2mb',
+    },
+  },
+  output: 'export',
+  distDir: '.vercel/output/static',
   typescript: {
     // !! WARN !!
     // Dangerously allow production builds to successfully complete even if
