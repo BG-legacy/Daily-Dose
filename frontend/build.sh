@@ -36,17 +36,29 @@ if [ -d ".next" ]; then
     echo "Contents of .next:"
     ls -la .next
     
-    # Check for critical build files
-    if [ -f ".next/routes-manifest.json" ] && [ -f ".next/build-manifest.json" ]; then
+    # Check for critical build files - note that routes manifest is now in server directory
+    if [ -f ".next/build-manifest.json" ] && [ -f ".next/app-build-manifest.json" ]; then
         echo "Found required build files"
         echo "Build manifest contents:"
         cat .next/build-manifest.json | head -n 20
-        echo "Routes manifest contents:"
-        cat .next/routes-manifest.json | head -n 20
+        echo "App build manifest contents:"
+        cat .next/app-build-manifest.json | head -n 20
         
-        # If we have the required files, consider this a success
-        echo "Build completed successfully with required artifacts"
-        exit 0
+        # Check server manifests
+        echo "Checking server manifests..."
+        if [ -f ".next/server/app-paths-manifest.json" ] && [ -f ".next/server/pages-manifest.json" ]; then
+            echo "Found server manifest files"
+            echo "Server manifests:"
+            ls -la .next/server/*.json
+            
+            # If we have the required files, consider this a success
+            echo "Build completed successfully with required artifacts"
+            exit 0
+        else
+            echo "Error: Missing server manifest files"
+            echo "Server directory contents:"
+            ls -la .next/server/
+        fi
     else
         echo "Error: Missing required build files"
         echo "Looking for JSON files in .next:"
