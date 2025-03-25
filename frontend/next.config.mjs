@@ -7,15 +7,16 @@ const nextConfig = {
         hostname: 'lh3.googleusercontent.com',
       },
     ],
-    unoptimized: true,
+    unoptimized: false,
   },
   experimental: {
     serverActions: {
       bodySizeLimit: '2mb',
     },
   },
-  output: 'export',
-  distDir: '.vercel/output/static',
+  // Remove static export to enable serverless functions
+  // output: 'export',
+  // distDir: '.vercel/output/static',
   typescript: {
     // !! WARN !!
     // Dangerously allow production builds to successfully complete even if

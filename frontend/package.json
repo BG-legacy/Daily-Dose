@@ -7,7 +7,7 @@
     "build": "next build",
     "start": "next start",
     "lint": "next lint",
-    "vercel-build": "NODE_OPTIONS='--max_old_space_size=4096' next build"
+    "vercel-build": "next build"
   },
   "dependencies": {
     "@auth/dynamodb-adapter": "^2.7.4",

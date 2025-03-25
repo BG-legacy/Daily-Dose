@@ -3,7 +3,7 @@
   "buildCommand": "bash -x build.sh",
   "devCommand": "npm run dev",
   "framework": "nextjs",
-  "outputDirectory": ".vercel/output/static",
+  "outputDirectory": ".vercel/output",
   "regions": ["iad1"],
   "installCommand": "npm install",
   "headers": [
