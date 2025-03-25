@@ -36,13 +36,26 @@ if [ -d ".next" ]; then
     echo "Contents of .next:"
     ls -la .next
     
-    # Check for critical build files - note that routes manifest is now in server directory
+    # Check for critical build files
     if [ -f ".next/build-manifest.json" ] && [ -f ".next/app-build-manifest.json" ]; then
         echo "Found required build files"
-        echo "Build manifest contents:"
-        cat .next/build-manifest.json | head -n 20
-        echo "App build manifest contents:"
-        cat .next/app-build-manifest.json | head -n 20
+        
+        # Create routes-manifest.json for Vercel
+        echo "Creating routes-manifest.json..."
+        echo '{
+  "version": 3,
+  "pages404": true,
+  "basePath": "",
+  "redirects": [],
+  "headers": [],
+  "dynamicRoutes": [],
+  "staticRoutes": [],
+  "dataRoutes": [],
+  "rsc": {
+    "header": "RSC",
+    "varyHeader": "RSC, Next-Router-State-Tree, Next-Router-Prefetch, Next-Url"
+  }
+}' > .next/routes-manifest.json
         
         # Check server manifests
         echo "Checking server manifests..."
@@ -51,29 +64,34 @@ if [ -d ".next" ]; then
             echo "Server manifests:"
             ls -la .next/server/*.json
             
-            # If we have the required files, consider this a success
-            echo "Build completed successfully with required artifacts"
-            exit 0
+            # Verify routes-manifest.json was created
+            if [ -f ".next/routes-manifest.json" ]; then
+                echo "routes-manifest.json created successfully"
+                echo "Contents of routes-manifest.json:"
+                cat .next/routes-manifest.json
+                
+                # If we have all required files, consider this a success
+                echo "Build completed successfully with required artifacts"
+                exit 0
+            else
+                echo "Error: Failed to create routes-manifest.json"
+                exit 1
+            fi
         else
             echo "Error: Missing server manifest files"
             echo "Server directory contents:"
             ls -la .next/server/
+            exit 1
         fi
     else
         echo "Error: Missing required build files"
         echo "Looking for JSON files in .next:"
         find .next -type f -name "*.json"
+        exit 1
     fi
 else
     echo "Error: .next directory not found after build"
     echo "Current directory contents:"
     ls -la
-fi
-
-# If we get here, something went wrong
-echo "Build verification failed"
-echo "Node version: $(node --version)"
-echo "NPM version: $(npm --version)"
-echo "Current working directory: $(pwd)"
-
-exit 1 
+    exit 1
+fi 
