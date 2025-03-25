@@ -13,11 +13,11 @@ rm -rf node_modules/.cache
 
 # Install dependencies
 echo "Installing dependencies..."
-npm install
+npm install --no-audit
 
 # Install sharp for Linux
 echo "Installing sharp for Linux..."
-npm install --platform=linux --arch=x64 sharp
+npm install --platform=linux --arch=x64 sharp --no-audit
 
 # Set environment variables
 echo "Setting environment variables..."
@@ -116,8 +116,6 @@ echo "Creating serverless functions..."
 mkdir -p .vercel/output/functions/index.func
 cat > .vercel/output/functions/index.func/index.js << EOL
 import { NextRequest, NextResponse } from 'next/server';
-import { IncomingMessage, ServerResponse } from 'http';
-import { renderToHTML } from 'next/dist/server/render';
 import { getRequestHandler } from 'next/dist/server/next-server';
 
 export default async function handler(req, res) {

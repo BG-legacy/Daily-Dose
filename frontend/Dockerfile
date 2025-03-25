@@ -8,11 +8,11 @@ WORKDIR /app
 COPY package.json package-lock.json ./
 
 # Install dependencies with npm install instead of npm ci
-RUN npm install
+RUN npm install --no-audit
 # Install Sharp with platform-specific dependencies for linuxmusl-arm64
-RUN npm install --platform=linuxmusl --arch=arm64 sharp
+RUN npm install --platform=linuxmusl --arch=arm64 sharp --no-audit
 # Install missing MUI dependencies
-RUN npm install @mui/material @emotion/react @emotion/styled
+RUN npm install @mui/material @emotion/react @emotion/styled --no-audit
 
 # Rebuild the source code only when needed
 FROM base AS builder

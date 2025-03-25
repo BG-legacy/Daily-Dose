@@ -1,7 +1,7 @@
 {
   "version": 2,
   "framework": "nextjs",
-  "buildCommand": "mkdir -p /tmp/node_modules && cp -r node_modules/sharp /tmp/node_modules/ 2>/dev/null || npm install --prefix /tmp --os=linux --cpu=x64 sharp && rm -rf .next && npm run vercel-build",
+  "buildCommand": "npm run clean && mkdir -p /tmp/node_modules && cp -r node_modules/sharp /tmp/node_modules/ 2>/dev/null || npm install --prefix /tmp --os=linux --cpu=x64 sharp && npm run vercel-build",
   "devCommand": "npm run dev",
   "installCommand": "npm install && npm install --os=linux --cpu=x64 sharp",
   "regions": ["iad1"],
