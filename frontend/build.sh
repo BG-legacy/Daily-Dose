@@ -64,6 +64,14 @@ cat > .vercel/output/config.json << EOL
       "continue": true
     },
     {
+      "src": "^/public/(.*)$",
+      "dest": "/public/$1"
+    },
+    {
+      "src": "^/assets/(.*)$",
+      "dest": "/assets/$1"
+    },
+    {
       "handle": "filesystem"
     },
     {
@@ -81,9 +89,24 @@ if [ -d ".next/static" ]; then
   cp -r .next/static/* .vercel/output/static/_next/static/
 fi
 
-# Copy public directory
+# Copy public directory with proper structure
 if [ -d "public" ]; then
+  mkdir -p .vercel/output/static/public
   cp -r public/* .vercel/output/static/
+  # Also copy to public directory to support both reference formats
+  cp -r public/* .vercel/output/static/public/
+  
+  # Ensure assets directory is properly copied
+  if [ -d "public/assets" ]; then
+    mkdir -p .vercel/output/static/assets
+    cp -r public/assets/* .vercel/output/static/assets/
+  fi
+fi
+
+# Copy image assets from .next/static/media directory if it exists
+if [ -d ".next/static/media" ]; then
+  mkdir -p .vercel/output/static/_next/static/media
+  cp -r .next/static/media/* .vercel/output/static/_next/static/media/
 fi
 
 # Create serverless functions for each page

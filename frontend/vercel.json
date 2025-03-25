@@ -33,7 +33,7 @@
       ]
     },
     {
-      "source": "/_next/image(.*)",
+      "source": "/_next/static/(.*)",
       "headers": [
         {
           "key": "Cache-Control",
@@ -42,13 +42,30 @@
       ]
     },
     {
-      "source": "/_next/static/(.*)",
+      "source": "/public/(.*)",
       "headers": [
         {
           "key": "Cache-Control",
           "value": "public, max-age=31536000, immutable"
         }
       ]
+    }
+  ],
+  "routes": [
+    {
+      "src": "^/public/(.*)$",
+      "dest": "/public/$1"
+    },
+    {
+      "src": "^/assets/(.*)$",
+      "dest": "/assets/$1"
+    },
+    {
+      "handle": "filesystem"
+    },
+    {
+      "src": "/(.*)",
+      "dest": "/$1"
     }
   ],
   "env": {

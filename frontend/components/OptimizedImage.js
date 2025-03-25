@@ -26,16 +26,23 @@ export default function OptimizedImage({
 
   // Handle image loading error
   const handleError = () => {
+    console.error(`Failed to load image: ${src}`);
     setError(true);
     setLoading(false);
     
     // Try to load with standard img element if Next/Image fails
-    const imgElement = new window.Image();
-    imgElement.src = src;
-    imgElement.onload = () => {
-      setImgSrc(src);
-      setError(false);
-    };
+    if (typeof window !== 'undefined') {
+      const imgElement = new window.Image();
+      imgElement.src = typeof src === 'string' ? src : '/assets/brand/Happy.png'; // Fallback to default image
+      imgElement.onload = () => {
+        setImgSrc(imgElement.src);
+        setError(false);
+      };
+      imgElement.onerror = () => {
+        // If even the direct image load fails, use a static fallback
+        setImgSrc('/assets/brand/Happy.png');
+      };
+    }
   };
 
   const handleLoad = () => {
@@ -46,7 +53,7 @@ export default function OptimizedImage({
   if (error) {
     return (
       <img
-        src={src}
+        src={typeof src === 'string' ? src : '/assets/brand/Happy.png'}
         alt={alt}
         className={className}
         width={width || 'auto'}
@@ -68,6 +75,7 @@ export default function OptimizedImage({
         onError={handleError}
         onLoad={handleLoad}
         priority={priority}
+        loading={priority ? "eager" : "lazy"}
         unoptimized={true}
         {...props}
       />

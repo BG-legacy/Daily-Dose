@@ -12,6 +12,9 @@ const nextConfig = {
     dangerouslyAllowSVG: true,
     contentSecurityPolicy: "default-src 'self'; script-src 'none'; sandbox;",
     unoptimized: true, // Disable image optimization for simpler deployment
+    imageSizes: [16, 32, 48, 64, 96, 128, 256, 384], // Custom image sizes
+    deviceSizes: [640, 750, 828, 1080, 1200, 1920, 2048, 3840], // Device breakpoints
+    disableStaticImages: false, // Enable importing images with import statements
   },
   experimental: {
     serverActions: {
@@ -58,13 +61,13 @@ const nextConfig = {
     // Disable the trace entry points plugin
     const plugins = config.plugins || [];
     config.plugins = plugins.filter(plugin => {
-      return plugin.constructor.name !== 'TraceEntryPointsPlugin';
+      return plugin.constructor && plugin.constructor.name !== 'TraceEntryPointsPlugin';
     });
     
     return config;
   },
-  // Ensure public assets are properly included
-  assetPrefix: '',
+  // Add proper asset handling for static assets
+  assetPrefix: process.env.NODE_ENV === 'production' ? '/_next' : '',
 };
 
 export default nextConfig;

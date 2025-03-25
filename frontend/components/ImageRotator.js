@@ -15,13 +15,36 @@ import uncertain from '../public/assets/brand/Uncertain.png';
 export default function ImageRotator({ setCurrentText, setCurrentEmoticon }) {
   const [currentImage, setCurrentImage] = useState(heroImage);
   const [fade, setFade] = useState(false);
+  const [isLoaded, setIsLoaded] = useState(false);
+
+  // Preload all images to ensure they're available when needed
+  useEffect(() => {
+    // Preload all images
+    const imagesToPreload = [heroImage, sunnyImage, restlessNights, uncertainTimes];
+    Promise.all(
+      imagesToPreload.map((src) => {
+        return new Promise((resolve, reject) => {
+          const img = new Image();
+          img.src = src.src || src; // Handle both imported images and string paths
+          img.onload = resolve;
+          img.onerror = reject;
+        });
+      })
+    )
+      .then(() => setIsLoaded(true))
+      .catch((error) => console.error('Error preloading images:', error));
+  }, []);
 
   useEffect(() => {
+    if (!isLoaded) return; // Don't start rotation until images are loaded
+    
     const images = [heroImage, sunnyImage, restlessNights, uncertainTimes];
     let index = 0;
 
     const textElement = document.getElementById('hero-text')
-    textElement.style.animationPlayState = 'running';
+    if (textElement) {
+      textElement.style.animationPlayState = 'running';
+    }
 
     const interval = setInterval(() => {
       setFade(true);
@@ -29,7 +52,6 @@ export default function ImageRotator({ setCurrentText, setCurrentEmoticon }) {
       setTimeout(() => {
         index = (index + 1) % images.length;
         setCurrentImage(images[index]);
-
 
         if (images[index] === heroImage) {
           setCurrentText("Gloomy Days");
@@ -49,7 +71,7 @@ export default function ImageRotator({ setCurrentText, setCurrentEmoticon }) {
 
     }, 4000); //the duration for each image (4sec)
     return () => clearInterval(interval);
-  }, [setCurrentText, setCurrentEmoticon]);
+  }, [isLoaded, setCurrentText, setCurrentEmoticon]);
 
   return (
     <OptimizedImage
@@ -58,8 +80,9 @@ export default function ImageRotator({ setCurrentText, setCurrentEmoticon }) {
       width={1200}
       height={600}
       priority={true}
-      className={`col-end-1 row-end-1 object-cover w-full rounded-2xl h-[600px] transition-opacity duration-1000 ease-in-out ${fade ? 'opacity-0' : 'opacity-100'
-        }`}
+      className={`w-full h-full object-cover transition-opacity duration-1000 ${
+        fade ? 'opacity-0' : 'opacity-100'
+      }`}
     />
   );
 }

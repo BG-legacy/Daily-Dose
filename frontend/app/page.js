@@ -53,7 +53,13 @@ export default function Home() {
               href={'/'}
               className='flex gap-2 items-center leading-none font-extrabold'
             >
-              <OptimizedImage src={happy} alt='Daily Dose Logo' width={42} height={42} />
+              <OptimizedImage 
+                src={happy} 
+                alt='Daily Dose Logo' 
+                width={42} 
+                height={42} 
+                priority={true}
+              />
               <span>
                 Daily
                 <br />
@@ -187,6 +193,7 @@ export default function Home() {
               alt='Daily Dose Fire Emoticon'
               width={96}
               height={96}
+              priority={true}
             />
             <h2 className='font-bold text-2xl'>
               Inspiration at Your Fingertips
@@ -205,6 +212,7 @@ export default function Home() {
               alt='Daily Dose Emoticons'
               width={96}
               height={96}
+              priority={true}
             />
             <h2 className='font-bold text-2xl'>Mood Tracking Made Easy</h2>
             <p>Monitor your mood trends and build awareness over time.</p>
@@ -216,6 +224,7 @@ export default function Home() {
               alt='Daily Dose AI Emoticon'
               width={96}
               height={96}
+              priority={true}
             />
             <h2 className='font-bold text-2xl'>AI-Powered Journaling</h2>
             <p>
