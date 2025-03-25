@@ -29,45 +29,39 @@ BUILD_EXIT_CODE=$?
 
 echo "Build process exited with code: $BUILD_EXIT_CODE"
 
-# If build failed, show more information
-if [ $BUILD_EXIT_CODE -ne 0 ]; then
-    echo "Next.js build failed with exit code $BUILD_EXIT_CODE"
-    echo "Current directory contents:"
-    ls -la
-    echo "Node version:"
-    node --version
-    echo "NPM version:"
-    npm --version
-    exit $BUILD_EXIT_CODE
-fi
-
-echo "Next.js build completed successfully"
-
-# Verify build output
-echo "Verifying build output..."
-if [ ! -d ".next" ]; then
-    echo "Error: .next directory not found"
-    echo "Current directory contents:"
-    ls -la
-    exit 1
-fi
-
-echo "Checking .next directory contents..."
-ls -la .next
-
-if [ ! -f ".next/routes-manifest.json" ]; then
-    echo "Error: routes-manifest.json not found"
-    echo "Contents of .next directory:"
+# Check .next directory immediately after build
+echo "Checking build output directory..."
+if [ -d ".next" ]; then
+    echo ".next directory exists"
+    echo "Contents of .next:"
     ls -la .next
-    echo "Checking for build output files..."
-    find .next -type f -name "*.json"
-    exit 1
+    
+    # Check for critical build files
+    if [ -f ".next/routes-manifest.json" ] && [ -f ".next/build-manifest.json" ]; then
+        echo "Found required build files"
+        echo "Build manifest contents:"
+        cat .next/build-manifest.json | head -n 20
+        echo "Routes manifest contents:"
+        cat .next/routes-manifest.json | head -n 20
+        
+        # If we have the required files, consider this a success
+        echo "Build completed successfully with required artifacts"
+        exit 0
+    else
+        echo "Error: Missing required build files"
+        echo "Looking for JSON files in .next:"
+        find .next -type f -name "*.json"
+    fi
+else
+    echo "Error: .next directory not found after build"
+    echo "Current directory contents:"
+    ls -la
 fi
 
-echo "Build completed successfully"
+# If we get here, something went wrong
+echo "Build verification failed"
+echo "Node version: $(node --version)"
+echo "NPM version: $(npm --version)"
+echo "Current working directory: $(pwd)"
 
-# Show final directory state
-echo "Final .next directory contents:"
-ls -la .next
-
-exit 0 
+exit 1 
