@@ -1,7 +1,7 @@
 'use client';
 import { useState, useMemo, useEffect } from 'react';
 import { MaterialSymbolsProgressActivity, MaterialSymbolsSwipeUpRounded } from '../../../components/Icons';
-import { motion, AnimatePresence } from 'motion/react';
+import { motion, AnimatePresence } from 'framer-motion';
 import GestureHint from '../../../components/GestureHint';
 import { motionProps } from '../../utils/motion';
 import { createEntry } from '../../lib/journal';

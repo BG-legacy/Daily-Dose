@@ -1,6 +1,6 @@
 import { useEffect } from "react";
 
-import { AnimatePresence, motion } from 'motion/react'
+import { AnimatePresence, motion } from 'framer-motion'
 
 export default function GestureHint({ showGestureHint, setShowGestureHint, children, top }) {
   useEffect(() => {

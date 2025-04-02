@@ -1,7 +1,7 @@
 'use client';
 import Image from 'next/image';
 import { useState } from 'react';
-import { motion } from 'motion/react';
+import { motion } from 'framer-motion';
 import { motionProps } from '../app/utils/motion';
 import logo from '../public/assets/brand/Happy.png';
 import Link from 'next/link';

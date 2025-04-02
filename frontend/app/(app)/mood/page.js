@@ -1,6 +1,6 @@
 'use client';
 import { useState, useEffect } from 'react';
-import { AnimatePresence, motion, useMotionValue } from 'motion/react';
+import { AnimatePresence, motion, useMotionValue } from 'framer-motion';
 import Layout from '../../../components/Layout';
 import Image from 'next/image';
 import { MaterialSymbolsSwipeRounded } from '../../../components/Icons';

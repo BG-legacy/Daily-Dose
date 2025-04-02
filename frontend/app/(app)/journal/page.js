@@ -5,7 +5,7 @@ import { getAllJournalEntries } from '../../lib/journal';
 import JournalInput from './JournalInput';
 import { useState, useEffect, useCallback } from 'react';
 import { useToast } from '../../contexts/toastContext/toastContext';
-import { motion } from 'motion/react';
+import { motion } from 'framer-motion';
 import { fadeInProps } from '../../utils/motion';
 
 /**

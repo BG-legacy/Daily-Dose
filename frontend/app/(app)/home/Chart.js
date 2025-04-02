@@ -1,5 +1,5 @@
 'use client';
-import { motion } from 'motion/react';
+import { motion } from 'framer-motion';
 import { motionProps } from '../../utils/motion';
 import Link from 'next/link';
 import {

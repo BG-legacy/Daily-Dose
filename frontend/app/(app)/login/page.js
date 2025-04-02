@@ -3,7 +3,7 @@
 import { Box, Typography, Button, Container, TextField } from '@mui/material';
 import { useRouter } from 'next/navigation';
 import Image from 'next/image';
-import { motion } from 'motion/react';
+import { motion } from 'framer-motion';
 import happyface from '/public/assets/brand/Happy.png';
 import Link from 'next/link';
 import { useState } from 'react';

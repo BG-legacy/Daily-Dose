@@ -1,7 +1,7 @@
 'use client';
 import Image from 'next/image';
 import { useState, useRef, useEffect } from 'react';
-import { motion } from 'motion/react';
+import { motion } from 'framer-motion';
 
 import { scrollInProps as motionProps } from './utils/motion.js';
 
@@ -238,7 +238,7 @@ export default function Home() {
               <Link href={'https://www.colorstack.org/'} className='underline'>
                 ColorStack
               </Link>
-              ’s Winter ‘24 Hackathon ❤️
+              's Winter '24 Hackathon ❤️
             </p>
             <p>
               By{' '}
