@@ -7,7 +7,7 @@
 const dotenv = require('dotenv');
 dotenv.config();
 const path = require('path');
-const envPath = path.resolve(__dirname, '../../../.env');
+const envPath = path.resolve(__dirname, '../../../../.env');
 const result = dotenv.config({ path: envPath });
 
 // AWS DynamoDB imports

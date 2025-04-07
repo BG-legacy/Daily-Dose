@@ -4,7 +4,7 @@ const dotenv = require('dotenv');
 
 // Load environment variables if not already loaded
 if (!process.env.OPENAI_API_KEY) {
-    const envPath = path.resolve(__dirname, '../../../.env');
+    const envPath = path.resolve(__dirname, '../../../../.env');
     dotenv.config({ path: envPath });
 }
 

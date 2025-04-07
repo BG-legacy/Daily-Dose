@@ -2,7 +2,7 @@
 const dotenv = require('dotenv');
 const path = require('path');
 // Construct absolute path to .env file
-const envPath = path.resolve(__dirname, '../../../.env');
+const envPath = path.resolve(__dirname, '../../../../.env');
 // Load environment variables from the specified path
 const result = dotenv.config({ path: envPath });
 
