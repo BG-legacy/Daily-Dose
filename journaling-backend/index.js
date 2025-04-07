@@ -14,7 +14,7 @@ const PORT = process.env.PORT || 3011;
 const googleClient = new OAuth2Client({
   clientId: process.env.GOOGLE_CLIENT_ID,
   clientSecret: process.env.GOOGLE_CLIENT_SECRET,
-  redirectUri: 'http://localhost:3011/auth/google/callback'
+  redirectUri: 'https://daily-dose-640q.onrender.com/auth/google/callback'
 });
 
 const app = express();
@@ -36,7 +36,7 @@ app.use((req, res, next) => {
 app.use(cors({
   origin: process.env.NODE_ENV === 'production'
     ? process.env.FRONTEND_URL
-    : 'http://localhost:3001', // Frontend port
+    : 'https://www.daily-dose.me', // Frontend URL
   credentials: true,
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization']
@@ -217,7 +217,7 @@ app.get('/auth/google', (req, res) => {
       'https://www.googleapis.com/auth/userinfo.profile',
       'https://www.googleapis.com/auth/userinfo.email'
     ],
-    redirect_uri: 'http://localhost:3011/auth/google/callback'
+    redirect_uri: 'https://daily-dose-640q.onrender.com/auth/google/callback'
   });
   console.log('Redirecting to Google OAuth URL:', authUrl);
   res.redirect(authUrl);
@@ -231,7 +231,7 @@ app.get('/auth/google/callback', async (req, res) => {
 
     const { tokens } = await googleClient.getToken({
       code,
-      redirect_uri: 'http://localhost:3011/auth/google/callback'
+      redirect_uri: 'https://daily-dose-640q.onrender.com/auth/google/callback'
     });
 
     const ticket = await googleClient.verifyIdToken({
@@ -264,7 +264,7 @@ app.get('/auth/google/callback', async (req, res) => {
     const sessionToken = tokens.id_token;
 
     // Construct the frontend callback URL with user data and token
-    const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:3001';
+    const frontendUrl = process.env.FRONTEND_URL || 'https://www.daily-dose.me';
     const redirectUrl = `${frontendUrl}/auth/callback?token=${sessionToken}&user=${encodeURIComponent(JSON.stringify({
       uid: userID,
       email: payload.email,
@@ -276,7 +276,7 @@ app.get('/auth/google/callback', async (req, res) => {
     res.redirect(redirectUrl);
   } catch (error) {
     console.error('Google auth error:', error);
-    const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:3001';
+    const frontendUrl = process.env.FRONTEND_URL || 'https://www.daily-dose.me';
     res.redirect(`${frontendUrl}/auth/error?message=${encodeURIComponent(error.message)}`);
   }
 });
@@ -397,7 +397,7 @@ app.use((err, req, res, next) => {
 app.listen(PORT, () => {
   console.log('=== Server Started ===');
   console.log(`Server running on http://localhost:${PORT}`);
-  console.log('CORS configured for: http://localhost:3001');
+  console.log('CORS configured for: https://www.daily-dose.me');
   console.log('Routes mounted:');
   console.log('- GET /health');
   console.log('- GET /auth/session');

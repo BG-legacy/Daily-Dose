@@ -47,7 +47,7 @@ const useAuth = () => {
         const creation = new Date().toISOString();
         const item = {userID: userID, name:name, email: email, password:password}
 
-        const response = await fetch('http://localhost:3001/newUser', {
+        const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/newUser`, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
@@ -80,7 +80,7 @@ const useAuth = () => {
         const token = await getIdToken(userCredential.user);
         
 
-        const response = await fetch('http://localhost:3001/home', {
+        const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/home`, {
           method: 'POST',
           headers: {
               'Content-Type': 'application/json',

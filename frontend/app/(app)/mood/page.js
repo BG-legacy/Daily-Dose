@@ -34,7 +34,7 @@ export default function Page() {
     if (user) {
       const token = sessionStorage.getItem('token');
       // Make API call to get weekly mood summary
-      fetch('http://localhost:3011/api/mood/summary/weekly', {
+      fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/mood/summary/weekly`, {
         headers: {
           Authorization: `Bearer ${token}`,
         },
@@ -90,7 +90,7 @@ export default function Page() {
         // Update feedback message based on whether it's new or updated
         setSubmissionMessage(res.wasUpdated ? 'Mood Updated!' : 'Mood Logged!');
         // Refresh mood summary data
-        return fetch('http://localhost:3011/api/mood/summary/weekly', {
+        return fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/mood/summary/weekly`, {
           headers: {
             Authorization: `Bearer ${token}`,
           },
