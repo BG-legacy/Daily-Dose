@@ -13,6 +13,10 @@ export default function Streak({ weeklyJournalSummary }) {
   const summary = weeklyJournalSummary?.summary;
   
   if (summary) {
+    // Check if they journaled today (last day in the array)
+    const journaledToday = summary[summary.length - 1];
+    
+    // Count consecutive days, including today if they journaled
     for (let i = summary.length - 1; i >= 0; i--) {
       if (summary[i]) {
         streak++;

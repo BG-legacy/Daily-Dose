@@ -4,12 +4,13 @@ import { MaterialSymbolsProgressActivity, MaterialSymbolsSwipeUpRounded } from '
 import { motion, AnimatePresence } from 'framer-motion';
 import GestureHint from '../../../components/GestureHint';
 import { motionProps } from '../../utils/motion';
-import { createEntry } from '../../lib/journal';
+import { createEntry, getWeeklyJournalSummary } from '../../lib/journal';
 import { useToast } from '../../contexts/toastContext/toastContext';
 import Image from 'next/image';
 import Link from 'next/link';
 import fire from '../../../public/assets/brand/Fire.png';
 import AI from '../../../public/assets/brand/AI.png';
+import { useRouter } from 'next/navigation';
 
 /**
  * TypewriterText Component
@@ -73,6 +74,7 @@ export default function JournalInput({ showGestureHint, setShowGestureHint, refr
   const [insights, setInsights] = useState(null); // Stores AI-generated insights
   const [currentInsight, setCurrentInsight] = useState(0); // Tracks current insight being displayed
   const { triggerToast } = useToast();
+  const router = useRouter();
 
   /**
    * Handles journal entry submission and fetches AI insights
@@ -92,6 +94,11 @@ export default function JournalInput({ showGestureHint, setShowGestureHint, refr
           quote: res.insights.quote
         });
         setUi('insights');
+        
+        // Refresh streak data immediately
+        getWeeklyJournalSummary().catch(error => {
+          console.error('Error refreshing journal summary:', error);
+        });
       })
       .catch((error) => {
         console.error('Error creating entry:', error);
@@ -116,9 +123,16 @@ export default function JournalInput({ showGestureHint, setShowGestureHint, refr
       setCurrentInsight(prev => prev + 1);
     } else {
       setUi('submitted');
+      
+      // Refresh entries if the function is provided
       if (refreshEntries) {
         refreshEntries();
       }
+      
+      // After a short delay, redirect to home to see updated streak
+      setTimeout(() => {
+        router.push('/home');
+      }, 2000);
     }
   }
 

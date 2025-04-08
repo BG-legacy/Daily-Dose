@@ -41,13 +41,22 @@ export async function createEntry({ content }) {
     throw new Error('Authentication required');
   }
 
-  return await apiClient.request('/api/journal/thoughts', {
+  const response = await apiClient.request('/api/journal/thoughts', {
     method: 'POST',
     headers: {
       'Authorization': `Bearer ${token}`
     },
     body: JSON.stringify({ thought: content })
   });
+  
+  // Update journal summary data to refresh streak
+  try {
+    await getWeeklyJournalSummary();
+  } catch (error) {
+    console.error('Error refreshing journal summary:', error);
+  }
+  
+  return response;
 }
 
 /**
