@@ -39,7 +39,7 @@ app.use(cors({
     : 'https://www.daily-dose.me', // Frontend URL
   credentials: true,
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
-  allowedHeaders: ['Content-Type', 'Authorization']
+  allowedHeaders: ['Content-Type', 'Authorization', 'cache-control']
 }));
 
 // Body parsing middleware
