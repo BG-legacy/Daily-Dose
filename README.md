@@ -1,5 +1,8 @@
 # 🚀 Daily Dose - Your Daily Wellness Companion
 
+![Screenshot 2025-04-07 at 4 50 44 PM](https://github.com/user-attachments/assets/576f330f-8eaa-4255-8db9-259292fbb898)
+
+
 ## ✨ Overview
 **Daily Dose** is your ultimate wellness companion that transforms your daily routine with a powerful blend of inspiration, mindfulness, and personal growth. Experience the future of wellness with:
 
