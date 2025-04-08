@@ -19,7 +19,8 @@ export async function getWeeklyJournalSummary() {
   // Get auth token from localStorage
   const token = typeof window !== 'undefined' ? localStorage.getItem('authToken') : null;
   
-  return await apiClient.request('/api/journal/summary/weekly', {
+  // Use the new refreshRequest method for proper cache busting
+  return await apiClient.refreshRequest('/api/journal/summary/weekly', {
     method: 'GET',
     headers: {
       'Authorization': `Bearer ${token}`
@@ -41,6 +42,7 @@ export async function createEntry({ content }) {
     throw new Error('Authentication required');
   }
 
+  console.log('Creating new journal entry with content:', content.substring(0, 50) + '...');
   const response = await apiClient.request('/api/journal/thoughts', {
     method: 'POST',
     headers: {
@@ -49,9 +51,17 @@ export async function createEntry({ content }) {
     body: JSON.stringify({ thought: content })
   });
   
-  // Update journal summary data to refresh streak
+  console.log('Journal entry created successfully, refreshing journal summary');
+  
+  // Update journal summary data to refresh streak - use refreshRequest to bypass cache
   try {
-    await getWeeklyJournalSummary();
+    const summaryResponse = await apiClient.refreshRequest('/api/journal/summary/weekly', {
+      method: 'GET',
+      headers: {
+        'Authorization': `Bearer ${token}`
+      }
+    });
+    console.log('Journal summary refreshed after creating entry:', summaryResponse);
   } catch (error) {
     console.error('Error refreshing journal summary:', error);
   }

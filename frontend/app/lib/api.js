@@ -22,6 +22,37 @@ class ApiClient {
   }
 
   /**
+   * Adds cache-busting to a URL
+   * @param {string} url - The URL to add cache busting to
+   * @returns {string} - URL with cache busting parameter
+   */
+  addCacheBusting(url) {
+    const separator = url.includes('?') ? '&' : '?';
+    return `${url}${separator}t=${Date.now()}`;
+  }
+
+  /**
+   * Makes a request with cache busting enabled
+   * @param {string} endpoint - The API endpoint
+   * @param {object} options - Request options
+   * @returns {Promise<any>} - The response
+   */
+  async refreshRequest(endpoint, options = {}) {
+    const cacheBustedEndpoint = this.addCacheBusting(endpoint);
+    const noCacheHeaders = {
+      'Cache-Control': 'no-cache, no-store, must-revalidate',
+      'Pragma': 'no-cache',
+      'Expires': '0',
+      ...options.headers
+    };
+    
+    return this.request(cacheBustedEndpoint, {
+      ...options,
+      headers: noCacheHeaders
+    });
+  }
+
+  /**
    * Generic request method that handles all API calls
    * @param {string} endpoint - The API endpoint to call (e.g., '/auth/login')
    * @param {object} options - Fetch options (method, headers, body, etc.)
@@ -32,6 +63,7 @@ class ApiClient {
     const token = options.headers?.Authorization || `Bearer ${this.getAuthToken()}`;
     
     try {
+      console.log(`Making API request to: ${url}`);
       const response = await fetch(url, {
         ...options,
         credentials: 'include', // Important for cookies
@@ -48,7 +80,9 @@ class ApiClient {
         throw new Error(errorData.message || `HTTP error! status: ${response.status}`);
       }
 
-      return response.json();
+      const data = await response.json();
+      console.log(`API response from ${endpoint}:`, data);
+      return data;
     } catch (error) {
       console.error(`API request failed for ${endpoint}:`, error);
       throw error;

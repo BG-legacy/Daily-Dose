@@ -95,10 +95,15 @@ export default function JournalInput({ showGestureHint, setShowGestureHint, refr
         });
         setUi('insights');
         
-        // Refresh streak data immediately
-        getWeeklyJournalSummary().catch(error => {
-          console.error('Error refreshing journal summary:', error);
-        });
+        // Refresh streak data immediately with a forced fetch
+        console.log("Refreshing journal summary after entry creation");
+        getWeeklyJournalSummary()
+          .then(data => {
+            console.log("Successfully refreshed journal summary:", data);
+          })
+          .catch(error => {
+            console.error('Error refreshing journal summary:', error);
+          });
       })
       .catch((error) => {
         console.error('Error creating entry:', error);

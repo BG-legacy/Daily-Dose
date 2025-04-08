@@ -215,20 +215,41 @@ const journalController = {
             
             // Calculate date range for current week
             const now = new Date();
+            console.log('Current date/time on server:', now.toISOString());
+            
+            // Get today's date string for direct comparison
+            const todayStr = now.toISOString().split('T')[0];
+            console.log('Today as string:', todayStr);
+            
+            // Calculate day of week (0 = Sunday, 1 = Monday, etc.)
             const currentDay = now.getDay();
+            console.log('Current day of week:', currentDay);
+            
+            // Calculate start of week (Sunday)
             const startOfWeek = new Date(now);
             startOfWeek.setDate(now.getDate() - currentDay);
             startOfWeek.setHours(0, 0, 0, 0);
+            console.log('Start of week:', startOfWeek.toISOString());
 
-            const endOfWeek = new Date(startOfWeek);
+            // Calculate end of week (Saturday)
+            const endOfWeek = new Date(now);
             endOfWeek.setDate(startOfWeek.getDate() + 6);
             endOfWeek.setHours(23, 59, 59, 999);
+            console.log('End of week:', endOfWeek.toISOString());
 
-            // Get entries for the week
+            // Get ALL entries for the week
             const entries = await journalManager.getEntriesInDateRange(userID, startOfWeek, endOfWeek);
+            console.log('Found entries:', entries.length);
+            
+            // Log entry dates for debugging
+            entries.forEach(entry => {
+                console.log('Entry date:', entry.CreationDate, 'as day string:', entry.CreationDate.split('T')[0]);
+            });
 
-            // Format data for response
+            // Format data for response - create array of 7 days (Sun to Sat)
             const days = [];
+            
+            // Check for each day of the week if there's an entry
             for (let i = 0; i < 7; i++) {
                 const date = new Date(startOfWeek);
                 date.setDate(startOfWeek.getDate() + i);
@@ -238,8 +259,23 @@ const journalController = {
                 const hasEntry = entries.some(entry => 
                     entry.CreationDate.split('T')[0] === dayStr
                 );
+                
                 days.push(hasEntry);
+                console.log(`Day ${i} (${dayStr}): ${hasEntry ? 'Has entry' : 'No entry'}`);
             }
+            
+            // Double-check for today's entries specifically
+            const todayEntries = entries.filter(entry => 
+                entry.CreationDate.split('T')[0] === todayStr
+            );
+            
+            // If we have entries for today but it's not showing in our days array, fix it
+            if (todayEntries.length > 0 && !days[currentDay]) {
+                console.log(`Found ${todayEntries.length} entries for today but days[${currentDay}] is false. Fixing...`);
+                days[currentDay] = true;
+            }
+            
+            console.log('Final weekly summary:', days);
 
             return res.status(200).json({
                 labels: days.map((_, i) => {
@@ -248,7 +284,16 @@ const journalController = {
                     return date.toLocaleDateString('en-US', { weekday: 'short' });
                 }),
                 data: days.map(hasEntry => hasEntry ? 1 : 0), // For the Chart component
-                summary: days // For the Streak component
+                summary: days, // For the Streak component
+                debug: {
+                    now: now.toISOString(),
+                    todayStr,
+                    currentDay,
+                    startOfWeek: startOfWeek.toISOString(),
+                    endOfWeek: endOfWeek.toISOString(),
+                    numEntries: entries.length,
+                    todayEntries: todayEntries.length
+                }
             });
         } catch (error) {
             console.error('Error getting weekly summary:', error);
