@@ -67,8 +67,9 @@ export default function Page() {
       1: 'upset',
     };
     // If mood exists for today, update UI accordingly
-    if (weeklyMoodSummary?.data[now]) {
-      setMood(moodMap[weeklyMoodSummary.data[now]]);
+    if (weeklyMoodSummary?.data && weeklyMoodSummary.data[now]) {
+      const currentMood = moodMap[weeklyMoodSummary.data[now]];
+      setMood(currentMood);
       setSubmissionMessage('Today\'s mood is already set. You can update it if you\'d like.');
       setUi('submitted');
     }
@@ -135,9 +136,8 @@ export default function Page() {
 
   // Update the change mood button handler
   const handleChangeMood = () => {
-    setMood('happy');
     setUi('initial');
-    setSubmissionMessage('Mood Logged!');
+    // Don't reset the mood value, keep the current selection
   };
 
   return (
@@ -162,9 +162,9 @@ export default function Page() {
               <motion.button
                 {...motionProps(2)}
                 className='bg-yellow-950 text-white px-6 py-4 font-bold rounded-full'
-                onClick={() => handleSubmitEntry(false)}
+                onClick={() => handleSubmitEntry(true)}
               >
-                Submit
+                Update Mood
               </motion.button>
             </div>
           </div>
