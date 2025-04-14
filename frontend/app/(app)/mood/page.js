@@ -241,10 +241,21 @@ export default function Page() {
 }
 
 // Slider component for mood selection
-function Slider({ setMood }) {
-  const [sliderIndex, setSliderIndex] = useState(1);
+function Slider({ mood, setMood }) {
+  const moodToIndex = {
+    'sad': 0,
+    'happy': 1,
+    'upset': 2
+  };
+
+  const [sliderIndex, setSliderIndex] = useState(moodToIndex[mood] || 1);
   const sliderLength = 3;
   const dragX = useMotionValue(0);
+
+  // Sync slider index when mood changes from parent
+  useEffect(() => {
+    setSliderIndex(moodToIndex[mood] || 1);
+  }, [mood]);
 
   // Handle drag gesture completion
   const onDragEnd = () => {
@@ -252,20 +263,23 @@ function Slider({ setMood }) {
 
     // Update slider index based on drag direction and buffer
     if (x <= -DRAG_BUFFER && sliderIndex < sliderLength - 1) {
-      setSliderIndex((pv) => pv + 1);
+      const newIndex = sliderIndex + 1;
+      setSliderIndex(newIndex);
+      updateState(newIndex);
     } else if (x >= DRAG_BUFFER && sliderIndex > 0) {
-      setSliderIndex((pv) => pv - 1);
+      const newIndex = sliderIndex - 1;
+      setSliderIndex(newIndex);
+      updateState(newIndex);
     }
-
-    updateState();
   };
 
   // Update mood state based on slider position
-  function updateState() {
-    if (sliderIndex === 0) setMood('sad');
-    if (sliderIndex === 1) setMood('happy');
-    if (sliderIndex === 2) setMood('upset');
+  function updateState(index = sliderIndex) {
+    if (index === 0) setMood('sad');
+    if (index === 1) setMood('happy');
+    if (index === 2) setMood('upset');
   }
+
   return (
     <div className='max-w-[100vw] flex justify-center items-center relative h-72 overflow-x-hidden overflow-y-visible gradient-mask'>
       <motion.div
@@ -289,12 +303,13 @@ function Slider({ setMood }) {
             setSliderIndex(0);
             setMood('sad');
           }}
-          className={`cursor-pointer pointer-events-none md:pointer-events-auto w-52 h-52 transition-all relative ${sliderIndex === 0 ? '' : 'translate-y-12'
-            }`}
+          className={`cursor-pointer pointer-events-none md:pointer-events-auto w-52 h-52 transition-all relative ${
+            sliderIndex === 0 ? '' : 'translate-y-12'
+          }`}
         >
           <Image
             src={sad}
-            alt='Daily Dose Happy Emoticon'
+            alt='Daily Dose Sad Emoticon'
             className='min-w-52 min-h-52 pointer-events-none'
           />
         </div>
@@ -303,8 +318,9 @@ function Slider({ setMood }) {
             setSliderIndex(1);
             setMood('happy');
           }}
-          className={`cursor-pointer pointer-events-none md:pointer-events-auto w-52 h-52 transition-all ${sliderIndex === 1 ? '' : 'translate-y-12'
-            }`}
+          className={`cursor-pointer pointer-events-none md:pointer-events-auto w-52 h-52 transition-all ${
+            sliderIndex === 1 ? '' : 'translate-y-12'
+          }`}
         >
           <Image
             src={happy}
@@ -317,8 +333,9 @@ function Slider({ setMood }) {
             setSliderIndex(2);
             setMood('upset');
           }}
-          className={`cursor-pointer pointer-events-none md:pointer-events-auto w-52 h-52 transition-all ${sliderIndex === 2 ? '' : 'translate-y-12'
-            }`}
+          className={`cursor-pointer pointer-events-none md:pointer-events-auto w-52 h-52 transition-all ${
+            sliderIndex === 2 ? '' : 'translate-y-12'
+          }`}
         >
           <Image
             src={upset}
