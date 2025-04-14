@@ -97,9 +97,12 @@ export default function Page() {
           throw new Error('No response from server');
         }
         console.log('Mood submission response:', res);
+        
+        // Update UI state and message based on response
+        const message = res.wasUpdated ? 'Mood Updated Successfully!' : 'Mood Logged Successfully!';
+        setSubmissionMessage(message);
         setUi('submitted');
-        // Update feedback message based on whether it's new or updated
-        setSubmissionMessage(res.wasUpdated ? 'Mood Updated Successfully!' : 'Mood Logged Successfully!');
+        
         // Refresh mood summary data
         return fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/mood/summary/weekly`, {
           headers: {
@@ -129,6 +132,13 @@ export default function Page() {
         setUi('initial');
       });
   }
+
+  // Update the change mood button handler
+  const handleChangeMood = () => {
+    setMood('happy');
+    setUi('initial');
+    setSubmissionMessage('Mood Logged!');
+  };
 
   return (
     <Layout route='mood' fullWidth onClick={() => setShowGestureHint(false)}>
@@ -194,10 +204,7 @@ export default function Page() {
               <motion.button
                 {...motionProps(2)}
                 className='border-yellow-950 border-2 px-6 py-4 font-bold rounded-full'
-                onClick={() => {
-                  setMood('happy');
-                  setUi('initial');
-                }}
+                onClick={handleChangeMood}
               >
                 Change Mood
               </motion.button>
