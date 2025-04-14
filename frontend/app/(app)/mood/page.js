@@ -93,6 +93,9 @@ export default function Page() {
     // Submit mood to backend
     setUserMood({ content: mood })
       .then((res) => {
+        if (!res) {
+          throw new Error('No response from server');
+        }
         console.log('Mood submission response:', res);
         setUi('submitted');
         // Update feedback message based on whether it's new or updated
@@ -122,6 +125,8 @@ export default function Page() {
       .catch((error) => {
         console.error('Error submitting mood:', error);
         triggerToast('Failed to update mood. Please try again.');
+        // Reset UI state on error
+        setUi('initial');
       });
   }
 
@@ -205,9 +210,9 @@ export default function Page() {
           <Image
             src={halo}
             alt=''
-            className={`object-cover h-full w-full scale-125 z-0 transition-all ${
+            className={`object-cover h-full w-full scale-125 z-0 transition-all duration-300 ${
               mood === 'sad' ? 'hue-rotate-[160deg]' : ''
-            } ${mood === 'upset' ? 'hue-rotate-[-30]' : ''}`}
+            } ${mood === 'upset' ? 'hue-rotate-[-30deg]' : ''}`}
           />
         </div>
 
