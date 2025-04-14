@@ -11,7 +11,6 @@ import HealthCheck from '../../components/HealthCheck';
 import { useAuth } from '../../contexts/authContext/authIndex';
 import { useToast } from '../../contexts/toastContext/toastContext';
 import { useRouter } from 'next/navigation';
-import JournalCTA from './JournalCTA';
 
 export default function Page() {
   const { user } = useAuth();
@@ -20,43 +19,66 @@ export default function Page() {
   const [weeklyJournalSummary, setWeeklyJournalSummary] = useState(null);
   const router = useRouter();
 
-  // Function to refresh all data
-  const refreshData = async () => {
-    const token = sessionStorage.getItem('token');
-    if (!token) return;
-
-    try {
-      // Fetch mood summary
-      const moodData = await getWeeklyMoodSummary();
-      setWeeklyMoodSummary(moodData);
-
-      // Fetch journal summary
-      const journalData = await getWeeklyJournalSummary();
-      setWeeklyJournalSummary(journalData);
-    } catch (error) {
-      console.error('Error refreshing data:', error);
+  // Function to load summary data
+  async function loadSummaryData() {
+    console.log('Loading summary data...');
+    if (user) {
+      console.log('User authenticated, fetching data');
+      try {
+        const moodSummary = await getWeeklyMoodSummary();
+        console.log('Mood summary data:', moodSummary);
+        setWeeklyMoodSummary(moodSummary);
+      } catch (error) {
+        console.error('Error fetching mood summary:', error);
+        triggerToast('An error occurred loading mood data.');
+      }
+      
+      try {
+        console.log('Fetching journal summary...');
+        const journalSummary = await getWeeklyJournalSummary();
+        console.log('Journal summary received:', journalSummary);
+        
+        // Log today's data specifically
+        const today = new Date().getDay();
+        console.log('Today is day:', today);
+        if (journalSummary?.summary) {
+          console.log('Today has entry:', journalSummary.summary[today]);
+        }
+        
+        setWeeklyJournalSummary(journalSummary);
+      } catch (error) {
+        console.error('Error fetching journal summary:', error);
+        triggerToast('An error occurred loading journal data.');
+      }
+    } else {
+      console.log('No user, cannot fetch data');
     }
-  };
+  }
 
-  // Initial data fetch
   useEffect(() => {
-    refreshData();
-  }, []);
-
-  // Expose refresh function to window
-  useEffect(() => {
-    window.refreshHomeData = refreshData;
-    return () => {
-      delete window.refreshHomeData;
+    console.log('Home page mounted or user changed');
+    loadSummaryData();
+    
+    // Add event listener for focus to refresh data when returning to the page
+    const handleFocus = () => {
+      console.log('Window focused, refreshing data');
+      loadSummaryData();
     };
-  }, []);
+    
+    window.addEventListener('focus', handleFocus);
+    
+    // Clean up the event listener
+    return () => {
+      window.removeEventListener('focus', handleFocus);
+    };
+  }, [user]);
 
   // Force update when the page is visible
   useEffect(() => {
     const handleVisibilityChange = () => {
       if (document.visibilityState === 'visible') {
         console.log('Page became visible, refreshing data');
-        refreshData();
+        loadSummaryData();
       }
     };
 
@@ -70,18 +92,12 @@ export default function Page() {
   return (
     <ProtectedRoute>
       <Layout route='home' className='pb-24'>
-        <div className='flex flex-col gap-4'>
-          <Streak 
-            weeklyJournalSummary={weeklyJournalSummary} 
-            weeklyMoodSummary={weeklyMoodSummary} 
-          />
-          <Chart 
-            weeklyJournalSummary={weeklyJournalSummary} 
-            weeklyMoodSummary={weeklyMoodSummary} 
-          />
-          <QuoteCard />
-          <JournalCTA />
-        </div>
+        <QuoteCard />
+        <Streak 
+          weeklyJournalSummary={weeklyJournalSummary} 
+          weeklyMoodSummary={weeklyMoodSummary} 
+        />
+        <Chart weeklyMoodSummary={weeklyMoodSummary} />
       </Layout>
     </ProtectedRoute>
   );

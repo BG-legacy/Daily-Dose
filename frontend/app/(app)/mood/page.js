@@ -124,16 +124,6 @@ export default function Page() {
         }
         // Show success toast
         triggerToast(submissionMessage);
-        
-        // Force a refresh of the home page data
-        if (window.refreshHomeData) {
-          window.refreshHomeData();
-        }
-        
-        // If we're on the home page, trigger a refresh
-        if (window.location.pathname === '/home') {
-          window.location.reload();
-        }
       })
       .catch((error) => {
         console.error('Error submitting mood:', error);
