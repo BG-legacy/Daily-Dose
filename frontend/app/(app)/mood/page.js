@@ -83,9 +83,17 @@ export default function Page() {
       return;
     }
 
+    // Validate mood value
+    const validMoods = ['happy', 'sad', 'upset'];
+    if (!validMoods.includes(mood)) {
+      triggerToast('Invalid mood value selected');
+      return;
+    }
+
     // Submit mood to backend
     setUserMood({ content: mood })
       .then((res) => {
+        console.log('Mood submission response:', res);
         setUi('submitted');
         // Update feedback message based on whether it's new or updated
         setSubmissionMessage(res.wasUpdated ? 'Mood Updated Successfully!' : 'Mood Logged Successfully!');
@@ -96,7 +104,12 @@ export default function Page() {
           },
         });
       })
-      .then((res) => res.json())
+      .then((res) => {
+        if (!res.ok) {
+          throw new Error(`HTTP error! status: ${res.status}`);
+        }
+        return res.json();
+      })
       .then((data) => {
         setWeeklyMoodSummary(data);
         // Trigger chart refresh if available
@@ -239,7 +252,7 @@ function Slider({ setMood }) {
   function updateState() {
     if (sliderIndex === 0) setMood('sad');
     if (sliderIndex === 1) setMood('happy');
-    if (sliderIndex === 2) setMood('stressed');
+    if (sliderIndex === 2) setMood('upset');
   }
   return (
     <div className='max-w-[100vw] flex justify-center items-center relative h-72 overflow-x-hidden overflow-y-visible gradient-mask'>
