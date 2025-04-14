@@ -88,7 +88,7 @@ export default function Page() {
       .then((res) => {
         setUi('submitted');
         // Update feedback message based on whether it's new or updated
-        setSubmissionMessage(res.wasUpdated ? 'Mood Updated!' : 'Mood Logged!');
+        setSubmissionMessage(res.wasUpdated ? 'Mood Updated Successfully!' : 'Mood Logged Successfully!');
         // Refresh mood summary data
         return fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/mood/summary/weekly`, {
           headers: {
@@ -103,8 +103,13 @@ export default function Page() {
         if (window.refreshMoodChart) {
           window.refreshMoodChart();
         }
+        // Show success toast
+        triggerToast(submissionMessage);
       })
-      .catch((error) => triggerToast('An error occurred.'));
+      .catch((error) => {
+        console.error('Error submitting mood:', error);
+        triggerToast('Failed to update mood. Please try again.');
+      });
   }
 
   return (

@@ -93,7 +93,10 @@ export default function Page() {
     <ProtectedRoute>
       <Layout route='home' className='pb-24'>
         <QuoteCard />
-        <Streak weeklyJournalSummary={weeklyJournalSummary} />
+        <Streak 
+          weeklyJournalSummary={weeklyJournalSummary} 
+          weeklyMoodSummary={weeklyMoodSummary} 
+        />
         <Chart weeklyMoodSummary={weeklyMoodSummary} />
       </Layout>
     </ProtectedRoute>
