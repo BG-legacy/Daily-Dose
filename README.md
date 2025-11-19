@@ -1,6 +1,6 @@
 # 🚀 Daily Dose - Your Daily Wellness Companion
 
-![Screenshot 2025-04-07 at 4 50 44 PM](https://github.com/user-attachments/assets/576f330f-8eaa-4255-8db9-259292fbb898)
+![Screenshot 2025-04-07 at 4 50 44 PM](https://github.com/user-attachments/assets/576f330f-8eaa-4255-8db9-259292fbb898)
 
 
 ## ✨ Overview
@@ -52,6 +52,7 @@ Get your daily dose of inspiration with carefully curated content that includes:
 | 📊 Visualization | Chart.js |
 | 🔐 Auth | NextAuth.js |
 | 🛠️ Tools | GitHub, Figma, Trello |
+| 📈 Performance | Custom metrics, Load testing scripts |
 
 ## 🚀 Getting Started
 
@@ -78,6 +79,42 @@ Get your daily dose of inspiration with carefully curated content that includes:
    ```bash
    npm run dev
    ```
+
+## 📊 Performance Testing
+
+Daily Dose comes with built-in performance testing capabilities to ensure the application can handle high user loads:
+
+### Load Testing
+
+1. **Create test users**
+   ```bash
+   ./create_test_users.sh [base_url] [num_users]
+   ```
+
+2. **Run the load test**
+   ```bash
+   ./loadtest.sh [base_url]
+   ```
+
+3. **Analyze performance**
+   ```bash
+   ./analyze_performance.sh [log_file]
+   ```
+
+For detailed information on load testing, see [LOAD_TESTING.md](LOAD_TESTING.md).
+
+### Performance Metrics
+
+Daily Dose includes:
+- 📈 Backend performance tracking (API response times, error rates)
+- 🔄 Database operation monitoring
+- 🤖 AI operation performance metrics
+- 🖥️ Frontend performance tracking (page load times, Web Vitals)
+
+Access metrics through:
+- `/performance` dashboard for frontend metrics
+- `/api/metrics` endpoint (with authentication) for backend metrics
+- Chrome DevTools Performance panel for detailed frontend analysis
 
 ## 💡 What We've Learned
 - 🎯 Building user-centric applications that make a difference

@@ -1,10 +1,12 @@
 'use client';
 import Image from 'next/image';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { motionProps } from '../app/utils/motion';
 import logo from '../public/assets/brand/Happy.png';
 import Link from 'next/link';
+import { usePathname, useRouter } from 'next/navigation';
+import { trackPageLoad } from '../lib/performance';
 
 import { MaterialSymbolsPersonRounded } from '../components/Icons';
 
@@ -22,6 +24,43 @@ export default function Layout({
   className,
 }) {
   const [highlightedRoute, setHighlightedRoute] = useState(route)
+  const [activePage, setActivePage] = useState(route || 'home');
+  const pathname = usePathname();
+  const router = useRouter();
+  
+  // Track page navigation on client side
+  useEffect(() => {
+    // Track initial page load
+    const navigationStart = performance?.timing?.navigationStart || performance.now();
+    const loadTime = performance.now();
+    
+    trackPageLoad(pathname, {
+      startTime: navigationStart,
+      endTime: loadTime,
+      redirectCount: performance.navigation?.redirectCount || 0
+    });
+    
+    // Attach listener for route changes
+    const handleRouteChange = (url) => {
+      const startTime = performance.now();
+      
+      // We can't get the exact end time of a route change,
+      // so we'll use a small timeout to approximate it
+      setTimeout(() => {
+        trackPageLoad(url, {
+          startTime,
+          endTime: performance.now(),
+          redirectCount: 0 // Client-side navigations don't typically involve redirects
+        });
+      }, 100);
+    };
+    
+    // Clean up on unmount
+    return () => {
+      // Clean up code if needed
+    };
+  }, [pathname]);
+
   const highlightStyles = {
     'home'
       : 'left-1 w-[75px]',

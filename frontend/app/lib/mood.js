@@ -1,17 +1,32 @@
 import { apiClient } from './api';
 
 /**
+ * Helper function to get the auth token from storage
+ * @returns {string|null} The authentication token or null if not found
+ */
+function getAuthToken() {
+  if (typeof window === 'undefined') return null;
+  
+  // Try localStorage first, then sessionStorage as fallback
+  const localToken = localStorage.getItem('authToken');
+  const sessionToken = sessionStorage.getItem('token');
+  
+  // Return whichever token is available, preferring localStorage
+  return localToken || sessionToken || null;
+}
+
+/**
  * Set user's mood for today
  * @param {('happy' | 'sad' | 'upset')} mood - User inputted mood
  */
 export async function setMood({ content }) {
-  // Retrieve authentication token from sessionStorage (more secure than localStorage)
-  const token = sessionStorage.getItem('token');
-  console.log('Token from sessionStorage:', token); // Debug log
+  // Get auth token with improved fallback mechanism
+  const token = getAuthToken();
+  console.log('Token retrieved for mood setting:', token ? 'Found' : 'Not found'); // Debug log
 
   // Ensure user is authenticated before proceeding
   if (!token) {
-    console.error('No token found in sessionStorage');
+    console.error('No authentication token found');
     throw new Error('Not authenticated');
   }
 
@@ -27,17 +42,18 @@ export async function setMood({ content }) {
 
 export async function getWeeklyMoodSummary() {
   try {
-    // Retrieve authentication token for API request
-    const token = sessionStorage.getItem('token');
-    console.log('Fetching weekly mood summary with token:', token); // Debug log
+    // Get auth token with improved fallback mechanism
+    const token = getAuthToken();
+    console.log('Fetching weekly mood summary with token:', token ? 'Found' : 'Not found'); // Debug log
 
     if (!token) {
-      console.error('No token found in sessionStorage');
-      throw new Error('Not authenticated');
+      console.error('No authentication token found');
+      // Return default data so UI doesn't break
+      return { labels: ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'], data: Array(7).fill(null) };
     }
 
     // Fetch weekly mood data with authentication
-    const response = await apiClient.request('/api/mood/summary/weekly', {
+    const response = await apiClient.refreshRequest('/api/mood/summary/weekly', {
       method: 'GET',
       headers: {
         'Authorization': `Bearer ${token}`
@@ -49,6 +65,7 @@ export async function getWeeklyMoodSummary() {
 
   } catch (error) {
     console.error('Failed to fetch weekly mood summary:', error);
-    return null;
+    // Return default data so UI doesn't break
+    return { labels: ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'], data: Array(7).fill(null) };
   }
 }

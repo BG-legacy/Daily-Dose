@@ -6,6 +6,9 @@ const envPath = path.resolve(__dirname, '../../../../.env');
 // Load environment variables from the specified path
 const result = dotenv.config({ path: envPath });
 
+// Import performance tracking utility
+const { trackDatabaseOperation } = require('./performance');
+
 // Import required AWS SDK v3 DynamoDB client and commands for table operations
 const { DynamoDBClient, DescribeTableCommand } = require('@aws-sdk/client-dynamodb');
 // Import DynamoDB Document client and specific command interfaces for CRUD operations
@@ -39,6 +42,7 @@ class MoodManager {
 
     // Method to add or update a mood entry for the current day
     async addMood(moodData) {
+        const startTime = Date.now();
         // Get current date and format it for the timestamp
         const now = new Date();
         const dateStr = now.toISOString().split('T')[0];  // Extract YYYY-MM-DD
@@ -68,35 +72,48 @@ class MoodManager {
             });
 
             await this.docClient.send(command);
+            const duration = Date.now() - startTime;
+            trackDatabaseOperation('addMood', duration);
             return { ...item, wasUpdated: false };  // Indicate new entry was created
 
         } catch (error) {
             // Handle the case where an entry already exists for today
             if (error.name === 'ConditionalCheckFailedException') {
-                // Update the existing mood entry
-                const updateCommand = new UpdateCommand({
-                    TableName: this.tableName,
-                    Key: {
-                        UserID: moodData.UserID,
-                        Timestamp: item.Timestamp
-                    },
-                    // Update the content and creation date
-                    UpdateExpression: 'SET Content = :content, CreationDate = :creationDate',
-                    ExpressionAttributeValues: {
-                        ':content': moodData.Content,
-                        ':creationDate': item.CreationDate
-                    },
-                    ReturnValues: 'ALL_NEW'  // Return the updated item
-                });
-                const response = await this.docClient.send(updateCommand);
-                return { ...response.Attributes, wasUpdated: true };  // Indicate entry was updated
+                try {
+                    // Update the existing mood entry
+                    const updateCommand = new UpdateCommand({
+                        TableName: this.tableName,
+                        Key: {
+                            UserID: moodData.UserID,
+                            Timestamp: item.Timestamp
+                        },
+                        // Update the content and creation date
+                        UpdateExpression: 'SET Content = :content, CreationDate = :creationDate',
+                        ExpressionAttributeValues: {
+                            ':content': moodData.Content,
+                            ':creationDate': item.CreationDate
+                        },
+                        ReturnValues: 'ALL_NEW'  // Return the updated item
+                    });
+                    const response = await this.docClient.send(updateCommand);
+                    const duration = Date.now() - startTime;
+                    trackDatabaseOperation('updateMood', duration);
+                    return { ...response.Attributes, wasUpdated: true };  // Indicate entry was updated
+                } catch (updateError) {
+                    const duration = Date.now() - startTime;
+                    trackDatabaseOperation('updateMood_error', duration);
+                    throw updateError;
+                }
             }
+            const duration = Date.now() - startTime;
+            trackDatabaseOperation('addMood_error', duration);
             throw error;  // Re-throw any other errors
         }
     }
 
     // Method to retrieve and format mood data for the current week
     async getWeeklyMoodSummary(userID) {
+        const startTime = Date.now();
         // Calculate the start and end of the current week in UTC
         const now = new Date();
         const currentDay = now.getUTCDay();  // 0 = Sunday, 6 = Saturday
@@ -167,6 +184,9 @@ class MoodManager {
                 moodData
             });
 
+            const duration = Date.now() - startTime;
+            trackDatabaseOperation('getWeeklyMoodSummary', duration);
+
             // Return formatted data for Chart.js visualization
             return {
                 labels: dayLabels,  // Day labels (Sun, Mon, etc.)
@@ -175,6 +195,8 @@ class MoodManager {
         } catch (error) {
             // Log and re-throw any errors
             console.error("Error getting weekly mood summary:", error);
+            const duration = Date.now() - startTime;
+            trackDatabaseOperation('getWeeklyMoodSummary_error', duration);
             throw error;
         }
     }

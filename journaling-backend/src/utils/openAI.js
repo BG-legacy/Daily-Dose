@@ -1,6 +1,7 @@
 const OpenAI = require('openai');
 const path = require('path');
 const dotenv = require('dotenv');
+const { trackAIOperation } = require('./performance');
 
 // Load environment variables if not already loaded
 if (!process.env.OPENAI_API_KEY) {
@@ -38,6 +39,9 @@ class OpenAIService {
             "productivityHack": "A practical productivity tip"
         }`;
 
+        const startTime = Date.now();
+        let success = false;
+
         try {
             const response = await this.openai.chat.completions.create({
                 model: "gpt-4",
@@ -52,6 +56,8 @@ class OpenAIService {
                 max_tokens: 500
             });
 
+            const duration = Date.now() - startTime;
+
             try {
                 const content = response.choices[0].message.content.trim();
                 const insights = JSON.parse(content);
@@ -64,14 +70,19 @@ class OpenAIService {
                     throw new Error(`Missing required fields: ${missingFields.join(', ')}`);
                 }
                 
+                success = true;
+                trackAIOperation('generateInsights', duration, true);
                 return insights;
             } catch (parseError) {
                 console.error('JSON Parse Error:', parseError);
                 console.error('Raw Response:', response.choices[0].message.content);
+                trackAIOperation('generateInsights', duration, false);
                 throw new Error('Failed to parse AI insights');
             }
         } catch (error) {
+            const duration = Date.now() - startTime;
             console.error('OpenAI API Error:', error);
+            trackAIOperation('generateInsights', duration, false);
             throw new Error('Failed to generate AI insights');
         }
     }

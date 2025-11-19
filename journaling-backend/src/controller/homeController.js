@@ -1,5 +1,5 @@
-const Database = require('../utils/dynamoDB');
-const db = new Database();
+const UserManager = require('../utils/userManager');
+const db = new UserManager();
 //TODO: import openai stuff
 
 

@@ -1,5 +1,33 @@
-// Base URL for API requests - defaults to localhost in development
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3011'; // Match backend port
+import { createTrackedFetch } from '../../lib/performance';
+
+// Base URL for API calls
+const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3011';
+
+// Create a performance-tracked fetch function
+const trackedFetch = typeof window !== 'undefined' 
+  ? createTrackedFetch(window.fetch.bind(window)) 
+  : null;
+
+// Use tracked fetch in browser, regular fetch in SSR
+const performFetch = async (url, options = {}) => {
+  if (typeof window !== 'undefined' && trackedFetch) {
+    return trackedFetch(url, options);
+  } else {
+    return fetch(url, options);
+  }
+};
+
+// Helper function to get auth token from storage
+const getAuthToken = () => {
+  if (typeof window === 'undefined') return null;
+  
+  // Try localStorage first, then sessionStorage as fallback
+  const localToken = localStorage.getItem('authToken');
+  const sessionToken = sessionStorage.getItem('token');
+  
+  // Return whichever token is available, preferring localStorage
+  return localToken || sessionToken || null;
+};
 
 /**
  * API Client class for handling all server requests
@@ -8,17 +36,13 @@ const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3011';
 class ApiClient {
   constructor() {
     // Remove trailing slashes from base URL for consistency
-    this.baseUrl = API_BASE_URL.replace(/\/+$/, '');
+    this.baseUrl = API_URL.replace(/\/+$/, '');
     console.log('API Client initialized with base URL:', this.baseUrl);
   }
 
   // Add method to get auth token
   getAuthToken() {
-    // Only access localStorage on the client side
-    if (typeof window !== 'undefined') {
-      return localStorage.getItem('authToken');
-    }
-    return null;
+    return getAuthToken();
   }
 
   /**
@@ -46,6 +70,14 @@ class ApiClient {
       ...options.headers
     };
     
+    // If no Authorization header is provided, try to add it
+    if (!options.headers?.Authorization) {
+      const token = this.getAuthToken();
+      if (token) {
+        noCacheHeaders['Authorization'] = `Bearer ${token}`;
+      }
+    }
+    
     return this.request(cacheBustedEndpoint, {
       ...options,
       headers: noCacheHeaders
@@ -60,16 +92,25 @@ class ApiClient {
    */
   async request(endpoint, options = {}) {
     const url = `${this.baseUrl}${endpoint}`;
-    const token = options.headers?.Authorization || `Bearer ${this.getAuthToken()}`;
+    
+    // Try to add authorization if not already present
+    if (!options.headers?.Authorization) {
+      const token = this.getAuthToken();
+      if (token) {
+        options.headers = {
+          ...options.headers,
+          'Authorization': `Bearer ${token}`
+        };
+      }
+    }
     
     try {
       console.log(`Making API request to: ${url}`);
-      const response = await fetch(url, {
+      const response = await performFetch(url, {
         ...options,
         credentials: 'include', // Important for cookies
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': token,
           ...options.headers,
         },
       });
@@ -95,10 +136,16 @@ class ApiClient {
    */
   async checkServerHealth() {
     try {
-      const response = await this.request('/health');
-      return response.status === 'ok';
+      const response = await performFetch(`${this.baseUrl}/health`, {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json'
+        }
+      });
+      
+      return response.status === 200;
     } catch (error) {
-      console.error('Health check failed:', error);
+      console.error('Health check error:', error);
       return false;
     }
   }
@@ -128,6 +175,80 @@ class ApiClient {
       method: 'POST',
       body: JSON.stringify({ email, password })
     });
+  }
+
+  // Get authenticated user session
+  async getSession(token) {
+    try {
+      const response = await performFetch(`${this.baseUrl}/auth/session`, {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        }
+      });
+      
+      return await response.json();
+    } catch (error) {
+      console.error('Session check error:', error);
+      throw error;
+    }
+  }
+
+  // Generic API call function with retry logic
+  async call(endpoint, method = 'GET', data = null, headers = {}) {
+    const token = typeof localStorage !== 'undefined' ? localStorage.getItem('authToken') : null;
+    
+    const options = {
+      method,
+      headers: {
+        'Content-Type': 'application/json',
+        ...headers
+      }
+    };
+    
+    if (token) {
+      options.headers['Authorization'] = `Bearer ${token}`;
+    }
+    
+    if (data && (method === 'POST' || method === 'PUT')) {
+      options.body = JSON.stringify(data);
+    }
+    
+    try {
+      const response = await performFetch(`${this.baseUrl}${endpoint}`, options);
+      
+      // Handle unauthorized errors (potentially refresh token here)
+      if (response.status === 401) {
+        console.warn('Unauthorized API request');
+        // Could handle token refresh here in the future
+      }
+      
+      // Try to parse JSON
+      try {
+        const result = await response.json();
+        
+        // Add status to result for easier checking
+        result._status = response.status;
+        
+        // Throw for error statuses
+        if (!response.ok) {
+          throw result;
+        }
+        
+        return result;
+      } catch (jsonError) {
+        // If not JSON or empty response
+        if (!response.ok) {
+          throw new Error(`API call failed with status ${response.status}`);
+        }
+        
+        return { _status: response.status, success: response.ok };
+      }
+    } catch (error) {
+      console.error(`API call error (${endpoint}):`, error);
+      throw error;
+    }
   }
 }
 

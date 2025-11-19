@@ -1,0 +1,46 @@
+================================
+MongoDB Atlas Environment Setup
+================================
+
+Copy the content below to your .env file:
+
+# MongoDB Atlas Configuration
+MONGODB_URI=mongodb+srv://bginnjr20_db_user:iQosiKK0oPB01uke@cluster0.nwdw3it.mongodb.net/?appName=Cluster0
+
+# Server Configuration
+PORT=3011
+NODE_ENV=production
+
+# Frontend URL
+FRONTEND_URL=https://www.daily-dose.me
+
+# Google OAuth Configuration
+GOOGLE_CLIENT_ID=your_google_client_id_here
+GOOGLE_CLIENT_SECRET=your_google_client_secret_here
+
+# OpenAI Configuration (for journal insights)
+OPENAI_API_KEY=your_openai_api_key_here
+
+================================
+IMPORTANT NOTES:
+================================
+
+1. The MongoDB URI has been provided above
+2. Remove these OLD AWS variables from your .env:
+   - AWS_ACCESS_KEY_ID
+   - AWS_SECRET_ACCESS_KEY
+   - AWS_REGION
+
+3. Keep your existing Google OAuth and OpenAI credentials
+
+================================
+Quick Start:
+================================
+
+1. Update your .env file with the MongoDB URI above
+2. Run: npm install (mongoose is now installed)
+3. Run: npm start
+4. Check health: http://localhost:3011/health
+
+================================
+

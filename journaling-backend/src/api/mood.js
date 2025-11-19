@@ -2,7 +2,7 @@
 const express = require('express');
 const bodyParser = require('body-parser')
 const router = express.Router();
-const MoodManager = require('../utils/moodTable');
+const MoodManager = require('../utils/moodManager');
 
 // Initialize Express and add JSON parsing middleware
 const app = express();
