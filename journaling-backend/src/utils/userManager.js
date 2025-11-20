@@ -14,8 +14,7 @@ const { trackDatabaseOperation } = require('./performance');
  */
 class UserManager {
     constructor() {
-        // Ensure MongoDB connection is established
-        this.ensureConnection();
+        // Connection will be ensured by each method when needed
     }
 
     /**
@@ -28,6 +27,7 @@ class UserManager {
             }
         } catch (error) {
             console.error('Failed to establish MongoDB connection:', error);
+            throw error; // Re-throw to propagate the error
         }
     }
 

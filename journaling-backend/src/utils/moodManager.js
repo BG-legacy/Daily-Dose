@@ -13,7 +13,7 @@ const { trackDatabaseOperation } = require('./performance');
  */
 class MoodManager {
     constructor() {
-        this.ensureConnection();
+        // Connection will be ensured by each method when needed
     }
 
     /**
@@ -26,6 +26,7 @@ class MoodManager {
             }
         } catch (error) {
             console.error('Failed to establish MongoDB connection:', error);
+            throw error; // Re-throw to propagate the error
         }
     }
 

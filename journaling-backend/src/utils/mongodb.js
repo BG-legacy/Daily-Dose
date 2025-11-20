@@ -36,10 +36,6 @@ class MongoDBConnection {
                 
                 // Enhanced connection options for Render and MongoDB Atlas
                 const connectionOptions = {
-                    // Parser and topology options
-                    useNewUrlParser: true,
-                    useUnifiedTopology: true,
-                    
                     // Timeout settings - more generous for Render's network
                     serverSelectionTimeoutMS: 30000, // 30 seconds (increased from 5)
                     socketTimeoutMS: 45000,
@@ -69,8 +65,14 @@ class MongoDBConnection {
                 this.isConnected = true;
 
                 console.log('✅ Successfully connected to MongoDB Atlas');
-                console.log(`   Database: ${this.connection.db.databaseName}`);
-                console.log(`   Host: ${this.connection.host}`);
+                
+                // Safely access database info only if available
+                if (this.connection.db) {
+                    console.log(`   Database: ${this.connection.db.databaseName}`);
+                }
+                if (this.connection.host) {
+                    console.log(`   Host: ${this.connection.host}`);
+                }
 
                 // Handle connection events
                 mongoose.connection.on('error', (err) => {

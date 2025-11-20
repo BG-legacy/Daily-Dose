@@ -424,30 +424,41 @@ app.use((err, req, res, next) => {
   res.status(500).json({ error: err.message || 'Something went wrong!' });
 });
 
-// Start server
-app.listen(PORT, async () => {
-  console.log('=== Server Started ===');
-  console.log(`Server running on http://localhost:${PORT}`);
-  console.log('CORS configured for: https://www.daily-dose.me');
-  
-  // Initialize MongoDB connection
+// Start server - Initialize MongoDB connection BEFORE starting the server
+async function startServer() {
   try {
+    console.log('=== Initializing Server ===');
+    
+    // Initialize MongoDB connection FIRST
+    console.log('🔄 Connecting to MongoDB...');
     await mongoConnection.connect();
     console.log('✅ MongoDB connected successfully');
+    
+    // Now start the server
+    app.listen(PORT, () => {
+      console.log('=== Server Started ===');
+      console.log(`Server running on http://localhost:${PORT}`);
+      console.log('CORS configured for: https://www.daily-dose.me');
+      
+      console.log('Routes mounted:');
+      console.log('- GET /health');
+      console.log('- GET /auth/session');
+      console.log('- POST /api/journal');
+      console.log('- GET /api/journal');
+      console.log('- GET /api/journal/summary/weekly');
+      console.log('- GET /api/journal/:thoughtId');
+      console.log('- DELETE /api/journal/:thoughtId');
+      console.log('- POST /api/mood');
+      console.log('- GET /api/mood/summary/weekly');
+    });
   } catch (error) {
-    console.error('❌ Failed to connect to MongoDB:', error.message);
-    console.error('⚠️  Server will continue but database operations will fail');
+    console.error('❌ Failed to start server:', error.message);
+    console.error('Stack:', error.stack);
+    console.error('⚠️  Exiting due to initialization failure');
+    process.exit(1); // Exit if we can't connect to the database
   }
-  
-  console.log('Routes mounted:');
-  console.log('- GET /health');
-  console.log('- GET /auth/session');
-  console.log('- POST /api/journal');
-  console.log('- GET /api/journal');
-  console.log('- GET /api/journal/summary/weekly');
-  console.log('- GET /api/journal/:thoughtId');
-  console.log('- DELETE /api/journal/:thoughtId');
-  console.log('- POST /api/mood');
-  console.log('- GET /api/mood/summary/weekly');
-});
+}
+
+// Start the server
+startServer();
 
