@@ -1,11 +1,11 @@
-const userDB = require('../utils/dynamoDB');
-const journalsDB = require('../utils/journalsTable');
+const UserManager = require('../utils/userManager');
+const JournalManager = require('../utils/journalManager');
 const OpenAIService = require('../utils/openAI');
 
 // Initialize services
 const openAIService = new OpenAIService();
-const userManager = new userDB();
-const journalManager = new journalsDB();
+const userManager = new UserManager();
+const journalManager = new JournalManager();
 
 /**
  * Journal Controller

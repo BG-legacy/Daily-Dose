@@ -12,13 +12,34 @@ const db =
 const sampleSummary = [true, false, true, false, true, true, true];
 
 /**
+ * Helper function to get the auth token from storage
+ * @returns {string|null} The authentication token or null if not found
+ */
+function getAuthToken() {
+  if (typeof window === 'undefined') return null;
+  
+  // Try localStorage first, then sessionStorage as fallback
+  const localToken = localStorage.getItem('authToken');
+  const sessionToken = sessionStorage.getItem('token');
+  
+  // Return whichever token is available, preferring localStorage
+  return localToken || sessionToken || null;
+}
+
+/**
  * Gets the weekly summary of journal entries
  * @returns {Promise<Array>} Weekly journal entry summary
  */
 export async function getWeeklyJournalSummary() {
-  // Get auth token from localStorage
-  const token = typeof window !== 'undefined' ? localStorage.getItem('authToken') : null;
+  // Get auth token with improved fallback mechanism
+  const token = getAuthToken();
   
+  if (!token) {
+    console.error('No authentication token found for journal summary request');
+    return { summary: Array(7).fill(false) }; // Return default empty summary
+  }
+  
+  try {
   // Use the new refreshRequest method for proper cache busting
   return await apiClient.refreshRequest('/api/journal/summary/weekly', {
     method: 'GET',
@@ -26,6 +47,11 @@ export async function getWeeklyJournalSummary() {
       'Authorization': `Bearer ${token}`
     }
   });
+  } catch (error) {
+    console.error('Error fetching weekly journal summary:', error);
+    // Return fallback data so the UI doesn't break
+    return { summary: Array(7).fill(false) };
+  }
 }
 
 /**
@@ -35,8 +61,8 @@ export async function getWeeklyJournalSummary() {
  * @returns {Promise<Object>} The created journal entry
  */
 export async function createEntry({ content }) {
-  // Get auth token from localStorage on client side only
-  const token = typeof window !== 'undefined' ? localStorage.getItem('authToken') : null;
+  // Get auth token with improved fallback mechanism
+  const token = getAuthToken();
   
   if (!token) {
     throw new Error('Authentication required');
@@ -77,9 +103,20 @@ export async function createEntry({ content }) {
  */
 export async function getEntry({ entryID }) {
     try {
+        // Get auth token with improved fallback mechanism
+        const token = getAuthToken();
+        
+        if (!token) {
+          throw new Error('Authentication required');
+        }
+        
         // Ensure the entryID is properly encoded in the URL
         const endpoint = `/api/journal/thoughts/${encodeURIComponent(entryID)}`;
-        const response = await apiClient.request(endpoint);
+        const response = await apiClient.request(endpoint, {
+          headers: {
+            'Authorization': `Bearer ${token}`
+          }
+        });
         return response;
     } catch (error) {
         console.error('Error fetching journal entry:', error);
@@ -92,8 +129,8 @@ export async function getEntry({ entryID }) {
  * @returns {Promise<Array>} Array of journal entries
  */
 export async function getAllJournalEntries() {
-  // Get auth token from localStorage on client side only
-  const token = typeof window !== 'undefined' ? localStorage.getItem('authToken') : null;
+  // Get auth token with improved fallback mechanism
+  const token = getAuthToken();
   
   if (!token) {
     throw new Error('Authentication required');
@@ -114,7 +151,8 @@ export async function getAllJournalEntries() {
  * @returns {Promise<Object>} Result of the deletion operation
  */
 export async function deleteEntry({ entryID }) {
-  const token = typeof window !== 'undefined' ? localStorage.getItem('authToken') : null;
+  // Get auth token with improved fallback mechanism
+  const token = getAuthToken();
   
   if (!token) {
     throw new Error('Authentication required');

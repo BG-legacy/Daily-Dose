@@ -3,6 +3,7 @@ const path = require('path');
 const envPath = path.resolve(__dirname, '../../../../.env');
 const result = dotenv.config({ path: envPath });
 const {v4: uuidv4} = require('uuid');
+const { trackDatabaseOperation } = require('./performance');
 const { DynamoDBClient } = require('@aws-sdk/client-dynamodb');
 const {
     DynamoDBDocumentClient,
@@ -46,6 +47,7 @@ class JournalManager {
      * @throws {Error} If table doesn't exist or insufficient permissions
      */
     async verifyTableAccess() {
+        const startTime = Date.now();
         try {
             // Update the test access check to use the correct schema
             await this.docClient.send(new GetCommand({
@@ -55,9 +57,13 @@ class JournalManager {
                     CreationDate: new Date().toISOString()
                 }
             }));
+            const duration = Date.now() - startTime;
+            trackDatabaseOperation('verifyTableAccess', duration);
             return true;
         } catch (error) {
             console.error('DynamoDB Access Error:', error.message);
+            const duration = Date.now() - startTime;
+            trackDatabaseOperation('verifyTableAccess_error', duration);
             if (error.name === 'ResourceNotFoundException') {
                 throw new Error(`Table ${this.tableName} does not exist`);
             }
@@ -81,6 +87,7 @@ class JournalManager {
      * @returns {Promise<Object>} Created journal entry
      */
     async addJournalEntry(journalData) {
+        const startTime = Date.now();
         const creationDate = journalData.Timestamp || new Date().toISOString();
         const item = {
             UserID: journalData.UserID,
@@ -98,12 +105,16 @@ class JournalManager {
 
         try {
             await this.docClient.send(command);
+            const duration = Date.now() - startTime;
+            trackDatabaseOperation('addJournalEntry', duration);
             return {
                 ...item,
                 id: `${item.UserID}#${item.CreationDate}`
             };
         } catch (error) {
             console.error("Error adding journal entry:", error);
+            const duration = Date.now() - startTime;
+            trackDatabaseOperation('addJournalEntry_error', duration);
             throw error;
         }
     }
@@ -115,6 +126,7 @@ class JournalManager {
      * @throws {Error} If userID is not provided
      */
     async getUserJournalEntries(userID) {
+        const startTime = Date.now();
         if (!userID) {
             throw new Error('UserID is required');
         }
@@ -131,6 +143,8 @@ class JournalManager {
         try {
             console.log('Fetching entries for userID:', userID);
             const response = await this.docClient.send(command);
+            const duration = Date.now() - startTime;
+            trackDatabaseOperation('getUserJournalEntries', duration);
             return response.Items.map(item => ({
                 ...item,
                 Content: item.Content || item.Thoughts,
@@ -138,6 +152,8 @@ class JournalManager {
             }));
         } catch (error) {
             console.error("Error fetching journal entries:", error);
+            const duration = Date.now() - startTime;
+            trackDatabaseOperation('getUserJournalEntries_error', duration);
             throw error;
         }
     }
@@ -148,6 +164,7 @@ class JournalManager {
      * @returns {Promise<Object|null>} Journal entry or null if not found
      */
     async getJournalEntry(compositeId) {
+        const startTime = Date.now();
         try {
             // Handle both composite ID formats (uid#timestamp and plain uid)
             let userID, creationDate;
@@ -158,6 +175,8 @@ class JournalManager {
                 // If no timestamp provided, get the latest entry for this user
                 const entries = await this.getUserJournalEntries(userID);
                 if (!entries || entries.length === 0) {
+                    const duration = Date.now() - startTime;
+                    trackDatabaseOperation('getJournalEntry_notFound', duration);
                     return null;
                 }
                 creationDate = entries[0].CreationDate;
@@ -177,14 +196,21 @@ class JournalManager {
             });
 
             const response = await this.docClient.send(command);
-            if (!response.Item) return null;
+            const duration = Date.now() - startTime;
+            if (!response.Item) {
+                trackDatabaseOperation('getJournalEntry_notFound', duration);
+                return null;
+            }
             
+            trackDatabaseOperation('getJournalEntry', duration);
             return {
                 ...response.Item,
                 id: `${userID}#${creationDate}`
             };
         } catch (error) {
             console.error("Error fetching journal entry:", error);
+            const duration = Date.now() - startTime;
+            trackDatabaseOperation('getJournalEntry_error', duration);
             throw error;
         }
     }
@@ -195,6 +221,7 @@ class JournalManager {
      * @returns {Promise<Object>} Result of deletion operation
      */
     async deleteJournalEntry(compositeId) {
+        const startTime = Date.now();
         const [userID, creationDate] = compositeId.split('#');
         
         const command = new DeleteCommand({
@@ -208,12 +235,16 @@ class JournalManager {
 
         try {
             const response = await this.docClient.send(command);
+            const duration = Date.now() - startTime;
+            trackDatabaseOperation('deleteJournalEntry', duration);
             return {
                 success: !!response.Attributes,
                 message: response.Attributes ? 'Journal entry deleted successfully' : 'No journal entry found'
             };
         } catch (error) {
             console.error("Error deleting journal entry:", error);
+            const duration = Date.now() - startTime;
+            trackDatabaseOperation('deleteJournalEntry_error', duration);
             throw error;
         }
     }
@@ -226,6 +257,7 @@ class JournalManager {
      * @returns {Promise<Array>} List of journal entries
      */
     async getEntriesInDateRange(userID, startDate, endDate) {
+        const startTime = Date.now();
         const command = new QueryCommand({
             TableName: this.tableName,
             KeyConditionExpression: 'UserID = :uid AND CreationDate BETWEEN :start AND :end',
@@ -238,9 +270,13 @@ class JournalManager {
 
         try {
             const response = await this.docClient.send(command);
+            const duration = Date.now() - startTime;
+            trackDatabaseOperation('getEntriesInDateRange', duration);
             return response.Items || [];
         } catch (error) {
             console.error("Error fetching entries in date range:", error);
+            const duration = Date.now() - startTime;
+            trackDatabaseOperation('getEntriesInDateRange_error', duration);
             throw error;
         }
     }

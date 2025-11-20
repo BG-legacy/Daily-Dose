@@ -1,4 +1,4 @@
-// import moods table
-const moodDB = require('../utils/moodTable')
+// import moods manager
+const MoodManager = require('../utils/moodManager');
 
 

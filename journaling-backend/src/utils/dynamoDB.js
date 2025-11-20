@@ -9,6 +9,7 @@ dotenv.config();
 const path = require('path');
 const envPath = path.resolve(__dirname, '../../../../.env');
 const result = dotenv.config({ path: envPath });
+const { trackDatabaseOperation } = require('./performance');
 
 // AWS DynamoDB imports
 const { DynamoDBClient, DescribeTableCommand } = require('@aws-sdk/client-dynamodb');
@@ -63,10 +64,15 @@ UserManager.prototype.addUser = async function (userData) {
         ReturnValues: "ALL_OLD"
     });
 
+    const startTime = Date.now();
     try {
         await this.docClient.send(command);
+        const duration = Date.now() - startTime;
+        trackDatabaseOperation('addUser', duration);
         console.log("User added successfully:", item.UserID);
     } catch (error) {
+        const duration = Date.now() - startTime;
+        trackDatabaseOperation('addUser_error', duration);
         console.error("Error adding user: ", error);
         throw error;
     }
@@ -87,14 +93,20 @@ UserManager.prototype.getUser = async function (userID) {
         }
     });
 
+    const startTime = Date.now();
     try {
         const response = await this.docClient.send(command);
+        const duration = Date.now() - startTime;
+        trackDatabaseOperation('getUser', duration);
+        
         if (!response.Item) {
             console.log("User not found:", userID);
             return null;
         }
         return response.Item;
     } catch (error) {
+        const duration = Date.now() - startTime;
+        trackDatabaseOperation('getUser_error', duration);
         console.error("Error in getUser:", error);
         throw error;
     }

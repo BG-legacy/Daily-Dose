@@ -6,7 +6,7 @@
 const express = require('express');
 const app = express();
 const cors = require('cors');
-const UserManager = require('./dynamoDB');
+const UserManager = require('./userManager');
 const db = new UserManager();
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
