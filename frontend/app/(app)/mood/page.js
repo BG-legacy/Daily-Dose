@@ -103,8 +103,9 @@ export default function Page() {
         const message = res.wasUpdated ? 'Mood Updated Successfully!' : 'Mood Logged Successfully!';
         setSubmissionMessage(message);
         setUi('submitted');
+        triggerToast(message);
         
-        // Refresh mood summary data
+        // Refresh mood summary data immediately
         return fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/mood/summary/weekly`, {
           headers: {
             Authorization: `Bearer ${token}`,
@@ -118,7 +119,21 @@ export default function Page() {
         return res.json();
       })
       .then((data) => {
+        console.log('New mood summary data:', data);
         setWeeklyMoodSummary(data);
+        
+        // Update current mood from the new data
+        const now = new Date().getDay();
+        if (data.data && data.data[now]) {
+          const moodMap = {
+            3: 'happy',
+            2: 'sad',
+            1: 'upset',
+          };
+          const currentMood = moodMap[data.data[now]];
+          setMood(currentMood);
+        }
+
         // Trigger chart refresh if available
         if (window.refreshMoodChart) {
           window.refreshMoodChart();
@@ -134,8 +149,14 @@ export default function Page() {
 
   // Update the change mood button handler
   const handleChangeMood = () => {
+    // Keep the current mood when changing
+    const currentMood = mood;
     setUi('initial');
-    // Don't reset the mood value, keep the current selection
+    
+    // Use a timeout to ensure the state updates properly
+    setTimeout(() => {
+      setMood(currentMood);
+    }, 0);
   };
 
   // Effect to sync mood state with weekly summary
@@ -170,7 +191,7 @@ export default function Page() {
                 {...motionProps(0)}
                 className='font-bold items-center justify-center text-pretty text-center text-lg'
               >
-                How was your <b>mood</b> today?
+                Update your <b>mood</b> for today
               </motion.p>
 
               {/* Mood selection slider */}
