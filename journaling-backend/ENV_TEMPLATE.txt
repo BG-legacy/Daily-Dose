@@ -5,7 +5,8 @@ MongoDB Atlas Environment Setup
 Copy the content below to your .env file:
 
 # MongoDB Atlas Configuration
-MONGODB_URI=mongodb+srv://bginnjr20_db_user:iQosiKK0oPB01uke@cluster0.nwdw3it.mongodb.net/?appName=Cluster0
+# IMPORTANT: Add database name between .net/ and ? (e.g., daily-dose)
+MONGODB_URI
 
 # Server Configuration
 PORT=3011
