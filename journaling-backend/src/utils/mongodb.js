@@ -95,7 +95,27 @@ class MongoDBConnection {
                 lastError = error;
                 console.error(`❌ MongoDB connection attempt ${attempt}/${retries} failed:`, error.message);
                 
-                if (error.message.includes('tlsv1 alert') || error.message.includes('SSL')) {
+                // Detect IP whitelist errors (most common issue on Render)
+                if (error.message.includes('whitelist') || 
+                    error.message.includes('IP') || 
+                    error.message.includes('network') ||
+                    error.message.includes('Could not connect to any servers')) {
+                    console.error('');
+                    console.error('🔒 IP WHITELIST ERROR DETECTED');
+                    console.error('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
+                    console.error('MongoDB Atlas is blocking connections from Render.');
+                    console.error('');
+                    console.error('📋 QUICK FIX (2 minutes):');
+                    console.error('1. Go to: https://cloud.mongodb.com/');
+                    console.error('2. Navigate to: Security → Network Access');
+                    console.error('3. Click: "Add IP Address" → "ALLOW ACCESS FROM ANYWHERE"');
+                    console.error('4. This adds 0.0.0.0/0 to whitelist (safe - auth still required)');
+                    console.error('5. Wait 1-2 minutes, then redeploy on Render');
+                    console.error('');
+                    console.error('📖 Full guide: See RENDER_DEPLOYMENT_FIX.md');
+                    console.error('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
+                    console.error('');
+                } else if (error.message.includes('tlsv1 alert') || error.message.includes('SSL')) {
                     console.error('⚠️  TLS/SSL Error detected. This usually means:');
                     console.error('   1. MongoDB Atlas IP whitelist is blocking Render IPs');
                     console.error('   2. Connection string is incorrect');
@@ -108,6 +128,11 @@ class MongoDBConnection {
                     await new Promise(resolve => setTimeout(resolve, backoffDelay));
                 } else {
                     console.error('❌ All connection attempts failed');
+                    if (error.message.includes('whitelist') || error.message.includes('IP')) {
+                        console.error('');
+                        console.error('💡 This is almost certainly an IP whitelist issue.');
+                        console.error('   Follow the steps above to fix it in MongoDB Atlas.');
+                    }
                 }
                 
                 this.isConnected = false;
