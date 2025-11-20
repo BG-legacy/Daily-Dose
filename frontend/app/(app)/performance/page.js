@@ -2,8 +2,8 @@
 
 import { useState, useEffect } from 'react';
 import { getPerformanceMetrics } from '../../../lib/performance';
-import Layout from '../../../../components/Layout';
-import { useAuth } from '../../../contexts/authContext/authIndex';
+import Layout from '../../../components/Layout';
+import { useAuth } from '../../contexts/authContext/authIndex';
 import Link from 'next/link';
 
 export default function PerformanceDashboard() {
