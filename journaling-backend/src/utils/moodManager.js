@@ -141,20 +141,31 @@ class MoodManager {
             };
 
             // Generate arrays for each day of the week
+            // Use UTC dates consistently to avoid timezone issues
             const days = [];
             const dayLabels = [];
             for (let i = 0; i < 7; i++) {
                 const date = new Date(startOfWeek);
-                date.setDate(startOfWeek.getDate() + i);
-                days.push(date.toLocaleDateString('en-CA')); // YYYY-MM-DD format
-                dayLabels.push(date.toLocaleDateString('en-US', { weekday: 'short' }));
+                date.setUTCDate(startOfWeek.getUTCDate() + i);
+                // Format as YYYY-MM-DD using UTC methods to avoid timezone conversion
+                const year = date.getUTCFullYear();
+                const month = String(date.getUTCMonth() + 1).padStart(2, '0');
+                const day = String(date.getUTCDate()).padStart(2, '0');
+                const dateStr = `${year}-${month}-${day}`;
+                days.push(dateStr);
+                dayLabels.push(date.toLocaleDateString('en-US', { weekday: 'short', timeZone: 'UTC' }));
             }
 
             // Map mood entries to each day
+            // Compare dates in UTC to match how they're stored
             const moodData = days.map(day => {
                 const dayMood = moodEntries.find(entry => {
-                    const entryDate = new Date(entry.Timestamp).toLocaleDateString('en-CA');
-                    return entryDate === day;
+                    const entryDate = new Date(entry.Timestamp);
+                    const entryYear = entryDate.getUTCFullYear();
+                    const entryMonth = String(entryDate.getUTCMonth() + 1).padStart(2, '0');
+                    const entryDay = String(entryDate.getUTCDate()).padStart(2, '0');
+                    const entryDateStr = `${entryYear}-${entryMonth}-${entryDay}`;
+                    return entryDateStr === day;
                 });
                 return dayMood ? moodValues[dayMood.Content] || null : null;
             });
@@ -162,7 +173,12 @@ class MoodManager {
             console.log('Weekly Mood Data:', {
                 startOfWeek: startOfWeek.toISOString(),
                 endOfWeek: endOfWeek.toISOString(),
-                entries: moodEntries,
+                entries: moodEntries.map(e => ({
+                    Content: e.Content,
+                    Timestamp: e.Timestamp,
+                    DateStr: `${new Date(e.Timestamp).getUTCFullYear()}-${String(new Date(e.Timestamp).getUTCMonth() + 1).padStart(2, '0')}-${String(new Date(e.Timestamp).getUTCDate()).padStart(2, '0')}`
+                })),
+                days: days,
                 moodData
             });
 
